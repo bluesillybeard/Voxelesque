@@ -14,6 +14,12 @@ public class DummyGame implements IGameLogic {
 
     private static final float MOUSE_SENSITIVITY = 0.2f;
 
+    private final Matrix4f projectionMatrix;
+
+    private Matrix4f modelViewMatrix;
+
+    private final Matrix4f viewMatrix;
+
     private final Vector3f cameraInc;
 
     private final Vector3f cameraPosition;
@@ -28,14 +34,14 @@ public class DummyGame implements IGameLogic {
 
     private static final float Z_FAR = 1000.f;
 
-    private final Transformation transformation;
-
     private ShaderProgram shaderProgram;
 
     private static final float CAMERA_POS_STEP = 0.05f;
 
     public DummyGame() {
-        transformation = new Transformation();
+        projectionMatrix = new Matrix4f();
+        modelViewMatrix = new Matrix4f();
+        viewMatrix = new Matrix4f();
         cameraPosition = new Vector3f(0, 0, 0);
         cameraRotation = new Vector3f(0, 0, 0);
         cameraInc = new Vector3f();
@@ -206,17 +212,32 @@ public class DummyGame implements IGameLogic {
         shaderProgram.bind();
 
         // Update projection Matrix
-        Matrix4f projectionMatrix = transformation.getProjectionMatrix(FOV, window.getWidth(), window.getHeight(), Z_NEAR, Z_FAR);
+        projectionMatrix.setPerspective(FOV, (float)window.getWidth() / window.getHeight(), Z_NEAR, Z_FAR);
         shaderProgram.setUniform("projectionMatrix", projectionMatrix);
 
         // Update view Matrix
-        Matrix4f viewMatrix = transformation.getViewMatrix(cameraPosition, cameraRotation);
+        // First do the rotation so camera rotates over its position
+        viewMatrix.identity().rotate((float)Math.toRadians(cameraRotation.x), new Vector3f(1, 0, 0))
+                .rotate((float)Math.toRadians(cameraRotation.y), new Vector3f(0, 1, 0));
+        // Then do the translation
+        viewMatrix.translate(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z);
 
         shaderProgram.setUniform("texture_sampler", 0);
         // Render each gameItem
         for (GameItem gameItem : gameItems) {
+
+
             // Set model view matrix for this item
-            Matrix4f modelViewMatrix = transformation.getModelViewMatrix(gameItem, viewMatrix);
+            Vector3f rotation = gameItem.getRotation();
+            modelViewMatrix.identity().translate(gameItem.getPosition()).
+                    rotateX((float)Math.toRadians(-rotation.x)).
+                    rotateY((float)Math.toRadians(-rotation.y)).
+                    rotateZ((float)Math.toRadians(-rotation.z)).
+                    scale(gameItem.getScale());
+            Matrix4f viewCurr = new Matrix4f(viewMatrix);
+            modelViewMatrix = viewCurr.mul(modelViewMatrix);
+
+
             shaderProgram.setUniform("texture_sampler", 0);
             shaderProgram.setUniform("modelViewMatrix", modelViewMatrix);
             // Render the mes for this game item
