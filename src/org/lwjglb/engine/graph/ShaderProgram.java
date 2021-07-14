@@ -14,42 +14,41 @@ public class ShaderProgram {
 
     private int fragmentShaderId;
 
-    private final Map<String, Integer> uniforms;
+    private int modelViewMatrixUniform, projectionMatrixUniform, textureSamplerUniform;
 
-    public ShaderProgram() throws Exception {
+    public ShaderProgram(String vertexShaderCode, String fragmentShaderCode) throws Exception {
+
+
         programId = glCreateProgram();
         if (programId == 0) {
             throw new Exception("Could not create Shader");
         }
-        uniforms = new HashMap<>();
+
+        vertexShaderId = createShader(vertexShaderCode, GL_VERTEX_SHADER);
+        fragmentShaderId = createShader(fragmentShaderCode, GL_FRAGMENT_SHADER);
+        link();
+
+        modelViewMatrixUniform = glGetUniformLocation(programId, "modelViewMatrix");
+        projectionMatrixUniform = glGetUniformLocation(programId, "projectionMatrix");
+        textureSamplerUniform = glGetUniformLocation(programId, "texture_sampler");
     }
 
-    public void createUniform(String uniformName) throws Exception {
-        int uniformLocation = glGetUniformLocation(programId, uniformName);
-        if (uniformLocation < 0) {
-            throw new Exception("Could not find uniform:" + uniformName);
-        }
-        uniforms.put(uniformName, uniformLocation);
-    }
-
-    public void setUniform(String uniformName, Matrix4f value) {
+    public void setModelViewMatrix(Matrix4f value){
         // Dump the matrix into a float buffer
         try (MemoryStack stack = MemoryStack.stackPush()) {
-            glUniformMatrix4fv(uniforms.get(uniformName), false,
-                               value.get(stack.mallocFloat(16)));
+            glUniformMatrix4fv(modelViewMatrixUniform, false,
+                    value.get(stack.mallocFloat(16)));
         }
     }
-
-    public void setUniform(String uniformName, int value) {
-        glUniform1i(uniforms.get(uniformName), value);
+    public void setProjectionMatrix(Matrix4f value){
+        // Dump the matrix into a float buffer
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            glUniformMatrix4fv(projectionMatrixUniform, false,
+                    value.get(stack.mallocFloat(16)));
+        }
     }
-
-    public void createVertexShader(String shaderCode) throws Exception {
-        vertexShaderId = createShader(shaderCode, GL_VERTEX_SHADER);
-    }
-
-    public void createFragmentShader(String shaderCode) throws Exception {
-        fragmentShaderId = createShader(shaderCode, GL_FRAGMENT_SHADER);
+    public void setTextureSamplerUniform(int value) {
+        glUniform1i(textureSamplerUniform, value);
     }
 
     protected int createShader(String shaderCode, int shaderType) throws Exception {

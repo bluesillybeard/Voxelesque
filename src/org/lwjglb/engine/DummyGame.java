@@ -7,7 +7,6 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 
-import org.lwjglb.engine.*;
 import org.lwjglb.engine.graph.*;
 
 public class DummyGame implements IGameLogic {
@@ -28,11 +27,11 @@ public class DummyGame implements IGameLogic {
 
     private GameItem[] gameItems;
 
-    private static final float FOV = (float) Math.toRadians(60.0f);
+    private static final float FOV = (float) Math.toRadians(90);
 
-    private static final float Z_NEAR = 0.01f;
+    private static final float Z_NEAR = 1/256f;
 
-    private static final float Z_FAR = 1000.f;
+    private static final float Z_FAR = Float.MAX_VALUE/2f;
 
     private ShaderProgram shaderProgram;
 
@@ -50,15 +49,9 @@ public class DummyGame implements IGameLogic {
     @Override
     public void init(Window window) throws Exception {
         // Create shader
-        shaderProgram = new ShaderProgram();
-        shaderProgram.createVertexShader(Utils.loadResource("/home/bluesillybeard/IdeaProjects/opengl-lwjgl-3/src/org/lwjglb/vertex.glsl"));
-        shaderProgram.createFragmentShader(Utils.loadResource("/home/bluesillybeard/IdeaProjects/opengl-lwjgl-3/src/org/lwjglb/fragment.glsl"));
-        shaderProgram.link();
-
-        // Create uniforms for modelView and projection matrices and texture
-        shaderProgram.createUniform("projectionMatrix");
-        shaderProgram.createUniform("modelViewMatrix");
-        shaderProgram.createUniform("texture_sampler");        // Create the Mesh
+        shaderProgram = new ShaderProgram(
+                Utils.loadResource("/home/bluesillybeard/IdeaProjects/opengl-lwjgl-3/src/org/lwjglb/vertex.glsl"),
+                Utils.loadResource("/home/bluesillybeard/IdeaProjects/opengl-lwjgl-3/src/org/lwjglb/fragment.glsl"));
         float[] positions = new float[]{
                 // V0
                 -0.5f, 0.5f, 0.5f,
@@ -213,7 +206,7 @@ public class DummyGame implements IGameLogic {
 
         // Update projection Matrix
         projectionMatrix.setPerspective(FOV, (float)window.getWidth() / window.getHeight(), Z_NEAR, Z_FAR);
-        shaderProgram.setUniform("projectionMatrix", projectionMatrix);
+        shaderProgram.setProjectionMatrix(projectionMatrix);
 
         // Update view Matrix
         // First do the rotation so camera rotates over its position
@@ -222,7 +215,7 @@ public class DummyGame implements IGameLogic {
         // Then do the translation
         viewMatrix.translate(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z);
 
-        shaderProgram.setUniform("texture_sampler", 0);
+        shaderProgram.setTextureSamplerUniform(0);
         // Render each gameItem
         for (GameItem gameItem : gameItems) {
 
@@ -237,9 +230,7 @@ public class DummyGame implements IGameLogic {
             Matrix4f viewCurr = new Matrix4f(viewMatrix);
             modelViewMatrix = viewCurr.mul(modelViewMatrix);
 
-
-            shaderProgram.setUniform("texture_sampler", 0);
-            shaderProgram.setUniform("modelViewMatrix", modelViewMatrix);
+            shaderProgram.setModelViewMatrix(modelViewMatrix);
             // Render the mes for this game item
             gameItem.getMesh().render();
         }
