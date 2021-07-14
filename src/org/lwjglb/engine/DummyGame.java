@@ -1,4 +1,4 @@
-package org.lwjglb.game;
+package org.lwjglb.engine;
 
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
@@ -15,8 +15,10 @@ public class DummyGame implements IGameLogic {
     private static final float MOUSE_SENSITIVITY = 0.2f;
 
     private final Vector3f cameraInc;
-    
-    private final Camera camera;
+
+    private final Vector3f cameraPosition;
+
+    private final Vector3f cameraRotation;
 
     private GameItem[] gameItems;
 
@@ -34,7 +36,8 @@ public class DummyGame implements IGameLogic {
 
     public DummyGame() {
         transformation = new Transformation();
-        camera = new Camera();
+        cameraPosition = new Vector3f(0, 0, 0);
+        cameraRotation = new Vector3f(0, 0, 0);
         cameraInc = new Vector3f();
     }
 
@@ -173,12 +176,21 @@ public class DummyGame implements IGameLogic {
     @Override
     public void update(float interval, MouseInput mouseInput) {
         // Update camera position
-        camera.movePosition(cameraInc.x * CAMERA_POS_STEP, cameraInc.y * CAMERA_POS_STEP, cameraInc.z * CAMERA_POS_STEP);
+        if ( cameraInc.z * CAMERA_POS_STEP != 0 ) {
+            cameraPosition.x += (float)Math.sin(Math.toRadians(cameraRotation.y)) * -1.0f * cameraInc.z * CAMERA_POS_STEP;
+            cameraPosition.z += (float)Math.cos(Math.toRadians(cameraRotation.y)) * cameraInc.z * CAMERA_POS_STEP;
+        }
+        if ( cameraInc.x * CAMERA_POS_STEP != 0) {
+            cameraPosition.x += (float)Math.sin(Math.toRadians(cameraRotation.y - 90)) * -1.0f * cameraInc.x * CAMERA_POS_STEP;
+            cameraPosition.z += (float)Math.cos(Math.toRadians(cameraRotation.y - 90)) * cameraInc.x * CAMERA_POS_STEP;
+        }
+        cameraPosition.y += cameraInc.y * CAMERA_POS_STEP;
 
         // Update camera based on mouse
         if (mouseInput.isRightButtonPressed()) {
             Vector2f rotVec = mouseInput.getDisplVec();
-            camera.moveRotation(rotVec.x * MOUSE_SENSITIVITY, rotVec.y * MOUSE_SENSITIVITY, 0);
+            cameraRotation.x += rotVec.x * MOUSE_SENSITIVITY;
+            cameraRotation.y += rotVec.y * MOUSE_SENSITIVITY;
         }
     }
 
@@ -198,7 +210,7 @@ public class DummyGame implements IGameLogic {
         shaderProgram.setUniform("projectionMatrix", projectionMatrix);
 
         // Update view Matrix
-        Matrix4f viewMatrix = transformation.getViewMatrix(camera);
+        Matrix4f viewMatrix = transformation.getViewMatrix(cameraPosition, cameraRotation);
 
         shaderProgram.setUniform("texture_sampler", 0);
         // Render each gameItem

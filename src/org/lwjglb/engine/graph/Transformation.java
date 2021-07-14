@@ -22,14 +22,11 @@ public class Transformation {
         return projectionMatrix.setPerspective(fov, width / height, zNear, zFar);
     }
 
-    public Matrix4f getViewMatrix(Camera camera) {
-        Vector3f cameraPos = camera.getPosition();
-        Vector3f rotation = camera.getRotation();
-
+    public Matrix4f getViewMatrix(Vector3f cameraPos, Vector3f cameraRotation) {
         viewMatrix.identity();
         // First do the rotation so camera rotates over its position
-        viewMatrix.rotate((float)Math.toRadians(rotation.x), new Vector3f(1, 0, 0))
-                .rotate((float)Math.toRadians(rotation.y), new Vector3f(0, 1, 0));
+        viewMatrix.rotate((float)Math.toRadians(cameraRotation.x), new Vector3f(1, 0, 0))
+                .rotate((float)Math.toRadians(cameraRotation.y), new Vector3f(0, 1, 0));
         // Then do the translation
         viewMatrix.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
         return viewMatrix;

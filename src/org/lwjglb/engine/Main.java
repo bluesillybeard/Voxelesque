@@ -1,8 +1,5 @@
-package org.lwjglb.game;
+package org.lwjglb.engine;
 
-import org.lwjglb.engine.GameEngine;
-import org.lwjglb.engine.IGameLogic;
- 
 public class Main {
  
     public static void main(String[] args) {
