@@ -228,9 +228,7 @@ public class DummyGame implements IGameLogic {
                     rotateY((float)Math.toRadians(-rotation.y)).
                     rotateZ((float)Math.toRadians(-rotation.z)).
                     scale(gameItem.getScale());
-            Matrix4f viewCurr = new Matrix4f(viewMatrix);
-            modelViewMatrix = viewCurr.mul(modelViewMatrix);
-
+            shaderProgram.setViewMatrix(viewMatrix);
             shaderProgram.setModelViewMatrix(modelViewMatrix);
             // Render the mes for this game item
             gameItem.getMesh().render();

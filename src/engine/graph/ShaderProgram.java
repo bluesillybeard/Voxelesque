@@ -14,7 +14,7 @@ public class ShaderProgram {
 
     private int fragmentShaderId;
 
-    private int modelViewMatrixUniform, projectionMatrixUniform, textureSamplerUniform;
+    private int viewMatrixUniform, modelViewMatrixUniform, projectionMatrixUniform, textureSamplerUniform;
 
     public ShaderProgram(String vertexShaderCode, String fragmentShaderCode) throws Exception {
 
@@ -31,6 +31,7 @@ public class ShaderProgram {
         modelViewMatrixUniform = glGetUniformLocation(programId, "modelViewMatrix");
         projectionMatrixUniform = glGetUniformLocation(programId, "projectionMatrix");
         textureSamplerUniform = glGetUniformLocation(programId, "texture_sampler");
+        viewMatrixUniform = glGetUniformLocation(programId, "viewMatrix");
     }
 
     public void setModelViewMatrix(Matrix4f value){
@@ -44,6 +45,13 @@ public class ShaderProgram {
         // Dump the matrix into a float buffer
         try (MemoryStack stack = MemoryStack.stackPush()) {
             glUniformMatrix4fv(projectionMatrixUniform, false,
+                    value.get(stack.mallocFloat(16)));
+        }
+    }
+    public void setViewMatrix(Matrix4f value){
+        // Dump the matrix into a float buffer
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            glUniformMatrix4fv(viewMatrixUniform, false,
                     value.get(stack.mallocFloat(16)));
         }
     }
