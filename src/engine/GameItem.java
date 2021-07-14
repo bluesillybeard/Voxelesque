@@ -1,7 +1,7 @@
-package org.lwjglb.engine;
+package engine;
 
 import org.joml.Vector3f;
-import org.lwjglb.engine.graph.Mesh;
+import engine.graph.Mesh;
 
 public class GameItem {
 

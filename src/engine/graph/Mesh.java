@@ -1,4 +1,4 @@
-package org.lwjglb.engine.graph;
+package engine.graph;
 
 import org.lwjgl.system.MemoryUtil;
 

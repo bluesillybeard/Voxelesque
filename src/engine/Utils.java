@@ -1,4 +1,4 @@
-package org.lwjglb.engine;
+package engine;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

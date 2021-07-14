@@ -1,4 +1,4 @@
-package org.lwjglb.engine.graph;
+package engine.graph;
 
 import java.util.HashMap;
 import java.util.Map;

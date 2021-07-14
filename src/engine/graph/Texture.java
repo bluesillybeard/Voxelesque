@@ -1,8 +1,4 @@
-package org.lwjglb.engine.graph;
-
-import org.lwjglb.engine.Utils;
-
-import org.lwjgl.opengl.GL11.*;
+package engine.graph;
 
 import javax.imageio.ImageIO;
 import java.awt.*;

@@ -1,4 +1,4 @@
-package org.lwjglb.engine;
+package engine;
 
 public class Main {
  

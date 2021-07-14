@@ -1,5 +1,8 @@
-package org.lwjglb.engine;
+package engine;
 
+import engine.graph.Mesh;
+import engine.graph.ShaderProgram;
+import engine.graph.Texture;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -173,7 +176,7 @@ public class DummyGame implements IGameLogic {
     }
 
     @Override
-    public void update(float interval, MouseInput mouseInput) {
+    public void update(MouseInput mouseInput) {
         // Update camera position
         if ( cameraInc.z * CAMERA_POS_STEP != 0 ) {
             cameraPosition.x += (float)Math.sin(Math.toRadians(cameraRotation.y)) * -1.0f * cameraInc.z * CAMERA_POS_STEP;

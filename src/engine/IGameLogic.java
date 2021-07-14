@@ -1,4 +1,4 @@
-package org.lwjglb.engine;
+package engine;
 
 public interface IGameLogic {
 
@@ -6,7 +6,7 @@ public interface IGameLogic {
 
     void input(Window window, MouseInput mouseInput);
 
-    void update(float interval, MouseInput mouseInput);
+    void update(MouseInput mouseInput);
 
     void render(Window window);
 

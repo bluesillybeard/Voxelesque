@@ -1,4 +1,4 @@
-package org.lwjglb.engine;
+package engine;
 
 import static org.lwjgl.glfw.GLFW.*;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -82,6 +82,8 @@ public class Window {
         if (isvSync()) {
             // Enable v-sync
             glfwSwapInterval(1);
+        } else {
+            glfwSwapInterval(0);
         }
 
         // Make the window visible
@@ -94,6 +96,9 @@ public class Window {
 
         //enable depth testing
         glEnable(GL_DEPTH_TEST);
+    }
+
+    public void setTitle(String title){glfwSetWindowTitle(windowHandle, title);
     }
     public long getWindowHandle(){return windowHandle;}
     

@@ -1,4 +1,4 @@
-package org.lwjglb.engine;
+package engine;
 
 import org.joml.Vector2d;
 import org.joml.Vector2f;
