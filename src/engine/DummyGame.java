@@ -10,8 +10,6 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 
-import org.lwjglb.engine.graph.*;
-
 public class DummyGame implements IGameLogic {
 
     private static final float MOUSE_SENSITIVITY = 0.2f;
@@ -53,8 +51,8 @@ public class DummyGame implements IGameLogic {
     public void init(Window window) throws Exception {
         // Create shader
         shaderProgram = new ShaderProgram(
-                Utils.loadResource("/home/bluesillybeard/IdeaProjects/opengl-lwjgl-3/src/org/lwjglb/vertex.glsl"),
-                Utils.loadResource("/home/bluesillybeard/IdeaProjects/opengl-lwjgl-3/src/org/lwjglb/fragment.glsl"));
+                Utils.loadResource("src/engine/vertex.glsl"),
+                Utils.loadResource("src/engine/fragment.glsl"));
         float[] positions = new float[]{
                 // V0
                 -0.5f, 0.5f, 0.5f,
