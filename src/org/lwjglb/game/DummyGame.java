@@ -1,40 +1,55 @@
 package org.lwjglb.game;
 
+import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import static org.lwjgl.glfw.GLFW.*;
-import org.lwjglb.engine.GameItem;
-import org.lwjglb.engine.IGameLogic;
-import org.lwjglb.engine.MouseInput;
-import org.lwjglb.engine.Window;
-import org.lwjglb.engine.graph.Camera;
-import org.lwjglb.engine.graph.Mesh;
-import org.lwjglb.engine.graph.Texture;
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
+
+import org.lwjglb.engine.*;
+import org.lwjglb.engine.graph.*;
 
 public class DummyGame implements IGameLogic {
 
     private static final float MOUSE_SENSITIVITY = 0.2f;
 
     private final Vector3f cameraInc;
-
-    private final Renderer renderer;
-
+    
     private final Camera camera;
 
     private GameItem[] gameItems;
 
+    private static final float FOV = (float) Math.toRadians(60.0f);
+
+    private static final float Z_NEAR = 0.01f;
+
+    private static final float Z_FAR = 1000.f;
+
+    private final Transformation transformation;
+
+    private ShaderProgram shaderProgram;
+
     private static final float CAMERA_POS_STEP = 0.05f;
 
     public DummyGame() {
-        renderer = new Renderer();
+        transformation = new Transformation();
         camera = new Camera();
         cameraInc = new Vector3f();
     }
 
     @Override
     public void init(Window window) throws Exception {
-        renderer.init(window);
-        // Create the Mesh
+        // Create shader
+        shaderProgram = new ShaderProgram();
+        shaderProgram.createVertexShader(Utils.loadResource("/home/bluesillybeard/IdeaProjects/opengl-lwjgl-3/src/org/lwjglb/vertex.glsl"));
+        shaderProgram.createFragmentShader(Utils.loadResource("/home/bluesillybeard/IdeaProjects/opengl-lwjgl-3/src/org/lwjglb/fragment.glsl"));
+        shaderProgram.link();
+
+        // Create uniforms for modelView and projection matrices and texture
+        shaderProgram.createUniform("projectionMatrix");
+        shaderProgram.createUniform("modelViewMatrix");
+        shaderProgram.createUniform("texture_sampler");        // Create the Mesh
         float[] positions = new float[]{
                 // V0
                 -0.5f, 0.5f, 0.5f,
@@ -169,15 +184,43 @@ public class DummyGame implements IGameLogic {
 
     @Override
     public void render(Window window) {
-        renderer.render(window, camera, gameItems);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        if (window.isResized()) {
+            glViewport(0, 0, window.getWidth(), window.getHeight());
+            window.setResized(false);
+        }
+
+        shaderProgram.bind();
+
+        // Update projection Matrix
+        Matrix4f projectionMatrix = transformation.getProjectionMatrix(FOV, window.getWidth(), window.getHeight(), Z_NEAR, Z_FAR);
+        shaderProgram.setUniform("projectionMatrix", projectionMatrix);
+
+        // Update view Matrix
+        Matrix4f viewMatrix = transformation.getViewMatrix(camera);
+
+        shaderProgram.setUniform("texture_sampler", 0);
+        // Render each gameItem
+        for (GameItem gameItem : gameItems) {
+            // Set model view matrix for this item
+            Matrix4f modelViewMatrix = transformation.getModelViewMatrix(gameItem, viewMatrix);
+            shaderProgram.setUniform("texture_sampler", 0);
+            shaderProgram.setUniform("modelViewMatrix", modelViewMatrix);
+            // Render the mes for this game item
+            gameItem.getMesh().render();
+        }
+
+        shaderProgram.unbind();
     }
 
     @Override
     public void cleanup() {
-        renderer.cleanup();
         for (GameItem gameItem : gameItems) {
             gameItem.getMesh().cleanUp();
         }
+        if (shaderProgram != null) {
+            shaderProgram.cleanup();
+        }
     }
-
 }

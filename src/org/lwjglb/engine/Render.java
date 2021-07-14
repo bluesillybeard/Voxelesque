@@ -54,7 +54,12 @@ public interface Render {
      */
     String getErrors();
 
-    //now start the methods that add elements that can be rendered.
+    //now start the methods that add / edit elements that are part of rendering.
+
+    /**
+     * sets the camera position
+     */
+    void setCameraPos(float XPos, float YPos, float ZPos, float XRotation, float YRotation, float ZRotation);
 
     /**
      * creates a mesh - this is simply the frame of a model.
@@ -87,6 +92,42 @@ public interface Render {
      * are not deleted, as they are seperate objects.
      */
     void removeEntity(int entity);
+    //methods for input (many of these will be depreciated once I get the custom-controls input system complete)
+
+    /**
+     * This takes a bit of explanation...
+     * When a key is pressed it calls a callback.
+     * That callback changes the value of that key to 2.
+     * there is another one for when a key is released, which sets it to 0
+     * When this function is called, the key's value is returned, then the key's value is changed based on these rules:
+     *        2, 3->3
+     *        0, 1->1
+     * essentially, 0 means just released, 1 means released, 2 means just pushed, 3 means pushed.
+     * @param key the key that you are asking information about. uses the same key codes as in GLFW, whatever those are.
+     * @return they key's value - returns 0, 1, 2, or 3.
+     */
+    int getKey(int key);
+
+    //other methods
+    /**
+     * @return a timestamp, in seconds. As long as it counts upwards in seconds, it works.
+     */
+    double getTime();
+
+    /**
+     * @return true if the render method should be called, false otherwise.
+     */
+    boolean shouldRender();
+
+    /**
+     * renders a frame.
+     */
+    void render();
+
+    /**
+     * @return true if the window should be closed, false otherwise.
+     */
+    boolean shouldClose();
 
     /**
      * clears out everything related to the Render.
