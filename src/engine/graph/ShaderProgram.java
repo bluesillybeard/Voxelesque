@@ -55,7 +55,7 @@ public class ShaderProgram {
                     value.get(stack.mallocFloat(16)));
         }
     }
-    public void setTextureSamplerUniform(int value) {
+    public void setTextureSampler(int value) {
         glUniform1i(textureSamplerUniform, value);
     }
 

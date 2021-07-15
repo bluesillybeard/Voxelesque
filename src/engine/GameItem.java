@@ -1,5 +1,7 @@
 package engine;
 
+import engine.graph.ShaderProgram;
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import engine.graph.Mesh;
 
@@ -11,15 +13,19 @@ public class GameItem {
     
     private float scale;
 
+    private final ShaderProgram shaderProgram;
 
+    private final Matrix4f modelViewMatrix;
 
     private final Vector3f rotation;
 
-    public GameItem(Mesh mesh) {
+    public GameItem(Mesh mesh, ShaderProgram shaderProgram) {
         this.mesh = mesh;
+        this.shaderProgram = shaderProgram;
         position = new Vector3f();
         scale = 1;
         rotation = new Vector3f();
+        modelViewMatrix = new Matrix4f();
     }
 
     public Vector3f getPosition() {
@@ -52,5 +58,20 @@ public class GameItem {
     
     public Mesh getMesh() {
         return mesh;
+    }
+
+    public void render(){
+
+        shaderProgram.bind();
+        // Set model view matrix for this item
+        modelViewMatrix.identity().translate(position).
+                rotateX((float)Math.toRadians(-rotation.x)).
+                rotateY((float)Math.toRadians(-rotation.y)).
+                rotateZ((float)Math.toRadians(-rotation.z)).
+                scale(scale);
+        shaderProgram.setModelViewMatrix(modelViewMatrix);
+
+        mesh.render();
+        shaderProgram.unbind();
     }
 }

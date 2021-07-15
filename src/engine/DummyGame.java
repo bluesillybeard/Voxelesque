@@ -6,6 +6,9 @@ import engine.graph.Texture;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
+
+import java.util.ArrayList;
+
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
@@ -34,7 +37,7 @@ public class DummyGame implements IGameLogic {
 
     private static final float Z_FAR = Float.MAX_VALUE/2f;
 
-    private ShaderProgram shaderProgram;
+    private final ArrayList<ShaderProgram> shaderPrograms;
 
     private static final float CAMERA_POS_STEP = 0.05f;
 
@@ -45,14 +48,19 @@ public class DummyGame implements IGameLogic {
         cameraPosition = new Vector3f(0, 0, 0);
         cameraRotation = new Vector3f(0, 0, 0);
         cameraInc = new Vector3f();
+        shaderPrograms = new ArrayList<>();
     }
 
     @Override
     public void init(Window window) throws Exception {
         // Create shader
-        shaderProgram = new ShaderProgram(
+        shaderPrograms.add(new ShaderProgram(
                 Utils.loadResource("src/engine/vertex.glsl"),
-                Utils.loadResource("src/engine/fragment.glsl"));
+                Utils.loadResource("src/engine/fragment.glsl")));
+        //and its more silly counterpart
+        shaderPrograms.add(new ShaderProgram(
+                Utils.loadResource("src/engine/sillyVertex.glsl"),
+                Utils.loadResource("src/engine/sillyFragment.glsl")));
         float[] positions = new float[]{
                 // V0
                 -0.5f, 0.5f, 0.5f,
@@ -138,16 +146,16 @@ public class DummyGame implements IGameLogic {
                 4, 6, 7, 5, 4, 7,};
         Texture texture = new Texture("/home/bluesillybeard/Pictures/grassblock.png");
         Mesh mesh = new Mesh(positions, textCoords, indices, texture);
-        GameItem gameItem1 = new GameItem(mesh);
+        GameItem gameItem1 = new GameItem(mesh, shaderPrograms.get(0));
         gameItem1.setScale(0.5f);
         gameItem1.setPosition(0, 0, -2);
-        GameItem gameItem2 = new GameItem(mesh);
+        GameItem gameItem2 = new GameItem(mesh, shaderPrograms.get(0));
         gameItem2.setScale(0.5f);
         gameItem2.setPosition(0.5f, 0.5f, -2);
-        GameItem gameItem3 = new GameItem(mesh);
+        GameItem gameItem3 = new GameItem(mesh, shaderPrograms.get(0));
         gameItem3.setScale(0.5f);
         gameItem3.setPosition(0, 0, -2.5f);
-        GameItem gameItem4 = new GameItem(mesh);
+        GameItem gameItem4 = new GameItem(mesh, shaderPrograms.get(1)); //this is the silly one, to test multi-shader capability
         gameItem4.setScale(0.5f);
         gameItem4.setPosition(0.5f, 0, -2.5f);
         gameItems = new GameItem[]{gameItem1, gameItem2, gameItem3, gameItem4};
@@ -203,38 +211,33 @@ public class DummyGame implements IGameLogic {
             window.setResized(false);
         }
 
-        shaderProgram.bind();
 
         // Update projection Matrix
-        projectionMatrix.setPerspective(FOV, (float)window.getWidth() / window.getHeight(), Z_NEAR, Z_FAR);
-        shaderProgram.setProjectionMatrix(projectionMatrix);
-
+        projectionMatrix.setPerspective(FOV, (float) window.getWidth() / window.getHeight(), Z_NEAR, Z_FAR);
         // Update view Matrix
         // First do the rotation so camera rotates over its position
-        viewMatrix.identity().rotate((float)Math.toRadians(cameraRotation.x), new Vector3f(1, 0, 0))
-                .rotate((float)Math.toRadians(cameraRotation.y), new Vector3f(0, 1, 0));
+        viewMatrix.identity().rotate((float) Math.toRadians(cameraRotation.x), new Vector3f(1, 0, 0))
+                .rotate((float) Math.toRadians(cameraRotation.y), new Vector3f(0, 1, 0));
         // Then do the translation
         viewMatrix.translate(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z);
+        for(ShaderProgram shaderProgram: shaderPrograms) {
+            shaderProgram.bind();
 
-        shaderProgram.setTextureSamplerUniform(0);
+            shaderProgram.setProjectionMatrix(projectionMatrix);
+            shaderProgram.setViewMatrix(viewMatrix);
+
+            shaderProgram.setTextureSampler(0);
+
+            shaderProgram.unbind();
+        }
         // Render each gameItem
         for (GameItem gameItem : gameItems) {
 
 
-            // Set model view matrix for this item
-            Vector3f rotation = gameItem.getRotation();
-            modelViewMatrix.identity().translate(gameItem.getPosition()).
-                    rotateX((float)Math.toRadians(-rotation.x)).
-                    rotateY((float)Math.toRadians(-rotation.y)).
-                    rotateZ((float)Math.toRadians(-rotation.z)).
-                    scale(gameItem.getScale());
-            shaderProgram.setViewMatrix(viewMatrix);
-            shaderProgram.setModelViewMatrix(modelViewMatrix);
-            // Render the mes for this game item
-            gameItem.getMesh().render();
-        }
 
-        shaderProgram.unbind();
+            // Render the mes for this game item
+            gameItem.render();
+        }
     }
 
     @Override
@@ -242,8 +245,10 @@ public class DummyGame implements IGameLogic {
         for (GameItem gameItem : gameItems) {
             gameItem.getMesh().cleanUp();
         }
-        if (shaderProgram != null) {
-            shaderProgram.cleanup();
+        for(ShaderProgram shaderProgram: shaderPrograms) {
+            if (shaderProgram != null) {
+                shaderProgram.cleanup();
+            }
         }
     }
 }
