@@ -1,6 +1,10 @@
 package engine;
 
+import java.util.ArrayList;
+
 public class LWJGLRenderer implements Render{
+    private Window window;
+    private ArrayList<GameItem> gameItems;
     /**
      * the first method called by the game. It should initialize any engine components, as well as create and show the window.
      *

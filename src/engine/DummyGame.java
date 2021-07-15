@@ -144,18 +144,19 @@ public class DummyGame implements IGameLogic {
                 16, 18, 19, 17, 16, 19,
                 // Back face
                 4, 6, 7, 5, 4, 7,};
-        Texture texture = new Texture("/home/bluesillybeard/Pictures/grassblock.png");
-        Mesh mesh = new Mesh(positions, textCoords, indices, texture);
-        GameItem gameItem1 = new GameItem(mesh, shaderPrograms.get(0));
+        Texture grassTexture = new Texture("/home/bluesillybeard/Pictures/grassblock.png");
+        Texture lenaTexture = new Texture("/home/bluesillybeard/Pictures/Lenna for generic tests of whatever.bmp");
+        Mesh mesh = new Mesh(positions, textCoords, indices);
+        GameItem gameItem1 = new GameItem(mesh, shaderPrograms.get(0), grassTexture);
         gameItem1.setScale(0.5f);
         gameItem1.setPosition(0, 0, -2);
-        GameItem gameItem2 = new GameItem(mesh, shaderPrograms.get(0));
+        GameItem gameItem2 = new GameItem(mesh, shaderPrograms.get(0), grassTexture);
         gameItem2.setScale(0.5f);
         gameItem2.setPosition(0.5f, 0.5f, -2);
-        GameItem gameItem3 = new GameItem(mesh, shaderPrograms.get(0));
+        GameItem gameItem3 = new GameItem(mesh, shaderPrograms.get(0), lenaTexture);
         gameItem3.setScale(0.5f);
         gameItem3.setPosition(0, 0, -2.5f);
-        GameItem gameItem4 = new GameItem(mesh, shaderPrograms.get(1)); //this is the silly one, to test multi-shader capability
+        GameItem gameItem4 = new GameItem(mesh, shaderPrograms.get(1), grassTexture); //this is the silly one, to test multi-shader capability
         gameItem4.setScale(0.5f);
         gameItem4.setPosition(0.5f, 0, -2.5f);
         gameItems = new GameItem[]{gameItem1, gameItem2, gameItem3, gameItem4};

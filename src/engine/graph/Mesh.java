@@ -35,7 +35,7 @@ public class Mesh {
 
     private final int vertexCount;
 
-    public Mesh(float[] positions, float[] UVCoords, int[] indices, Texture texture) {
+    public Mesh(float[] positions, float[] UVCoords, int[] indices) {
         FloatBuffer posBuffer = null;
         FloatBuffer UVBuffer = null;
         IntBuffer indicesBuffer = null;

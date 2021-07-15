@@ -59,8 +59,12 @@ public class Texture {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
         glGenerateMipmap(GL_TEXTURE_2D); //generate the mipmaps for this image
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
     public void bind(){
         glBindTexture(GL_TEXTURE_2D, textureID);
+    }
+    public void unbind(){
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
 }
