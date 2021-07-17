@@ -1,11 +1,14 @@
 package engine;
 
 public interface Render {
+    int WINDOW_INIT_ERROR = 1;
+    int SHADER_INIT_ERROR = 2;
+    int TEXTURE_INIT_ERROR = 3;
     /**
      * the first method called by the game. It should initialize any engine components, as well as create and show the window.
      * @return true if it was successful, false if it was unsuccessful.
      */
-    boolean init();
+    boolean init(String title);
 
     /**
      * the Major version of the Rendering engine. Major versions are completely incompatible; no intentional backwards compatibility of any kind.
@@ -42,10 +45,10 @@ public interface Render {
 
     /**
      * loads an image file (guarantee .png, it would be nice that if you are creating a Render that you also support other formats as well)
-     * @param imagePath the path of the image, within the resources directory.
+     * @param image the path of the image, within the resources directory.
      * @return the image's ID - this is used for future methods that require an image. returns -1 of the loading failed somehow - see String getErrors()
      */
-    int loadImage(String imagePath);
+    int loadImage(String image);
 
     /**
      * this function is called if init(), loadShader(), or loadImage() return false / -1
@@ -54,6 +57,10 @@ public interface Render {
      */
     String getErrors();
 
+    /**
+     * @return the error code for the latest error.
+     */
+    int getErrorCode();
     //now start the methods that add / edit elements that are part of rendering.
 
     /**

@@ -1,55 +1,44 @@
 package engine;
 
+import engine.graph.Mesh;
+import engine.graph.ShaderProgram;
+import engine.graph.Texture;
+import org.joml.Vector3f;
+
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class LWJGLRenderer implements Render{
     private Window window;
-    private ArrayList<GameItem> gameItems;
+    private String errorString;
+    private int errorCode;
+
+    private final ArrayList<GameItem> gameItems = new ArrayList<>();
+    private final ArrayList<ShaderProgram> shaderPrograms = new ArrayList<>();
+    private final  ArrayList<Texture>textures = new ArrayList<>();
+    private final ArrayList<Mesh> meshes = new ArrayList<>();
+
+    private final Vector3f cameraPosition = new Vector3f();
+    private final Vector3f cameraRotation = new Vector3f();
     /**
      * the first method called by the game. It should initialize any engine components, as well as create and show the window.
      *
      * @return true if it was successful, false if it was unsuccessful.
      */
     @Override
-    public boolean init() {
-        return false;
+    public boolean init(String title) {
+        try {
+            window = new Window(title, 800, 600, true);
+            return true; //everything went well, so return true.
+        } catch(Exception e){
+            errorString = Arrays.toString(e.getStackTrace());
+            errorCode = WINDOW_INIT_ERROR;
+            return false;
+        }
     }
 
-    /**
-     * the Major version of the Rendering engine. Major versions are completely incompatible; no intentional backwards compatibility of any kind.
-     * The current latest version is 0.
-     *
-     * @return the major version of the Render.
-     */
-    @Override
-    public int getVersionMajor() {
-        return 0;
-    }
 
-    /**
-     * each minor version should be mostly backwards compatible with older versions.
-     * If the game needs version 2, then version 3, 4, 5, etc need to work as well.
-     * the current latest version is 0.
-     *
-     * @return the minor version of the Render
-     */
-    @Override
-    public int getVersionMinor() {
-        return 0;
-    }
-
-    /**
-     * returns the patch version of the render. Patch versions should only fix bugs, exploits, glitches, etc,
-     * and any patch version should be 100% compatible with all other patch versions of a minor/major version.
-     * For example, if the game needs patch 2, patch 5 should work as well and vice versa if possible.
-     * the current latest version is 0.
-     *
-     * @return the patch version of the Render.
-     */
-    @Override
-    public int getVersionPatch() {
-        return 0;
-    }
 
     /**
      * loads a shader pair within shaders. each shader pair is in the shaders directory, and it is two files:
@@ -61,44 +50,48 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public int loadShader(String shader) {
-        return 0;
+        try {
+            shaderPrograms.add(new ShaderProgram(
+                    Utils.loadResource(shader + "Vertex.glsl"),
+                    Utils.loadResource(shader + "Fragment.glsl")
+            ));
+            return shaderPrograms.size()-1;
+        } catch (Exception e) {
+            errorString = Arrays.toString(e.getStackTrace());
+            errorCode = SHADER_INIT_ERROR;
+            return -1;
+        }
     }
 
     /**
-     * loads an image file (guarantee .png, it would be nice that if you are creating a Render that you also support other formats as well)
+     * loads an image file (guaranteed .png, probably supports most other formats as well.)
      *
-     * @param imagePath the path of the image, within the resources directory.
+     * @param image the path of the image, within the resources directory.
      * @return the image's ID - this is used for future methods that require an image. returns -1 of the loading failed somehow - see String getErrors()
      */
     @Override
-    public int loadImage(String imagePath) {
-        return 0;
-    }
-
-    /**
-     * this function is called if init(), loadShader(), or loadImage() return false / -1
-     * The result is then printed to the console, or if the first 4 characters read "fatal" then it will throw an exception and crash the game.
-     *
-     * @return the error string.
-     */
-    @Override
-    public String getErrors() {
-        return null;
+    public int loadImage(String image) {
+        try {
+            textures.add(new Texture(image));
+            return textures.size() - 1;
+        } catch(Exception e){
+            errorString = Arrays.toString(e.getStackTrace());
+            errorCode = TEXTURE_INIT_ERROR;
+            return -1;
+        }
     }
 
     /**
      * sets the camera position
-     *
-     * @param XPos
-     * @param YPos
-     * @param ZPos
-     * @param XRotation
-     * @param YRotation
-     * @param ZRotation
      */
     @Override
     public void setCameraPos(float XPos, float YPos, float ZPos, float XRotation, float YRotation, float ZRotation) {
-
+        cameraPosition.x = XPos;
+        cameraPosition.y = YPos;
+        cameraPosition.z = XPos;
+        cameraRotation.x = XRotation;
+        cameraRotation.y = YRotation;
+        cameraRotation.z = ZRotation;
     }
 
     /**
@@ -111,7 +104,8 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public int addMesh(float[] positions, float[] textureCoordinates, int[] indices) {
-        return 0;
+        meshes.add(new Mesh(positions, textureCoordinates, indices));
+        return meshes.size()-1;
     }
 
     /**
@@ -121,7 +115,7 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public void removeMesh(int mesh) {
-
+        meshes.set(mesh, null);
     }
 
     /**
@@ -133,10 +127,21 @@ public class LWJGLRenderer implements Render{
      * @param shader   the shader of that entity - yes, entities get their own shader.
      * @param position the location, rotation, and scale of the entity. [XPos, YPos, ZPos, XRotation, YRotation, ZRotation, XScale, YScale, ZScale]
      * @return the ID of the entity - used for methods that require an entity.
+     *
+     * NOTE: As of 0.0.0, LWJGLRenderer is not capable of 3D scaling, so they are averaged into a single scale.
      */
     @Override
     public int addEntity(int mesh, int texture, int shader, float[] position) {
-        return 0;
+        GameItem item = new GameItem(
+                meshes.get(mesh),
+                shaderPrograms.get(shader),
+                textures.get(texture)
+        );
+        item.setPosition(position[0], position[1], position[2]);
+        item.setRotation(position[3], position[4], position[5]);
+        item.setScale((position[6] + position[7] + position[8])/3f); //TODO: make scale a vector rather than number.
+        gameItems.add(item);
+        return gameItems.size()-1;
     }
 
     /**
@@ -207,5 +212,57 @@ public class LWJGLRenderer implements Render{
     @Override
     public void close() {
 
+    }
+
+    /**
+     * this function is called if init(), loadShader(), or loadImage() return false / -1
+     * The result is then printed to the console, or if the first 4 characters read "fatal" then it will throw an exception and crash the game.
+     *
+     * @return the error string.
+     */
+    @Override
+    public String getErrors() {
+        return errorString;
+    }
+
+    @Override
+    public int getErrorCode(){
+        return errorCode;
+    }
+
+    /**
+     * the Major version of the Rendering engine. Major versions are completely incompatible; no intentional backwards compatibility of any kind.
+     * The current latest version is 0.
+     *
+     * @return the major version of the Render.
+     */
+    @Override
+    public int getVersionMajor() {
+        return 0;
+    }
+
+    /**
+     * each minor version should be mostly backwards compatible with older versions.
+     * If the game needs version 2, then version 3, 4, 5, etc need to work as well.
+     * the current latest version is 0.
+     *
+     * @return the minor version of the Render
+     */
+    @Override
+    public int getVersionMinor() {
+        return 0;
+    }
+
+    /**
+     * returns the patch version of the render. Patch versions should only fix bugs, exploits, glitches, etc,
+     * and any patch version should be 100% compatible with all other patch versions of a minor/major version.
+     * For example, if the game needs patch 2, patch 5 should work as well and vice versa if possible.
+     * the current latest version is 0.
+     *
+     * @return the patch version of the Render.
+     */
+    @Override
+    public int getVersionPatch() {
+        return 0;
     }
 }
