@@ -11,20 +11,17 @@ public class Window {
 
     private final String title;
 
-    private int width;
+    private int width, height;
 
-    private int height;
-    
     private long windowHandle;
     
-    private boolean resized;
-
-    private boolean vSync;
+    private boolean resized, vSync;
 
     private final int[] keys;
     private final int[] mouseButtons;
     private double scrolls;
     private int intScrolls;
+    private double cursorXPos, cursorYPos;
 
     private static final int numKeys = 348; //there are 348 keys supported by GLFW
     private static final int numMouseButtons = 5; //there are 5 mouse buttons supported by GLFW
@@ -91,6 +88,10 @@ public class Window {
                 intScrolls = (int)scrolls;
                 scrolls = scrolls%1; //set integer scroll amount, and set scrolls to the non-integer portion that's left over
             }
+        });
+        glfwSetCursorPosCallback(windowHandle, (window, xPos, yPos) -> {
+            cursorXPos = (xPos/width)*2-1; //GLFW gives us pixel coordinates, but we want a nice value between -1 and 1.
+            cursorYPos = (yPos/height)*2-1;
         });
 
         // Get the resolution of the primary monitor
@@ -177,7 +178,7 @@ public class Window {
         return vSync;
     }
 
-    public void setvSync(boolean vSync) {
+    public void setVSync(boolean vSync) {
         this.vSync = vSync;
     }
 

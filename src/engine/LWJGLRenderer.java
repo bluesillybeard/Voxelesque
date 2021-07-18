@@ -39,6 +39,7 @@ public class LWJGLRenderer implements Render{
 
         try {
             window = new Window(title, 800, 600, true);
+            window.init();
             readyToRender = true;
             return true; //everything went well, so return true.
         } catch(Exception e){
@@ -139,7 +140,7 @@ public class LWJGLRenderer implements Render{
      * @param position the location, rotation, and scale of the entity. [XPos, YPos, ZPos, XRotation, YRotation, ZRotation, XScale, YScale, ZScale]
      * @return the ID of the entity - used for methods that require an entity.
      *
-     * NOTE: As of 0.0.0, LWJGLRenderer is not capable of 3D scaling, so they are averaged into a single scale.
+     * NOTE: As of 0.0.0, LWJGLRenderer is not capable of 3D scaling, so they are averaged into a single scale factor.
      */
     @Override
     public int addEntity(int mesh, int texture, int shader, float[] position) {
@@ -180,25 +181,44 @@ public class LWJGLRenderer implements Render{
      * @return they key's value - returns 0, 1, 2, or 3.
      */
     @Override
-    public int getKey(int key) {
-        return window.getKey(key);
+    public int getKey(int key) {return window.getKey(key);}
+
+    /**
+     * similar to getKey, except for mouse buttons.
+     *
+     * @param button the button to be checked
+     * @return the value of the button; see getKey for more info.
+     */
+    @Override
+    public int getMouseButton(int button) {return window.getMouseButton(button);}
+
+    /**
+     * @return the X position of the cursor on screen, [-1, 1], -1=bottom, 1=top
+     */
+    @Override
+    public double getMouseXPos() {
+        return 0;//window.;
+    }
+
+    /**
+     * @return the X position of the cursor on screen, [-1, 1], -1 = left, 1=right
+     */
+    @Override
+    public double getMouseYPos() {
+        return 0;
     }
 
     /**
      * @return a timestamp, in seconds. As long as it counts upwards in seconds, it works.
      */
     @Override
-    public double getTime() {
-        return System.nanoTime() / 1_000_000_000.;
-    }
+    public double getTime() {return System.nanoTime() / 1_000_000_000.;}
 
     /**
      * @return true if the render method should be called, false otherwise.
      */
     @Override
-    public boolean shouldRender() {
-        return readyToRender;
-    }
+    public boolean shouldRender() {return readyToRender;}
 
     /**
      * renders a frame.
@@ -236,6 +256,7 @@ public class LWJGLRenderer implements Render{
             // Render the mesh for this game item
             gameItem.render();
         }
+        window.update();
         readyToRender = true;
     }
 
@@ -243,9 +264,7 @@ public class LWJGLRenderer implements Render{
      * @return true if the window should be closed, false otherwise.
      */
     @Override
-    public boolean shouldClose() {
-        return window.windowShouldClose();
-    }
+    public boolean shouldClose() {return window.windowShouldClose();}
 
     /**
      * clears out everything related to the Render.
@@ -275,9 +294,7 @@ public class LWJGLRenderer implements Render{
      * @param fov the FOV, in radians.
      */
     @Override
-    public void setFov(float fov) {
-        FOV = fov;
-    }
+    public void setFov(float fov) {FOV = fov;}
 
     /**
      * this function is called if init(), loadShader(), or loadImage() return false / -1
@@ -286,14 +303,10 @@ public class LWJGLRenderer implements Render{
      * @return the error string.
      */
     @Override
-    public String getErrors() {
-        return errorString;
-    }
+    public String getErrors() {return errorString;}
 
     @Override
-    public int getErrorCode(){
-        return errorCode;
-    }
+    public int getErrorCode(){return errorCode;}
 
     /**
      * the Major version of the Rendering engine. Major versions are completely incompatible; no intentional backwards compatibility of any kind.
@@ -302,9 +315,7 @@ public class LWJGLRenderer implements Render{
      * @return the major version of the Render.
      */
     @Override
-    public int getVersionMajor() {
-        return 0;
-    }
+    public int getVersionMajor() {return 0;}
 
     /**
      * each minor version should be mostly backwards compatible with older versions.
@@ -314,9 +325,7 @@ public class LWJGLRenderer implements Render{
      * @return the minor version of the Render
      */
     @Override
-    public int getVersionMinor() {
-        return 0;
-    }
+    public int getVersionMinor() {return 0;}
 
     /**
      * returns the patch version of the render. Patch versions should only fix bugs, exploits, glitches, etc,
@@ -327,7 +336,5 @@ public class LWJGLRenderer implements Render{
      * @return the patch version of the Render.
      */
     @Override
-    public int getVersionPatch() {
-        return 0;
-    }
+    public int getVersionPatch() {return 0;}
 }

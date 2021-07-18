@@ -115,6 +115,22 @@ public interface Render {
      */
     int getKey(int key);
 
+    /**
+     * similar to getKey, except for mouse buttons.
+     * @param button the button to be checked
+     * @return the value of the button; see getKey for more info.
+     */
+    int getMouseButton(int button);
+
+    /**
+     * @return the X position of the cursor on screen, [-1, 1], -1=bottom, 1=top
+     */
+    double getMouseXPos();
+
+    /**
+     * @return the X position of the cursor on screen, [-1, 1], -1 = left, 1=right
+     */
+    double getMouseYPos();
     //other methods
     /**
      * @return a timestamp, in seconds. As long as it counts upwards in seconds, it works.
