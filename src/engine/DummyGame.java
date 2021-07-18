@@ -156,7 +156,7 @@ public class DummyGame implements IGameLogic {
         GameItem gameItem3 = new GameItem(mesh, shaderPrograms.get(0), lenaTexture);
         gameItem3.setScale(0.5f);
         gameItem3.setPosition(0, 0, -2.5f);
-        GameItem gameItem4 = new GameItem(mesh, shaderPrograms.get(1), grassTexture); //this is the silly one, to test multi-shader capability
+        GameItem gameItem4 = new GameItem(mesh, shaderPrograms.get(0), grassTexture); //this is the silly one, to test multi-shader capability
         gameItem4.setScale(0.5f);
         gameItem4.setPosition(0.5f, 0, -2.5f);
         gameItems = new GameItem[]{gameItem1, gameItem2, gameItem3, gameItem4};

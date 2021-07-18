@@ -21,12 +21,22 @@ public class Window {
 
     private boolean vSync;
 
+    private final int[] keys;
+    private final int[] mouseButtons;
+    private double scrolls;
+    private int intScrolls;
+
+    private static final int numKeys = 348; //there are 348 keys supported by GLFW
+    private static final int numMouseButtons = 5; //there are 5 mouse buttons supported by GLFW
+
     public Window(String title, int width, int height, boolean vSync) {
         this.title = title;
         this.width = width;
         this.height = height;
         this.vSync = vSync;
         this.resized = false;
+        this.keys = new int[numKeys-1];
+        this.mouseButtons = new int[numMouseButtons-1];
     }
 
     public void init() {
@@ -44,7 +54,7 @@ public class Window {
         glfwWindowHint(GLFW_RESIZABLE, GL_TRUE); // the window will be resizable
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //modern OpenGL
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
         // Create the window
@@ -62,8 +72,24 @@ public class Window {
 
         // Setup a key callback. It will be called every time a key is pressed, repeated or released.
         glfwSetKeyCallback(windowHandle, (window, key, scancode, action, mods) -> {
-            if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
-                glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
+            if(action == GLFW_PRESS || action == GLFW_REPEAT){
+                keys[key] = 2;
+            } else if(action == GLFW_RELEASE){
+                keys[key] = 0;
+            }
+        });
+        glfwSetMouseButtonCallback(windowHandle, (window, button, action, mods) -> {
+            if(action == GLFW_PRESS || action == GLFW_REPEAT){
+                mouseButtons[button] = 2;
+            } else if(action == GLFW_RELEASE){
+                mouseButtons[button] = 0;
+            }
+        });
+        glfwSetScrollCallback(windowHandle, (window, xOffset, yOffset) ->{
+            scrolls += yOffset; // set scroll amount
+            if(scrolls >= 1){
+                intScrolls = (int)scrolls;
+                scrolls = scrolls%1; //set integer scroll amount, and set scrolls to the non-integer portion that's left over
             }
         });
 
@@ -89,13 +115,26 @@ public class Window {
         // Make the window visible
         glfwShowWindow(windowHandle);
         
-        GL.createCapabilities();
+        GL.createCapabilities(); //I'm pretty sure this is a LWJGL thing, not an OpenGL thing.
 
         // Set the clear color
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
         //enable depth testing
         glEnable(GL_DEPTH_TEST);
+    }
+    public int getKey(int key) {
+        int keyValue = keys[key];
+        if(keys[key] == 0 || keys[key] == 1)keys[key] = 1;
+        else if(keys[key] == 2 || keys[key] == 3)keys[key] = 3; //when was the Switch statement added? I thought for sure it exists in version 11...
+        return keyValue; //I'm using a slightly older version of Java for compatibility reasons. Considering 11 came out just last year, it's actually not that old.
+    }
+
+    public int getMouseButton(int button) {
+        int buttonValue = mouseButtons[button];
+        if(mouseButtons[button] == 0 || mouseButtons[button] == 1)mouseButtons[button] = 1;
+        else if(mouseButtons[button] == 2 || mouseButtons[button] == 3)mouseButtons[button] = 3;
+        return buttonValue;
     }
 
     public void setTitle(String title){glfwSetWindowTitle(windowHandle, title);

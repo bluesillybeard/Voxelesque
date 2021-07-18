@@ -141,4 +141,10 @@ public interface Render {
      * Entities, Meshes, Shaders, Textures, Window, Threads, memory allocations, etc should be cleared out once upon calling this method.
      */
     void close();
+
+    /**
+     * sets the field of view (FOV)
+     * @param fov the FOV, in radians.
+     */
+    void setFov(float fov);
 }

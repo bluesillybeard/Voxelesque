@@ -3,20 +3,28 @@ package engine;
 import engine.graph.Mesh;
 import engine.graph.ShaderProgram;
 import engine.graph.Texture;
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL11.glViewport;
 
 public class LWJGLRenderer implements Render{
     private Window window;
     private String errorString;
     private int errorCode;
+    private boolean readyToRender;
+    private float FOV;
 
-    private final ArrayList<GameItem> gameItems = new ArrayList<>();
+    private final Matrix4f projectionMatrix = new Matrix4f();
+    private final Matrix4f viewMatrix = new Matrix4f();
+
+    private final ArrayList<GameItem> gameItems = new ArrayList<>(); //TODO: store these more efficiently
     private final ArrayList<ShaderProgram> shaderPrograms = new ArrayList<>();
-    private final  ArrayList<Texture>textures = new ArrayList<>();
+    private final ArrayList<Texture>textures = new ArrayList<>();
     private final ArrayList<Mesh> meshes = new ArrayList<>();
 
     private final Vector3f cameraPosition = new Vector3f();
@@ -28,12 +36,15 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public boolean init(String title) {
+
         try {
             window = new Window(title, 800, 600, true);
+            readyToRender = true;
             return true; //everything went well, so return true.
         } catch(Exception e){
             errorString = Arrays.toString(e.getStackTrace());
             errorCode = WINDOW_INIT_ERROR;
+            readyToRender = true;
             return false;
         }
     }
@@ -145,14 +156,14 @@ public class LWJGLRenderer implements Render{
     }
 
     /**
-     * removes an entity from the Render, meaning it can no longer be rendered. Note that the Mesh, Texture, and Shader
-     * are not deleted, as they are seperate objects.
+     * removes an entity from the Render, meaning it will no longer be rendered. Note that the Mesh, Texture, and Shader
+     * are not deleted, as they are separate objects.
      *
-     * @param entity
+     * @param entity the entity ID to be removed
      */
     @Override
     public void removeEntity(int entity) {
-
+        gameItems.set(entity, null); //set that entity to null so it is no longer rendered.
     }
 
     /**
@@ -170,7 +181,7 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public int getKey(int key) {
-        return 0;
+        return window.getKey(key);
     }
 
     /**
@@ -178,7 +189,7 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public double getTime() {
-        return 0;
+        return System.nanoTime() / 1_000_000_000.;
     }
 
     /**
@@ -186,7 +197,7 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public boolean shouldRender() {
-        return false;
+        return readyToRender;
     }
 
     /**
@@ -194,7 +205,38 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public void render() {
+        readyToRender = false;
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        if (window.isResized()) {
+            glViewport(0, 0, window.getWidth(), window.getHeight());
+            window.setResized(false);
+        }
+
+
+        // Update projection Matrix
+        projectionMatrix.setPerspective(FOV, (float) window.getWidth() / window.getHeight(), 1/256f, Float.MAX_VALUE/2);
+        // Update view Matrix
+        // First do the rotation so camera rotates over its position
+        viewMatrix.identity().rotate((float) Math.toRadians(cameraRotation.x), new Vector3f(1, 0, 0))
+                .rotate((float) Math.toRadians(cameraRotation.y), new Vector3f(0, 1, 0));
+        // Then do the translation
+        viewMatrix.translate(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z);
+        for(ShaderProgram shaderProgram: shaderPrograms) {
+            shaderProgram.bind();
+
+            shaderProgram.setProjectionMatrix(projectionMatrix);
+            shaderProgram.setViewMatrix(viewMatrix);
+            shaderProgram.setTextureSampler(0);
+
+            shaderProgram.unbind();
+        }
+        // Render each gameItem
+        for (GameItem gameItem : gameItems) {
+            // Render the mesh for this game item
+            gameItem.render();
+        }
+        readyToRender = true;
     }
 
     /**
@@ -202,7 +244,7 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public boolean shouldClose() {
-        return false;
+        return window.windowShouldClose();
     }
 
     /**
@@ -211,7 +253,30 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public void close() {
+        //clean up items that wouldn't be cleaned by the garbage collector; items that are held within the GPU.
+        // I considered C++ for a bit because I had to do this anyway, but I decided against it because
+        // C++ is whack when you're used to the simplicity of Java.
+        for (Mesh mesh : meshes) {
+            mesh.cleanUp();
+        }
+        for(ShaderProgram shaderProgram: shaderPrograms) {
+            if (shaderProgram != null) {
+                shaderProgram.cleanup();
+            }
+        }
+        for(Texture texture: textures){
+            texture.cleanUp();
+        }
+    }
 
+    /**
+     * sets the field of view (FOV)
+     *
+     * @param fov the FOV, in radians.
+     */
+    @Override
+    public void setFov(float fov) {
+        FOV = fov;
     }
 
     /**
