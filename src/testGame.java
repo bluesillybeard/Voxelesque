@@ -12,7 +12,7 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_X;
 
 public class testGame {
-    private static final double MOUSE_SENSITIVITY = 0.001;
+    private static final double MOUSE_SENSITIVITY = 100;
     private static final Vector3f cameraInc = new Vector3f();
     private static final Vector3f cameraPosition = new Vector3f();
     private static final Vector3f cameraRotation = new Vector3f();
@@ -126,29 +126,32 @@ public class testGame {
         int entity2 = render.addEntity(blockMesh, grassBlockTexture, normalShader, new float[]{0.5f, 0.5f, -2f, 0f, 0f, 0f, 0.5f, 0.5f, 0.5f});
         int entity3 = render.addEntity(blockMesh, lenaTexture, normalShader, new float[]{0f, 0f, -2.5f, 0f, 0f, 0f, 0.5f, 0.5f, 0.5f});
         int entity4 = render.addEntity(blockMesh, grassBlockTexture, normalShader, new float[]{0.5f, 0f, -2.5f, 0f, 0f, 0f, 0.5f, 0.5f, 0.5f});
+
         double lastStepTime = 0.0;
+        double lastMouseYPos = render.getMouseYPos();
+        double lastMouseXPos = render.getMouseXPos();
         do{
             if(render.shouldRender()){
                 render.render();
             }
             if(render.getTime() - lastStepTime > 0.033333){//30 times per second
                 cameraInc.set(0, 0, 0);
-                if (render.getKey(GLFW_KEY_W) == 3) {
+                if (render.getKey(GLFW_KEY_W) >= 2) {
                     cameraInc.z = -1;
-                } else if (render.getKey(GLFW_KEY_S) == 3) {
+                } else if (render.getKey(GLFW_KEY_S) >= 2) {
                     cameraInc.z = 1;
                 }
-                if (render.getKey(GLFW_KEY_A) == 3) {
+                if (render.getKey(GLFW_KEY_A) >= 2) {
                     cameraInc.x = -1;
-                } else if (render.getKey(GLFW_KEY_D) == 3) {
+                } else if (render.getKey(GLFW_KEY_D) >= 2) {
                     cameraInc.x = 1;
                 }
-                if (render.getKey(GLFW_KEY_Z) == 3) {
+                if (render.getKey(GLFW_KEY_Z) >= 2) {
                     cameraInc.y = -1;
-                } else if (render.getKey(GLFW_KEY_X) == 3) {
+                } else if (render.getKey(GLFW_KEY_X) >= 2) {
                     cameraInc.y = 1;
                 }
-                double CAMERA_POS_STEP = 1/60d;
+                double CAMERA_POS_STEP = 1/20d;
                 // Update camera position
                 if ( cameraInc.z * CAMERA_POS_STEP != 0 ) {
                     cameraPosition.x += (float)Math.sin(Math.toRadians(cameraRotation.y)) * -1.0f * cameraInc.z * CAMERA_POS_STEP;
@@ -161,10 +164,15 @@ public class testGame {
                 cameraPosition.y += cameraInc.y * CAMERA_POS_STEP;
 
                 // Update camera based on mouse
-                if (render.getMouseButton(GLFW_MOUSE_BUTTON_RIGHT) == 3) {
-                    cameraRotation.x += render.getMouseXPos() * MOUSE_SENSITIVITY;
-                    cameraRotation.y += render.getMouseYPos() * MOUSE_SENSITIVITY;
+
+                if (render.getMouseButton(GLFW_MOUSE_BUTTON_RIGHT) >= 2) {
+                    cameraRotation.x += (render.getMouseYPos() - lastMouseYPos) * MOUSE_SENSITIVITY;
+                    cameraRotation.y += (render.getMouseXPos() - lastMouseXPos) * MOUSE_SENSITIVITY;
                 }
+                lastMouseYPos = render.getMouseYPos();
+                lastMouseXPos = render.getMouseXPos();
+                //send the camera position to Render
+                render.setCameraPos(cameraPosition.x, cameraPosition.y, cameraPosition.z, cameraRotation.x, cameraRotation.y, cameraRotation.z);
             }
 
             try {

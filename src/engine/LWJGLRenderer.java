@@ -100,7 +100,7 @@ public class LWJGLRenderer implements Render{
     public void setCameraPos(float XPos, float YPos, float ZPos, float XRotation, float YRotation, float ZRotation) {
         cameraPosition.x = XPos;
         cameraPosition.y = YPos;
-        cameraPosition.z = XPos;
+        cameraPosition.z = ZPos;
         cameraRotation.x = XRotation;
         cameraRotation.y = YRotation;
         cameraRotation.z = ZRotation;
@@ -197,7 +197,7 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public double getMouseXPos() {
-        return 0;//window.;
+        return window.getCursorXPos();
     }
 
     /**
@@ -205,7 +205,7 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public double getMouseYPos() {
-        return 0;
+        return window.getCursorYPos();
     }
 
     /**

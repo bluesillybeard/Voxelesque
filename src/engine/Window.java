@@ -186,4 +186,10 @@ public class Window {
         glfwSwapBuffers(windowHandle);
         glfwPollEvents();
     }
+    public double getCursorXPos(){
+        return cursorXPos;
+    }
+    public double getCursorYPos(){
+        return cursorYPos;
+    }
 }
