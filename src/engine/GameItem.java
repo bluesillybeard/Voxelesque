@@ -1,10 +1,7 @@
 package engine;
 
-import engine.graph.ShaderProgram;
-import engine.graph.Texture;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import engine.graph.Mesh;
 
 public class GameItem {
 

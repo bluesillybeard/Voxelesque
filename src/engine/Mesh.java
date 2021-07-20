@@ -1,4 +1,4 @@
-package engine.graph;
+package engine;
 
 import org.lwjgl.system.MemoryUtil;
 
@@ -61,7 +61,7 @@ public class Mesh {
             glBindBuffer(GL_ARRAY_BUFFER, UVVboId);
             glBufferData(GL_ARRAY_BUFFER, UVBuffer, GL_STATIC_DRAW);
             glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 3, GL_FLOAT, false, 0, 0);
+            glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
 
             // Index VBO
             idxVboId = glGenBuffers();
@@ -89,15 +89,11 @@ public class Mesh {
         return vaoId;
     }
 
-    public int getVertexCount() {
-        return vertexCount;
-    }
-
     public void render() {
         // Draw the mesh
         glBindVertexArray(getVaoId());
 
-        glDrawElements(GL_TRIANGLES, getVertexCount(), GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, vertexCount, GL_UNSIGNED_INT, 0);
 
         // Restore state
         glBindVertexArray(0);

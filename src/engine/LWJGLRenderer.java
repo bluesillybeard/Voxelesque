@@ -1,11 +1,11 @@
 package engine;
 
-import engine.graph.Mesh;
-import engine.graph.ShaderProgram;
-import engine.graph.Texture;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.lwjgl.system.CallbackI;
 
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -43,11 +43,17 @@ public class LWJGLRenderer implements Render{
             readyToRender = true;
             return true; //everything went well, so return true.
         } catch(Exception e){
-            errorString = Arrays.toString(e.getStackTrace());
+            errorString = getStackTrace(e);
             errorCode = WINDOW_INIT_ERROR;
             readyToRender = true;
             return false;
         }
+    }
+
+    private String getStackTrace(Exception e){
+        StringOutputStream out = new StringOutputStream(new StringBuffer());
+        e.printStackTrace(new PrintStream(out));
+        return out.toString();
     }
 
 
@@ -69,7 +75,7 @@ public class LWJGLRenderer implements Render{
             ));
             return shaderPrograms.size()-1;
         } catch (Exception e) {
-            errorString = Arrays.toString(e.getStackTrace());
+            errorString = getStackTrace(e);
             errorCode = SHADER_INIT_ERROR;
             return -1;
         }
@@ -87,7 +93,7 @@ public class LWJGLRenderer implements Render{
             textures.add(new Texture(image));
             return textures.size() - 1;
         } catch(Exception e){
-            errorString = Arrays.toString(e.getStackTrace());
+            errorString = getStackTrace(e);
             errorCode = TEXTURE_INIT_ERROR;
             return -1;
         }

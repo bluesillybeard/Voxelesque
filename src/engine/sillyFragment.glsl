@@ -7,5 +7,5 @@ uniform sampler2D texture_sampler;
 
 void main()
 {
-    fragColor = abs(texture(texture_sampler, outTexCoord)-1);
+    fragColor = abs(texture(texture_sampler, outTexCoord)-0.5);
 }
