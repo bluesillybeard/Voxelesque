@@ -43,20 +43,20 @@ public class VEMFLoader {
         InputStream inStream = new ByteArrayInputStream(tex);
         return new Texture(inStream);
     }
-    public int getIntFromFourBytes(byte b0, byte b1, byte b2, byte b3){
-        return b0 + (b1<<8) + (b2<<16) + (b3<<24);
+    public static int getIntFromFourBytes(byte b0, byte b1, byte b2, byte b3){
+        return Byte.toUnsignedInt(b0) + (Byte.toUnsignedInt(b1) * 256) + (Byte.toUnsignedInt(b2) * 65536) + (Byte.toUnsignedInt(b3) * 16777216);
     }
-    public float getFloatFromFourBytes(byte b0, byte b1, byte b2, byte b3){
+    public static float getFloatFromFourBytes(byte b0, byte b1, byte b2, byte b3){
         return Float.intBitsToFloat(getIntFromFourBytes(b0, b1, b2, b3));
     }
 
     public static void main(String[] args) throws IOException {
         VEMFLoader load = new VEMFLoader();
-        load.loadVEMF(new File("VMF/src/test1.vemf0"));
+        load.loadVEMF(new File("src/test2.vemf0"));
         System.out.println(Arrays.toString(load.getVertices()));
         System.out.println(Arrays.toString(load.getTextureCoordinates()));
         System.out.println(Arrays.toString(load.getIndices()));
-        System.out.println(load.getTexture());
+        //System.out.println(load.getTexture());
 
 
     }
