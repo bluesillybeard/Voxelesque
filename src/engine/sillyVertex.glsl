@@ -22,9 +22,9 @@ void main()
 {
     gl_Position = projectionMatrix * viewMatrix * modelViewMatrix * vec4(position, 1.0); //calculate initial gl_Position
     vec3 newPosition = vec3(
-        position.x + getRandom(gl_Position.x)/2147483648.0,
-        position.y + getRandom(gl_Position.y)/2147483648.0,
-        position.z + getRandom(gl_Position.z)/2147483648.0); //randomize position based on gl_Position
+        position.x + getRandom(gl_Position.x)/8589934592.0,
+        position.y + getRandom(gl_Position.y)/8589934592.0,
+        position.z + getRandom(gl_Position.z)/8589934592.0); //randomize position based on gl_Position
     gl_Position = projectionMatrix * viewMatrix * modelViewMatrix * vec4(newPosition, 1.0); //create new gl_Posotion based on randomized position
 
     outTexCoord = texCoord;

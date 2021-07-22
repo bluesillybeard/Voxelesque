@@ -5,8 +5,6 @@ import org.joml.Vector3f;
 
 public class GameItem {
 
-    private final Mesh mesh;
-    
     private final Vector3f position;
     
     private float scale;
@@ -15,14 +13,22 @@ public class GameItem {
 
     private final Matrix4f modelViewMatrix;
 
-    private final Texture texture;
+    private final Model model;
 
     private final Vector3f rotation;
 
     public GameItem(Mesh mesh, ShaderProgram shaderProgram, Texture texture) {
-        this.mesh = mesh;
+        this.model = new Model(mesh, texture);
         this.shaderProgram = shaderProgram;
-        this.texture = texture;
+        position = new Vector3f();
+        scale = 1;
+        rotation = new Vector3f();
+        modelViewMatrix = new Matrix4f();
+    }
+
+    public GameItem(Model model, ShaderProgram shaderProgram) {
+        this.model = model;
+        this.shaderProgram = shaderProgram;
         position = new Vector3f();
         scale = 1;
         rotation = new Vector3f();
@@ -56,15 +62,10 @@ public class GameItem {
         this.rotation.y = y;
         this.rotation.z = z;
     }
-    
-    public Mesh getMesh() {
-        return mesh;
-    }
 
     public void render(){
 
         shaderProgram.bind();
-        texture.bind();
         // Set model view matrix for this item
         modelViewMatrix.identity().translate(position).
                 rotateX((float)Math.toRadians(-rotation.x)).
@@ -73,8 +74,8 @@ public class GameItem {
                 scale(scale);
         shaderProgram.setModelViewMatrix(modelViewMatrix);
 
-        mesh.render();
+        model.render();
         shaderProgram.unbind();
-        texture.unbind();
+
     }
 }

@@ -1,11 +1,15 @@
 package engine;
 
+import engine.VMF.VEMFLoader;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.system.CallbackI;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.lang.reflect.InaccessibleObjectException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -22,13 +26,16 @@ public class LWJGLRenderer implements Render{
     private final Matrix4f projectionMatrix = new Matrix4f();
     private final Matrix4f viewMatrix = new Matrix4f();
 
+    private final Vector3f cameraPosition = new Vector3f();
+    private final Vector3f cameraRotation = new Vector3f();
+
     private final ArrayList<GameItem> gameItems = new ArrayList<>(); //TODO: store these more efficiently
     private final ArrayList<ShaderProgram> shaderPrograms = new ArrayList<>();
     private final ArrayList<Texture>textures = new ArrayList<>();
     private final ArrayList<Mesh> meshes = new ArrayList<>();
+    private final ArrayList<Model> models = new ArrayList<>();
 
-    private final Vector3f cameraPosition = new Vector3f();
-    private final Vector3f cameraRotation = new Vector3f();
+    private final VEMFLoader entityLoad = new VEMFLoader();
     /**
      * the first method called by the game. It should initialize any engine components, as well as create and show the window.
      *
@@ -137,6 +144,34 @@ public class LWJGLRenderer implements Render{
     }
 
     /**
+     * loads a VEMF model
+     *
+     * @param modelPath the path to the VEMF model file
+     * @return the ID of the model - used in future methods that require an entity model.
+     */
+    @Override
+    public int loadVEMFModel(String modelPath) {
+        try {
+            models.add(new Model(entityLoad.loadVEMF(new File(modelPath))));
+            return models.size()-1;
+        } catch(IOException e){
+            errorString = getStackTrace(e);
+            errorCode = VEMF_LOAD_ERROR;
+            return -1;
+        }
+    }
+
+    /**
+     * Deletes a VEMF model. Note that the texture, array buffers, etc, will also be destroyed, so make sure that there are no entities using this model.
+     *
+     * @param model the model to be obliterated.
+     */
+    @Override
+    public void disposeVEMFModel(int model) {
+        models.set(model, null);
+    }
+
+    /**
      * adds a renderable entity to the render - the entities are the in-game objects that are rendered.
      * they contain a Mesh, Texture, Shader, and a 9 component vector for the position.
      *
@@ -154,6 +189,27 @@ public class LWJGLRenderer implements Render{
                 meshes.get(mesh),
                 shaderPrograms.get(shader),
                 textures.get(texture)
+        );
+        item.setPosition(position[0], position[1], position[2]);
+        item.setRotation(position[3], position[4], position[5]);
+        item.setScale((position[6] + position[7] + position[8])/3f); //TODO: make scale a vector rather than number.
+        gameItems.add(item);
+        return gameItems.size()-1;
+    }
+
+    /**
+     * see addEntity(int int int float[])
+     *
+     * @param model    The VEMF model to be used in this entity, rather than a Mesh and texture.
+     * @param shader   the shader of that entity
+     * @param position the location, rotation, and scale of the entity. [XPos, YPos, ZPos, XRotation, YRotation, ZRotation, XScale, YScale, ZScale]
+     * @return the ID of the entity - used for methods that require an entity.
+     */
+    @Override
+    public int addEntity(int model, int shader, float[] position) {
+        GameItem item = new GameItem(
+                models.get(model),
+                shaderPrograms.get(shader)
         );
         item.setPosition(position[0], position[1], position[2]);
         item.setRotation(position[3], position[4], position[5]);

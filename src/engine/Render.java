@@ -4,6 +4,7 @@ public interface Render {
     int WINDOW_INIT_ERROR = 1;
     int SHADER_INIT_ERROR = 2;
     int TEXTURE_INIT_ERROR = 3;
+    int VEMF_LOAD_ERROR = 4;
     /**
      * the first method called by the game. It should initialize any engine components, as well as create and show the window.
      * @return true if it was successful, false if it was unsuccessful.
@@ -84,6 +85,19 @@ public interface Render {
     void removeMesh(int mesh);
 
     /**
+     * loads a VEMF model
+     * @param modelPath the path to the VEMF model file
+     * @return the ID of the model - used in future methods that require an entity model.
+     */
+    int loadVEMFModel(String modelPath);
+
+    /**
+     * Deletes a VEMF model. Note that the texture, array buffers, etc, will also be destroyed, so make sure that there are no entities using this model.
+     * @param model the model to be obliterated.
+     */
+    void disposeVEMFModel(int model);
+
+    /**
      * adds a renderable entity to the render - the entities are the in-game objects that are rendered.
      * they contain a Mesh, Texture, Shader, and a 9 component vector for the position.
      * @param mesh the mesh of that entity.
@@ -93,6 +107,15 @@ public interface Render {
      * @return the ID of the entity - used for methods that require an entity.
      */
     int addEntity(int mesh, int texture, int shader, float[] position);
+
+    /**
+     * see addEntity(int int int float[])
+     * @param model The VEMF model to be used in this entity, rather than a Mesh and texture.
+     * @param shader the shader of that entity
+     * @param position the location, rotation, and scale of the entity. [XPos, YPos, ZPos, XRotation, YRotation, ZRotation, XScale, YScale, ZScale]
+     * @return the ID of the entity - used for methods that require an entity.
+     */
+    int addEntity(int model, int shader, float[] position);
 
     /**
      * removes an entity from the Render, meaning it can no longer be rendered. Note that the Mesh, Texture, and Shader
