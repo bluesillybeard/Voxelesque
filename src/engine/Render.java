@@ -118,10 +118,19 @@ public interface Render {
     int addEntity(int model, int shader, float[] position);
 
     /**
-     * removes an entity from the Render, meaning it can no longer be rendered. Note that the Mesh, Texture, and Shader
-     * are not deleted, as they are seperate objects.
+     * removes an entity from the Render, meaning it will no longer be rendered. Note that the Mesh, Texture, and Shader
+     * are not deleted, as they are separate objects.
      */
     void removeEntity(int entity);
+
+    //methods to modify entity data
+
+    /**
+     *
+     * @param entity the entity whose position shall be set
+     * @param position the new position of that entity [XPos, YPos, ZPos, XRotation, YRotation, ZRotation, XScale, YScale, ZScale]
+     */
+    void setEntityPosition(int entity, float[] position);
     //methods for input (many of these will be depreciated once I get the custom-controls input system complete)
 
     /**

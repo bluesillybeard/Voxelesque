@@ -10,14 +10,14 @@ public class ShaderProgram {
 
     private final int programId;
 
-    private int vertexShaderId;
+    private final int vertexShaderId;
 
-    private int fragmentShaderId;
+    private final int fragmentShaderId;
 
-    private int viewMatrixUniform, modelViewMatrixUniform, projectionMatrixUniform, textureSamplerUniform;
+    private final int viewMatrixUniform, modelViewMatrixUniform, projectionMatrixUniform, textureSamplerUniform;
+    private final int timeInSecondsUniform;
 
     public ShaderProgram(String vertexShaderCode, String fragmentShaderCode) throws Exception {
-
 
         programId = glCreateProgram();
         if (programId == 0) {
@@ -32,6 +32,8 @@ public class ShaderProgram {
         projectionMatrixUniform = glGetUniformLocation(programId, "projectionMatrix");
         textureSamplerUniform = glGetUniformLocation(programId, "texture_sampler");
         viewMatrixUniform = glGetUniformLocation(programId, "viewMatrix");
+        timeInSecondsUniform = glGetUniformLocation(programId, "timeSeconds");
+
     }
 
     public void setModelViewMatrix(Matrix4f value){
@@ -58,6 +60,8 @@ public class ShaderProgram {
     public void setTextureSampler(int value) {
         glUniform1i(textureSamplerUniform, value);
     }
+
+    public void setGameTime(){glUniform1f(timeInSecondsUniform, System.nanoTime() / 1_000_000_000f);}
 
     protected int createShader(String shaderCode, int shaderType) throws Exception {
         int shaderId = glCreateShader(shaderType);

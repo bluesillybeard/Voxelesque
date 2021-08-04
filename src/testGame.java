@@ -1,12 +1,6 @@
 import engine.LWJGLRenderer;
 import engine.Render;
-import org.joml.AxisAngle4d;
-import org.joml.Vector2f;
-import org.joml.Vector3d;
 import org.joml.Vector3f;
-import org.lwjgl.system.CallbackI;
-
-import java.awt.*;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.glfw.GLFW.GLFW_KEY_X;
@@ -32,10 +26,10 @@ public class testGame {
         int crazyShader = render.loadShader("/home/bluesillybeard/IdeaProjects/Voxelesque/src/engine/silly");
         System.err.println(render.getErrors()); //i'm too lazy to add an if statement lol
         //remember Fragment.glsl and Vertex.glsl is added to the end of this to create the final path
-        int entity1 = render.addEntity(grassBlockModel, normalShader, new float[]{0f, 0f, -2f, 0f, 0f, 0f, 0.5f, 0.5f, 0.5f});
-        int entity2 = render.addEntity(grassBlockModel, normalShader, new float[]{0.5f, 0.5f, -2f, 0f, 0f, 0f, 0.5f, 0.5f, 0.5f});
-        int entity3 = render.addEntity(grassBlockModel, normalShader, new float[]{0f, 0f, -2.5f, 0f, 0f, 0f, 0.5f, 0.5f, 0.5f});
-        int entity4 = render.addEntity(grassBlockModel, crazyShader, new float[]{0.5f, 0f, -2.5f, 0f, 0f, 0f, 0.5f, 0.5f, 0.5f});
+        int entity1 = render.addEntity(grassBlockModel, normalShader, new float[]{0f, 0f, -0f, 0f,  1f, 0.5f, 0.5f, 1.0f, 0.5f});
+        int entity2 = render.addEntity(grassBlockModel, normalShader, new float[]{0f, 0f, -2f, 1f,  1f, 0f,   1.0f, 0.5f, 0.5f});
+        int entity3 = render.addEntity(grassBlockModel, normalShader, new float[]{0f, 0f, -4f, 0f,  0f, 1f,   0.5f, 0.5f, 1.0f});
+        int entity4 = render.addEntity(grassBlockModel, crazyShader, new float[] {0f, 0f, -6f, 0f,  2f, 0f,   0.5f, 0.5f, 0.5f});
 
         double lastStepTime = 0.0;
         double lastMouseYPos = render.getMouseYPos();
@@ -93,6 +87,11 @@ public class testGame {
                 if(cameraUpdated){
                     render.setCameraPos(cameraPosition.x, cameraPosition.y, cameraPosition.z, cameraRotation.x, cameraRotation.y, cameraRotation.z);
                 }
+
+
+                render.setEntityPosition(entity1, new float[] {0f, 0f, -0f, (float)(render.getTime()/10),  (float)(render.getTime()*5), (float)render.getTime(), 0.5f, 1.0f, 0.5f});
+                render.setEntityPosition(entity2, new float[]{0f, 0f, -2f, (float)(render.getTime()*9),  (float)(render.getTime()/7), (float)render.getTime()*1.5f,   1.0f, 0.5f, 0.5f});
+                render.setEntityPosition(entity3, new float[]{0f, 0f, -4f, (float)(render.getTime()/3),  (float)(render.getTime()*2), (float)render.getTime()/0.5f,   0.5f, 0.5f, 1.0f});
             }
             try {
                 Thread.sleep(10); //this is to keep this thread from eating up 100% after I implement multithreading

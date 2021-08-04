@@ -7,7 +7,7 @@ public class GameItem {
 
     private final Vector3f position;
     
-    private float scale;
+    private final Vector3f scale;
 
     private final ShaderProgram shaderProgram;
 
@@ -21,7 +21,7 @@ public class GameItem {
         this.model = new Model(mesh, texture);
         this.shaderProgram = shaderProgram;
         position = new Vector3f();
-        scale = 1;
+        scale = new Vector3f();
         rotation = new Vector3f();
         modelViewMatrix = new Matrix4f();
     }
@@ -30,7 +30,7 @@ public class GameItem {
         this.model = model;
         this.shaderProgram = shaderProgram;
         position = new Vector3f();
-        scale = 1;
+        scale = new Vector3f();
         rotation = new Vector3f();
         modelViewMatrix = new Matrix4f();
     }
@@ -45,12 +45,14 @@ public class GameItem {
         this.position.z = z;
     }
 
-    public float getScale() {
+    public Vector3f getScale() {
         return scale;
     }
 
-    public void setScale(float scale) {
-        this.scale = scale;
+    public void setScale(float x, float y, float z) {
+        this.scale.x = x;
+        this.scale.y = y;
+        this.scale.z = z;
     }
 
     public Vector3f getRotation() {
@@ -68,9 +70,9 @@ public class GameItem {
         shaderProgram.bind();
         // Set model view matrix for this item
         modelViewMatrix.identity().translate(position).
-                rotateX((float)Math.toRadians(-rotation.x)).
-                rotateY((float)Math.toRadians(-rotation.y)).
-                rotateZ((float)Math.toRadians(-rotation.z)).
+                rotateX(-rotation.x).
+                rotateY(-rotation.y).
+                rotateZ(-rotation.z).
                 scale(scale);
         shaderProgram.setModelViewMatrix(modelViewMatrix);
 

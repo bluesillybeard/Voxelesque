@@ -192,7 +192,7 @@ public class LWJGLRenderer implements Render{
         );
         item.setPosition(position[0], position[1], position[2]);
         item.setRotation(position[3], position[4], position[5]);
-        item.setScale((position[6] + position[7] + position[8])/3f); //TODO: make scale a vector rather than number.
+        item.setScale(position[6], position[7], position[8]);
         gameItems.add(item);
         return gameItems.size()-1;
     }
@@ -213,7 +213,7 @@ public class LWJGLRenderer implements Render{
         );
         item.setPosition(position[0], position[1], position[2]);
         item.setRotation(position[3], position[4], position[5]);
-        item.setScale((position[6] + position[7] + position[8])/3f); //TODO: make scale a vector rather than number.
+        item.setScale(position[6], position[7], position[8]);
         gameItems.add(item);
         return gameItems.size()-1;
     }
@@ -227,6 +227,18 @@ public class LWJGLRenderer implements Render{
     @Override
     public void removeEntity(int entity) {
         gameItems.set(entity, null); //set that entity to null so it is no longer rendered.
+    }
+
+    /**
+     * @param entity   the entity whose position shall be set
+     * @param position the new position of that entity [XPos, YPos, ZPos, XRotation, YRotation, ZRotation, XScale, YScale, ZScale]
+     */
+    @Override
+    public void setEntityPosition(int entity, float[] position) {
+        GameItem item = gameItems.get(entity);
+        item.setPosition(position[0], position[1], position[2]);
+        item.setRotation(position[3], position[4], position[5]);
+        item.setScale(position[6], position[7], position[8]);
     }
 
     /**
@@ -307,6 +319,7 @@ public class LWJGLRenderer implements Render{
         for(ShaderProgram shaderProgram: shaderPrograms) {
             shaderProgram.bind();
 
+            shaderProgram.setGameTime();
             shaderProgram.setProjectionMatrix(projectionMatrix);
             shaderProgram.setViewMatrix(viewMatrix);
             shaderProgram.setTextureSampler(0);
