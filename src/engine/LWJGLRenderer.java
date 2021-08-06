@@ -45,7 +45,7 @@ public class LWJGLRenderer implements Render{
     public boolean init(String title) {
 
         try {
-            window = new Window(title, 800, 600, true);
+            window = new Window(title, 800, 600, false);
             window.init();
             readyToRender = true;
             return true; //everything went well, so return true.

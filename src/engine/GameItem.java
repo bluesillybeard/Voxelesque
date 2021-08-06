@@ -70,9 +70,9 @@ public class GameItem {
         shaderProgram.bind();
         // Set model view matrix for this item
         modelViewMatrix.identity().translate(position).
-                rotateX(-rotation.x).
-                rotateY(-rotation.y).
-                rotateZ(-rotation.z).
+                rotateX(rotation.x).
+                rotateY(rotation.y).
+                rotateZ(rotation.z).
                 scale(scale);
         shaderProgram.setModelViewMatrix(modelViewMatrix);
 

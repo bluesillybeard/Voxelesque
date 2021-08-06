@@ -69,14 +69,14 @@ public class Window {
 
         // Setup a key callback. It will be called every time a key is pressed, repeated or released.
         glfwSetKeyCallback(windowHandle, (window, key, scancode, action, mods) -> {
-            if(action == GLFW_PRESS || action == GLFW_REPEAT){
+            if(action == GLFW_PRESS){
                 keys[key] = 2;
             } else if(action == GLFW_RELEASE){
                 keys[key] = 0;
             }
         });
         glfwSetMouseButtonCallback(windowHandle, (window, button, action, mods) -> {
-            if(action == GLFW_PRESS || action == GLFW_REPEAT){
+            if(action == GLFW_PRESS){
                 mouseButtons[button] = 2;
             } else if(action == GLFW_RELEASE){
                 mouseButtons[button] = 0;
