@@ -113,6 +113,10 @@ public class LWJGLRenderer implements Render{
         cameraRotation.x = XRotation;
         cameraRotation.y = YRotation;
         cameraRotation.z = ZRotation;
+        // Update view Matrix
+        viewMatrix.identity().rotate((float) Math.toRadians(cameraRotation.x), new Vector3f(1, 0, 0))
+                .rotate((float) Math.toRadians(cameraRotation.y), new Vector3f(0, 1, 0))
+                .translate(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z);
     }
 
     /**
@@ -164,6 +168,7 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public void disposeVEMFModel(int model) {
+        models.get(model).cleanUp();
         models.set(model, null);
     }
 
@@ -359,17 +364,11 @@ public class LWJGLRenderer implements Render{
         if (window.isResized()) {
             glViewport(0, 0, window.getWidth(), window.getHeight());
             window.setResized(false);
+            // Update projection Matrix
+            projectionMatrix.setPerspective(FOV, (float) window.getWidth() / window.getHeight(), 1/256f, 8192f);
         }
 
-
-        // Update projection Matrix
-        projectionMatrix.setPerspective(FOV, (float) window.getWidth() / window.getHeight(), 1/256f, 8192f);
-        // Update view Matrix
-        // First do the rotation so camera rotates over its position
-        viewMatrix.identity().rotate((float) Math.toRadians(cameraRotation.x), new Vector3f(1, 0, 0))
-                .rotate((float) Math.toRadians(cameraRotation.y), new Vector3f(0, 1, 0));
-        // Then do the translation
-        viewMatrix.translate(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z);
+        //update shader uniforms
         for(ShaderProgram shaderProgram: shaderPrograms) {
             shaderProgram.bind();
 
@@ -426,7 +425,11 @@ public class LWJGLRenderer implements Render{
      * @param fov the FOV, in radians.
      */
     @Override
-    public void setFov(float fov) {FOV = fov;}
+    public void setFov(float fov) {
+        FOV = fov;
+        // Update projection Matrix
+        projectionMatrix.setPerspective(FOV, (float) window.getWidth() / window.getHeight(), 1/256f, 8192f);
+    }
 
     /**
      * this function is called if init(), loadShader(), or loadImage() return false / -1
