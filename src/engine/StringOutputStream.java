@@ -1,8 +1,6 @@
 package engine;
 
-import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintStream;
 
 public class StringOutputStream extends OutputStream {
     StringBuffer buffer;
@@ -15,7 +13,7 @@ public class StringOutputStream extends OutputStream {
     }
 
     @Override
-    public void write(int i) throws IOException {
+    public void write(int i) {
         this.buffer.append((char)i);
     }
 

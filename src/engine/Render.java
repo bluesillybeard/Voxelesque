@@ -131,6 +131,39 @@ public interface Render {
      * @param position the new position of that entity [XPos, YPos, ZPos, XRotation, YRotation, ZRotation, XScale, YScale, ZScale]
      */
     void setEntityPosition(int entity, float[] position);
+
+    /**
+     * sets the model for an entity.
+     * @param entity the ID of the entity whose model shall be changed
+     * @param model the ID of the model the entity shall now use
+     */
+    void setEntityModel(int entity, int model);
+
+    /**
+     * sets the model of an entity.
+     * @param entity the ID of the entity whose model shall be changed
+     * @param mesh the ID of the mesh that the entity model shall use
+     * @param texture the ID of the texture that the entity model should use
+     */
+    void setEntityModel(int entity, int mesh, int texture);
+    /**
+     * sets the shader of an entity.
+     * @param entity the entity whose shader is to be set
+     * @param shader the shader the entity is to use.
+     */
+    void setEntityShader(int entity, int shader);
+
+    /**
+     * tells weather an entity collides with a coordinate on screen.
+     * Useful for seeing if the cursor interacts with GUI,
+     * or interacting with the environment.
+     * @param entity the entity to test
+     * @param yPos the Y position to test
+     * @param xPos the X position to test
+     * @param usesCamera weather to use the camera transforms. False for GUI, true for 3D elements.
+     * @return weather that item shows on that screen coordinate
+     */
+    boolean entityContacts(int entity, float yPos, float xPos, boolean usesCamera);
     //methods for input (many of these will be depreciated once I get the custom-controls input system complete)
 
     /**

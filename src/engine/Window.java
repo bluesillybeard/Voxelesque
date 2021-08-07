@@ -180,6 +180,10 @@ public class Window {
 
     public void setVSync(boolean vSync) {
         this.vSync = vSync;
+        if(vSync)
+            glfwSwapInterval(1); //Just came back from C++, and I nearly did glfwSwapInterval(vSync)
+        else
+            glfwSwapInterval(0);
     }
 
     public void update() {

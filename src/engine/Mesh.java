@@ -35,7 +35,12 @@ public class Mesh {
 
     private final int vertexCount;
 
+    private final float[] positions; //these exist only so the CPU can look at them when it needs them
+    private final int[] indices;
+
     public Mesh(float[] positions, float[] UVCoords, int[] indices) {
+        this.positions = positions;
+        this.indices = indices;
         FloatBuffer posBuffer = null;
         FloatBuffer UVBuffer = null;
         IntBuffer indicesBuffer = null;
@@ -88,6 +93,8 @@ public class Mesh {
     public int getVaoId() {
         return vaoId;
     }
+    public float[] getPositions(){return positions;}
+    public int[] getIndices(){return indices;}
 
     public void render() {
         // Draw the mesh

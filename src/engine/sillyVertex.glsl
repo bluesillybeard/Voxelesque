@@ -5,9 +5,9 @@ layout (location=1) in vec2 texCoord;
 
 out vec2 outTexCoord;
 
-uniform mat4 modelViewMatrix;
-uniform mat4 viewMatrix;
-uniform mat4 projectionMatrix;
+uniform mat4 modelViewMatrix; //model position, rotation, and scale
+uniform mat4 viewMatrix; //camera position and rotation
+uniform mat4 projectionMatrix; //projection (perspecive & FOV)
 
 int getRandom(int seed){
     seed ^= seed << 13;

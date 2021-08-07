@@ -2,6 +2,8 @@ package engine;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
+
 
 public class GameItem {
 
@@ -9,30 +11,30 @@ public class GameItem {
     
     private final Vector3f scale;
 
-    private final ShaderProgram shaderProgram;
+    private ShaderProgram shaderProgram;
 
     private final Matrix4f modelViewMatrix;
 
-    private final Model model;
+    private Model model;
 
     private final Vector3f rotation;
 
     public GameItem(Mesh mesh, ShaderProgram shaderProgram, Texture texture) {
         this.model = new Model(mesh, texture);
         this.shaderProgram = shaderProgram;
-        position = new Vector3f();
-        scale = new Vector3f();
-        rotation = new Vector3f();
-        modelViewMatrix = new Matrix4f();
+        this.position = new Vector3f();
+        this.scale = new Vector3f();
+        this.rotation = new Vector3f();
+        this.modelViewMatrix = new Matrix4f();
     }
 
     public GameItem(Model model, ShaderProgram shaderProgram) {
         this.model = model;
         this.shaderProgram = shaderProgram;
-        position = new Vector3f();
-        scale = new Vector3f();
-        rotation = new Vector3f();
-        modelViewMatrix = new Matrix4f();
+        this.position = new Vector3f();
+        this.scale = new Vector3f();
+        this.rotation = new Vector3f();
+        this.modelViewMatrix = new Matrix4f();
     }
 
     public Vector3f getPosition() {
@@ -43,6 +45,12 @@ public class GameItem {
         this.position.x = x;
         this.position.y = y;
         this.position.z = z;
+        //update modelViewMatrix
+        modelViewMatrix.identity().translate(position).
+                rotateX(-rotation.x).
+                rotateY(-rotation.y).
+                rotateZ(-rotation.z).
+                scale(scale);
     }
 
     public Vector3f getScale() {
@@ -53,6 +61,12 @@ public class GameItem {
         this.scale.x = x;
         this.scale.y = y;
         this.scale.z = z;
+        //update modelViewMatrix
+        modelViewMatrix.identity().translate(position).
+                rotateX(-rotation.x).
+                rotateY(-rotation.y).
+                rotateZ(-rotation.z).
+                scale(scale);
     }
 
     public Vector3f getRotation() {
@@ -63,21 +77,104 @@ public class GameItem {
         this.rotation.x = x;
         this.rotation.y = y;
         this.rotation.z = z;
+        //update modelViewMatrix
+        modelViewMatrix.identity().translate(position).
+                rotateX(-rotation.x).
+                rotateY(-rotation.y).
+                rotateZ(-rotation.z).
+                scale(scale);
+    }
+
+    public void setModel(Model model){
+        this.model = model;
+    }
+
+    public void setModel(Mesh mesh, Texture texture){
+        this.model = new Model(mesh, texture);
+    }
+
+    public void setShaderProgram(ShaderProgram program){
+        this.shaderProgram = program;
     }
 
     public void render(){
 
         shaderProgram.bind();
+
         // Set model view matrix for this item
-        modelViewMatrix.identity().translate(position).
-                rotateX(rotation.x).
-                rotateY(rotation.y).
-                rotateZ(rotation.z).
-                scale(scale);
         shaderProgram.setModelViewMatrix(modelViewMatrix);
 
         model.render();
         shaderProgram.unbind();
 
+    }
+
+    /**
+     * @param y the Y screen coordinate (-1.0 - 1.0)
+     * @param x the X screen coordinate (-1.0 - 1.0)
+     * @param viewMatrix the viewMatrix - contains the camera position and rotation
+     * @param projectionMatrix the projectionMatrix - contains the 3D perspective
+     * @return true or false, depending on weather this function thinks that the GameItem touches the position on screen
+     */
+    public boolean touchesPositionOnScreen(float y, float x, Matrix4f viewMatrix, Matrix4f projectionMatrix){
+        y = -y; //The screen coordinates are mirrored for some reason
+
+        Matrix4f MVP;
+        if(projectionMatrix != null && viewMatrix != null) {
+            MVP = projectionMatrix.mul(viewMatrix).mul(projectionMatrix); //all the matrices multiplied together
+        }
+        else
+            MVP = modelViewMatrix; //when the camera and projection are not used, useful for GUI.
+
+        int[] indices = model.getMesh().getIndices();
+        float[] positions = model.getMesh().getPositions();
+        // Go through each triangle
+        //see if it collides with the position:
+        //  if it does, return true
+        //  if it doesn't, continue.
+        for(int i=0; i<indices.length/3; i++){ //each triangle in the mesh
+            //get that triangle
+            Vector4f point1 = new Vector4f(
+                    positions[3*indices[3*i  ]],
+                    positions[3*indices[3*i  ]+1],
+                    positions[3*indices[3*i  ]+2], 1);
+            Vector4f point2 = new Vector4f(
+                    positions[3*indices[3*i+1]],
+                    positions[3*indices[3*i+1]+1],
+                    positions[3*indices[3*i+1]+2], 1);
+            Vector4f point3 = new Vector4f(
+                    positions[3*indices[3*i+2]],
+                    positions[3*indices[3*i+2]+1],
+                    positions[3*indices[3*i+2]+2], 1); //I think I did this right
+
+            //transform that triangle to the screen coordinates
+            point1.mul(MVP);
+            point2.mul(MVP); //transform the points
+            point3.mul(MVP);
+            // if the point is within the triangle, then return true
+            if(isInside(point1.x, point1.y, point2.x, point2.y, point3.x, point3.y, x, y)){
+                return true;
+            }
+        }
+        //if the point touches none of the triangles, return false.
+         return false;
+    }
+
+
+    //thanks to https://www.tutorialspoint.com/Check-whether-a-given-point-lies-inside-a-Triangle for the following code:
+    //I adapted it slightly to fit my code better.
+
+    private float triangleArea(float p1x, float p1y, float p2x, float p2y, float p3x, float p3y) {
+        return (float) Math.abs((p1x*(p2y-p3y) + p2x*(p3y-p1y)+ p3x*(p1y-p2y))/2.0);
+    }
+
+    private boolean isInside(float p1x, float p1y, float p2x, float p2y, float p3x, float p3y, float x, float y) {
+        float area = triangleArea (p1x, p1y, p2x, p2y, p3x, p3y) + .0000177f;          ///area of triangle ABC //with a tiny bit of extra to avoid issues related to float precision errors
+        float area1 = triangleArea (x, y, p2x, p2y, p3x, p3y);         ///area of PBC
+        float area2 = triangleArea (p1x, p1y, x, y, p3x, p3y);         ///area of APC
+        float area3 = triangleArea (p1x, p1y, p2x, p2y, x, y);        ///area of ABP
+
+        return (area >= area1 + area2 + area3);        ///when three triangles are forming the whole triangle
+        //I changed it to >= because floats cannot be trusted to hold perfectly accurate data,
     }
 }

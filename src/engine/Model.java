@@ -32,4 +32,7 @@ public class Model {
         mesh.render();
         texture.unbind();
     }
+
+    public Mesh getMesh(){return mesh;}
+    public Texture getTexture(){return texture;}
 }

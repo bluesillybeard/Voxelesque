@@ -3,15 +3,11 @@ package engine;
 import engine.VMF.VEMFLoader;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import org.lwjgl.system.CallbackI;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintStream;
-import java.lang.reflect.InaccessibleObjectException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL11.glViewport;
@@ -45,7 +41,7 @@ public class LWJGLRenderer implements Render{
     public boolean init(String title) {
 
         try {
-            window = new Window(title, 800, 600, false);
+            window = new Window(title, 800, 600, true);
             window.init();
             readyToRender = true;
             return true; //everything went well, so return true.
@@ -242,6 +238,64 @@ public class LWJGLRenderer implements Render{
     }
 
     /**
+     * sets the model for an entity.
+     *
+     * @param entity the ID of the entity whose model shall be changed
+     * @param model  the ID of the model the entity shall now use
+     */
+    @Override
+    public void setEntityModel(int entity, int model) {
+        gameItems.get(entity).setModel(models.get(model));
+    }
+
+    /**
+     * sets the model of an entity.
+     *
+     * @param entity  the ID of the entity whose model shall be changed
+     * @param mesh    the ID of the mesh that the entity model shall use
+     * @param texture the ID of the texture that the entity model should use
+     */
+    @Override
+    public void setEntityModel(int entity, int mesh, int texture) {
+        gameItems.get(entity).setModel(meshes.get(mesh), textures.get(texture));
+    }
+
+
+    /**
+     * sets the shader of an entity.
+     *
+     * @param entity the entity whose shader is to be set
+     * @param shader the shader the entity is to use.
+     */
+    @Override
+    public void setEntityShader(int entity, int shader) {
+        gameItems.get(entity).setShaderProgram(shaderPrograms.get(shader));
+    }
+
+    /**
+     * tells weather an entity collides with a coordinate on screen.
+     * Useful for seeing if the cursor interacts with GUI,
+     * or interacting with the environment.
+     *
+     * Please note: usesCamera = true does not work properly atm
+     *
+     * @param entity     the entity to test
+     * @param yPos       the Y position to test
+     * @param xPos       the X position to test
+     * @param usesCamera weather to use the camera transforms. False for GUI, true for 3D elements.
+     * @return weather that item shows on that screen coordinate
+     */
+    @Override
+    public boolean entityContacts(int entity, float yPos, float xPos, boolean usesCamera) {
+        //TODO (low priority) fix usesCamera = true - something is wrong with the camera matrix transformations
+        if(usesCamera)
+            return gameItems.get(entity).touchesPositionOnScreen(yPos, xPos, new Matrix4f(viewMatrix), new Matrix4f(projectionMatrix));
+        else
+            return gameItems.get(entity).touchesPositionOnScreen(yPos, xPos, null, null);
+    }
+
+
+    /**
      * This takes a bit of explanation...
      * When a key is pressed it calls a callback.
      * That callback changes the value of that key to 2.
@@ -309,7 +363,7 @@ public class LWJGLRenderer implements Render{
 
 
         // Update projection Matrix
-        projectionMatrix.setPerspective(FOV, (float) window.getWidth() / window.getHeight(), 1/256f, Float.MAX_VALUE/2);
+        projectionMatrix.setPerspective(FOV, (float) window.getWidth() / window.getHeight(), 1/256f, 8192f);
         // Update view Matrix
         // First do the rotation so camera rotates over its position
         viewMatrix.identity().rotate((float) Math.toRadians(cameraRotation.x), new Vector3f(1, 0, 0))
@@ -329,7 +383,7 @@ public class LWJGLRenderer implements Render{
         // Render each gameItem
         for (GameItem gameItem : gameItems) {
             // Render the mesh for this game item
-            gameItem.render();
+            if(gameItem!=null) gameItem.render();
         }
         window.update();
         readyToRender = true;
@@ -360,6 +414,9 @@ public class LWJGLRenderer implements Render{
         }
         for(Texture texture: textures){
             texture.cleanUp();
+        }
+        for(Model model: models){
+            model.cleanUp();
         }
     }
 
