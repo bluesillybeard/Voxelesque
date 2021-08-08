@@ -228,4 +228,16 @@ public interface Render {
      * @param fov the FOV, in radians.
      */
     void setFov(float fov);
+
+    /**
+     *
+     * @return the number of renderable entities
+     */
+    int getNumEntities();
+
+    /**
+     *
+     * @return the number of entity slots - this is related to the maximum number of entities that have existed at one time.
+     */
+    int getNumEntitySlots();
 }

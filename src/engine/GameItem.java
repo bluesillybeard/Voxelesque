@@ -1,11 +1,18 @@
 package engine;
 
+import engine.Swing.CollisionDebugBoard;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
+import javax.swing.*;
+import java.awt.*;
 
 public class GameItem {
+
+    private static CollisionDebugBoard board;
+    private static boolean debugInitialized;
+    private static JFrame frame;
 
     private final Vector3f position;
     
@@ -117,11 +124,27 @@ public class GameItem {
      * @return true or false, depending on weather this function thinks that the GameItem touches the position on screen
      */
     public boolean touchesPositionOnScreen(float y, float x, Matrix4f viewMatrix, Matrix4f projectionMatrix){
+        /*if(!debugInitialized){
+                frame = new JFrame();
+                board = new CollisionDebugBoard();
+                board.addTriangle(0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f);
+
+                frame.setSize(800, 600);
+
+                frame.setTitle("Application");
+                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                frame.setLocationRelativeTo(null);
+                frame.setVisible(true);
+                debugInitialized = true;
+        }
+        frame.add(board);
+        frame.update(frame.getGraphics());
+        board.clearTriangles();*/
         y = -y; //The screen coordinates are mirrored for some reason
 
         Matrix4f MVP;
         if(projectionMatrix != null && viewMatrix != null) {
-            MVP = projectionMatrix.mul(viewMatrix).mul(projectionMatrix); //all the matrices multiplied together
+            MVP = projectionMatrix.mul(viewMatrix).mul(modelViewMatrix);
         }
         else
             MVP = modelViewMatrix; //when the camera and projection are not used, useful for GUI.
@@ -148,9 +171,10 @@ public class GameItem {
                     positions[3*indices[3*i+2]+2], 1); //I think I did this right
 
             //transform that triangle to the screen coordinates
-            point1.mul(MVP);
-            point2.mul(MVP); //transform the points
-            point3.mul(MVP);
+            point1.mulProject(MVP);
+            point2.mulProject(MVP); //transform the points
+            point3.mulProject(MVP);
+            //board.addTriangle(point1.x, point1.y, point2.x, point2.y, point3.x, point3.y);
             // if the point is within the triangle, then return true
             if(isInside(point1.x, point1.y, point2.x, point2.y, point3.x, point3.y, x, y)){
                 return true;

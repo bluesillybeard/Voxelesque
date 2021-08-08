@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="SS2D">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/SS2D.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

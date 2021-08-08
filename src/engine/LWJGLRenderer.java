@@ -25,7 +25,7 @@ public class LWJGLRenderer implements Render{
     private final Vector3f cameraPosition = new Vector3f();
     private final Vector3f cameraRotation = new Vector3f();
 
-    private final ArrayList<GameItem> gameItems = new ArrayList<>(); //TODO: store these more efficiently
+    private final SlottedArrayList<GameItem> gameItems = new SlottedArrayList<>(); //TODO: store these more efficiently
     private final ArrayList<ShaderProgram> shaderPrograms = new ArrayList<>();
     private final ArrayList<Texture>textures = new ArrayList<>();
     private final ArrayList<Mesh> meshes = new ArrayList<>();
@@ -194,8 +194,7 @@ public class LWJGLRenderer implements Render{
         item.setPosition(position[0], position[1], position[2]);
         item.setRotation(position[3], position[4], position[5]);
         item.setScale(position[6], position[7], position[8]);
-        gameItems.add(item);
-        return gameItems.size()-1;
+        return gameItems.add(item);
     }
 
     /**
@@ -215,8 +214,7 @@ public class LWJGLRenderer implements Render{
         item.setPosition(position[0], position[1], position[2]);
         item.setRotation(position[3], position[4], position[5]);
         item.setScale(position[6], position[7], position[8]);
-        gameItems.add(item);
-        return gameItems.size()-1;
+        return gameItems.add(item);
     }
 
     /**
@@ -227,7 +225,7 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public void removeEntity(int entity) {
-        gameItems.set(entity, null); //set that entity to null so it is no longer rendered.
+        gameItems.remove(entity);
     }
 
     /**
@@ -382,7 +380,9 @@ public class LWJGLRenderer implements Render{
         // Render each gameItem
         for (GameItem gameItem : gameItems) {
             // Render the mesh for this game item
-            if(gameItem!=null) gameItem.render();
+            if(gameItem!=null){
+                gameItem.render();
+            }
         }
         window.update();
         readyToRender = true;
@@ -417,6 +417,7 @@ public class LWJGLRenderer implements Render{
         for(Model model: models){
             model.cleanUp();
         }
+        System.out.println("LWJGLRenderer closed properly.");
     }
 
     /**
@@ -429,6 +430,22 @@ public class LWJGLRenderer implements Render{
         FOV = fov;
         // Update projection Matrix
         projectionMatrix.setPerspective(FOV, (float) window.getWidth() / window.getHeight(), 1/256f, 8192f);
+    }
+
+    /**
+     * @return the number of renderable entities
+     */
+    @Override
+    public int getNumEntities() {
+        return gameItems.size();
+    }
+
+    /**
+     * @return the number of entity slots - this is related to the maximum number of entities that have existed at one time.
+     */
+    @Override
+    public int getNumEntitySlots() {
+        return gameItems.capacity();
     }
 
     /**

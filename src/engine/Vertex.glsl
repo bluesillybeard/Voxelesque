@@ -11,6 +11,8 @@ uniform mat4 projectionMatrix; //projection (perspecive & FOV)
 
 void main()
 {
-    gl_Position = projectionMatrix * viewMatrix * modelViewMatrix * vec4(position, 1.0);
+    //gl_Position = projectionMatrix * viewMatrix * modelViewMatrix * vec4(position, 1.0);
+    mat4 mvp = projectionMatrix * viewMatrix * modelViewMatrix;
+    gl_Position = mvp * vec4(position, 1.0);
     outTexCoord = texCoord;
 }

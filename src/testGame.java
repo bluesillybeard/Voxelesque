@@ -13,7 +13,7 @@ public class testGame {
     private static final Vector3f cameraPosition = new Vector3f();
     private static final Vector3f cameraRotation = new Vector3f();
 
-    private static ArrayList<Integer> spawnedEntities = new ArrayList<>();
+    private static final ArrayList<Integer> spawnedEntities = new ArrayList<>();
 
     private static final Runtime jre = Runtime.getRuntime();
 
@@ -65,10 +65,6 @@ public class testGame {
         double lastMouseXPos = render.getMouseXPos();
         int frames = 0;
         do{
-            if(render.shouldRender()){
-                render.render();
-                frames++;
-            }
             if(render.getTime() - lastStepTime > 0.033333){//30 times per second
                 lastStepTime = render.getTime();
                 if(render.entityContacts(guiEntity1, (float)render.getMouseYPos(), (float)render.getMouseXPos(), false)){
@@ -77,13 +73,14 @@ public class testGame {
                     render.setEntityModel(guiEntity1, guiMesh1, happyTexture);
                 }
                 if(render.getKey(GLFW_KEY_F) >= 2){
-                    spawnedEntities.add(render.addEntity(guiMesh1, happyTexture, normalShader, new float[]{cameraPosition.x, cameraPosition.y-1, cameraPosition.z, (float)(Math.random()*Math.PI*2), (float)(Math.random()*Math.PI*2), (float)(Math.random()*Math.PI*2), 1.0f, 1.0f, 1.0f}));
+                    spawnedEntities.add(render.addEntity(grassBlockModel, normalShader, new float[]{cameraPosition.x, cameraPosition.y-1, cameraPosition.z, (float)(Math.random()*Math.PI*2), (float)(Math.random()*Math.PI*2), (float)(Math.random()*Math.PI*2), 1.0f, 1.0f, 1.0f}));
                 }
-                if(render.getKey(GLFW_KEY_G) == 2){
-                    for(int entity: spawnedEntities){
-                        render.removeEntity(entity); //remove each entity
+                for(int i=0; i<spawnedEntities.size(); i++){
+                    if(spawnedEntities.get(i) != -1 && (render.entityContacts(spawnedEntities.get(i), (float)render.getMouseYPos(), (float)render.getMouseXPos(), true) && render.getMouseButton(GLFW_MOUSE_BUTTON_LEFT) >= 2)) {
+                        render.removeEntity(spawnedEntities.get(i)); //remove each entity
+                        spawnedEntities.set(i, -1);
                     }
-                    spawnedEntities = new ArrayList<>(); //then reset the spawned entities list.
+
                 }
 
 
@@ -110,7 +107,7 @@ public class testGame {
                     cameraInc.y = 1;
                     cameraUpdated = true;
                 }
-                double CAMERA_POS_STEP = 1/20d;
+                double CAMERA_POS_STEP = 1/10d;
                 // Update camera position
                 if ( cameraInc.z != 0 ) {
                     cameraPosition.x += (float)Math.sin(Math.toRadians(cameraRotation.y)) * -1.0f * cameraInc.z * CAMERA_POS_STEP;
@@ -142,15 +139,23 @@ public class testGame {
             }
             if(render.getTime() - lastFramerateDebugTime > 1.0){
                 lastFramerateDebugTime = render.getTime();
-                System.out.print("rendering " + spawnedEntities.size() + " entities");
+                System.out.print("rendering " + render.getNumEntities() + " entities");
                 System.out.print(" | framerate:" + frames);
-                System.out.println(" | used memory: " + (((jre.totalMemory() - jre.freeMemory()) * 100.0) / jre.maxMemory()) + "%");
+                System.out.print(" | used memory: " + (((jre.totalMemory() - jre.freeMemory()) * 100.0) / jre.maxMemory()) + "%");
+                System.out.print(" | entity slots: " + render.getNumEntitySlots());
+
+                System.out.print("\n");
                 frames = 0;
             }
             try {
                 Thread.sleep(1); //this is to keep this thread from eating up 100% after I implement multithreading
             } catch (InterruptedException e) {
                 e.printStackTrace();
+            }
+
+            if(render.shouldRender()){
+                render.render();
+                frames++;
             }
         }while(!render.shouldClose());
 
