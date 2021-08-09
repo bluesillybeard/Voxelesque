@@ -8,7 +8,7 @@ import org.joml.Vector4f;
 import javax.swing.*;
 import java.awt.*;
 
-public class GameItem {
+public class RenderableEntity {
 
     private static CollisionDebugBoard board;
     private static boolean debugInitialized;
@@ -26,7 +26,7 @@ public class GameItem {
 
     private final Vector3f rotation;
 
-    public GameItem(Mesh mesh, ShaderProgram shaderProgram, Texture texture) {
+    public RenderableEntity(Mesh mesh, ShaderProgram shaderProgram, Texture texture) {
         this.model = new Model(mesh, texture);
         this.shaderProgram = shaderProgram;
         this.position = new Vector3f();
@@ -35,7 +35,7 @@ public class GameItem {
         this.modelViewMatrix = new Matrix4f();
     }
 
-    public GameItem(Model model, ShaderProgram shaderProgram) {
+    public RenderableEntity(Model model, ShaderProgram shaderProgram) {
         this.model = model;
         this.shaderProgram = shaderProgram;
         this.position = new Vector3f();
@@ -124,22 +124,6 @@ public class GameItem {
      * @return true or false, depending on weather this function thinks that the GameItem touches the position on screen
      */
     public boolean touchesPositionOnScreen(float y, float x, Matrix4f viewMatrix, Matrix4f projectionMatrix){
-        /*if(!debugInitialized){
-                frame = new JFrame();
-                board = new CollisionDebugBoard();
-                board.addTriangle(0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f);
-
-                frame.setSize(800, 600);
-
-                frame.setTitle("Application");
-                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                frame.setLocationRelativeTo(null);
-                frame.setVisible(true);
-                debugInitialized = true;
-        }
-        frame.add(board);
-        frame.update(frame.getGraphics());
-        board.clearTriangles();*/
         y = -y; //The screen coordinates are mirrored for some reason
 
         Matrix4f MVP;
@@ -176,13 +160,9 @@ public class GameItem {
             point1.mulProject(MVP);
             point2.mulProject(MVP); //transform the points
             point3.mulProject(MVP);
-            //remove points behind the camera - apparently the Z dimension goes above 1 when it is behind the camera.
-            if(point1.z < 1.0f && point2.z < 1.0f && point3.z < 1.0f) {
-                //board.addTriangle(point1.x, point1.y, point2.x, point2.y, point3.x, point3.y);
-                // if the point is within the triangle, then return true
-                if (isInside(point1.x, point1.y, point2.x, point2.y, point3.x, point3.y, x, y)) {
-                    return true;
-                }
+            //if the triangle isn't behind the camera and it touches the point, return true.
+            if(point1.z < 1.0f && point2.z < 1.0f && point3.z < 1.0f && isInside(point1.x, point1.y, point2.x, point2.y, point3.x, point3.y, x, y)) {
+                return true;
             }
         }
         //if the point touches none of the triangles, return false.
@@ -193,15 +173,15 @@ public class GameItem {
     //thanks to https://www.tutorialspoint.com/Check-whether-a-given-point-lies-inside-a-Triangle for the following code:
     //I adapted it slightly to fit my code better.
 
-    private float triangleArea(float p1x, float p1y, float p2x, float p2y, float p3x, float p3y) {
-        return (float) Math.abs((p1x*(p2y-p3y) + p2x*(p3y-p1y)+ p3x*(p1y-p2y))/2.0);
+    private double triangleArea(float p1x, float p1y, float p2x, float p2y, float p3x, float p3y) {
+        return Math.abs((p1x*(p2y-p3y) + p2x*(p3y-p1y)+ p3x*(p1y-p2y))/2.0);
     }
 
     private boolean isInside(float p1x, float p1y, float p2x, float p2y, float p3x, float p3y, float x, float y) {
-        float area = triangleArea (p1x, p1y, p2x, p2y, p3x, p3y) + .0000177f;          ///area of triangle ABC //with a tiny bit of extra to avoid issues related to float precision errors
-        float area1 = triangleArea (x, y, p2x, p2y, p3x, p3y);         ///area of PBC
-        float area2 = triangleArea (p1x, p1y, x, y, p3x, p3y);         ///area of APC
-        float area3 = triangleArea (p1x, p1y, p2x, p2y, x, y);        ///area of ABP
+        double area = triangleArea (p1x, p1y, p2x, p2y, p3x, p3y) + .0000177;          ///area of triangle ABC //with a tiny bit of extra to avoid issues related to float precision errors
+        double area1 = triangleArea (x, y, p2x, p2y, p3x, p3y);         ///area of PBC
+        double area2 = triangleArea (p1x, p1y, x, y, p3x, p3y);         ///area of APC
+        double area3 = triangleArea (p1x, p1y, p2x, p2y, x, y);        ///area of ABP
 
         return (area >= area1 + area2 + area3);        ///when three triangles are forming the whole triangle
         //I changed it to >= because floats cannot be trusted to hold perfectly accurate data,

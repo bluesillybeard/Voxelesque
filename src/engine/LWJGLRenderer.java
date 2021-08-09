@@ -25,11 +25,11 @@ public class LWJGLRenderer implements Render{
     private final Vector3f cameraPosition = new Vector3f();
     private final Vector3f cameraRotation = new Vector3f();
 
-    private final SlottedArrayList<GameItem> gameItems = new SlottedArrayList<>(); //TODO: store these more efficiently
-    private final ArrayList<ShaderProgram> shaderPrograms = new ArrayList<>();
-    private final ArrayList<Texture>textures = new ArrayList<>();
-    private final ArrayList<Mesh> meshes = new ArrayList<>();
-    private final ArrayList<Model> models = new ArrayList<>();
+    private final SlottedArrayList<RenderableEntity> renderableEntities = new SlottedArrayList<>();
+    private final SlottedArrayList<ShaderProgram> shaderPrograms = new SlottedArrayList<>();
+    private final SlottedArrayList<Texture>textures = new SlottedArrayList<>();
+    private final SlottedArrayList<Mesh> meshes = new SlottedArrayList<>();
+    private final SlottedArrayList<Model> models = new SlottedArrayList<>();
 
     private final VEMFLoader entityLoad = new VEMFLoader();
     /**
@@ -140,7 +140,7 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public void removeMesh(int mesh) {
-        meshes.set(mesh, null);
+        meshes.remove(mesh);
     }
 
     /**
@@ -167,9 +167,9 @@ public class LWJGLRenderer implements Render{
      * @param model the model to be obliterated.
      */
     @Override
-    public void disposeVEMFModel(int model) {
+    public void removeVEMFModel(int model) {
         models.get(model).cleanUp();
-        models.set(model, null);
+        models.remove(model);
     }
 
     /**
@@ -181,12 +181,10 @@ public class LWJGLRenderer implements Render{
      * @param shader   the shader of that entity - yes, entities get their own shader.
      * @param position the location, rotation, and scale of the entity. [XPos, YPos, ZPos, XRotation, YRotation, ZRotation, XScale, YScale, ZScale]
      * @return the ID of the entity - used for methods that require an entity.
-     *
-     * NOTE: As of 0.0.0, LWJGLRenderer is not capable of 3D scaling, so they are averaged into a single scale factor.
      */
     @Override
     public int addEntity(int mesh, int texture, int shader, float[] position) {
-        GameItem item = new GameItem(
+        RenderableEntity item = new RenderableEntity(
                 meshes.get(mesh),
                 shaderPrograms.get(shader),
                 textures.get(texture)
@@ -194,7 +192,7 @@ public class LWJGLRenderer implements Render{
         item.setPosition(position[0], position[1], position[2]);
         item.setRotation(position[3], position[4], position[5]);
         item.setScale(position[6], position[7], position[8]);
-        return gameItems.add(item);
+        return renderableEntities.add(item);
     }
 
     /**
@@ -207,14 +205,14 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public int addEntity(int model, int shader, float[] position) {
-        GameItem item = new GameItem(
+        RenderableEntity item = new RenderableEntity(
                 models.get(model),
                 shaderPrograms.get(shader)
         );
         item.setPosition(position[0], position[1], position[2]);
         item.setRotation(position[3], position[4], position[5]);
         item.setScale(position[6], position[7], position[8]);
-        return gameItems.add(item);
+        return renderableEntities.add(item);
     }
 
     /**
@@ -225,7 +223,7 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public void removeEntity(int entity) {
-        gameItems.remove(entity);
+        renderableEntities.remove(entity);
     }
 
     /**
@@ -234,7 +232,7 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public void setEntityPosition(int entity, float[] position) {
-        GameItem item = gameItems.get(entity);
+        RenderableEntity item = renderableEntities.get(entity);
         item.setPosition(position[0], position[1], position[2]);
         item.setRotation(position[3], position[4], position[5]);
         item.setScale(position[6], position[7], position[8]);
@@ -248,7 +246,7 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public void setEntityModel(int entity, int model) {
-        gameItems.get(entity).setModel(models.get(model));
+        renderableEntities.get(entity).setModel(models.get(model));
     }
 
     /**
@@ -260,9 +258,8 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public void setEntityModel(int entity, int mesh, int texture) {
-        gameItems.get(entity).setModel(meshes.get(mesh), textures.get(texture));
+        renderableEntities.get(entity).setModel(meshes.get(mesh), textures.get(texture));
     }
-
 
     /**
      * sets the shader of an entity.
@@ -272,7 +269,7 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public void setEntityShader(int entity, int shader) {
-        gameItems.get(entity).setShaderProgram(shaderPrograms.get(shader));
+        renderableEntities.get(entity).setShaderProgram(shaderPrograms.get(shader));
     }
 
     /**
@@ -290,11 +287,10 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public boolean entityContacts(int entity, float yPos, float xPos, boolean usesCamera) {
-        //TODO (low priority) fix usesCamera = true - something is wrong with the camera matrix transformations
         if(usesCamera)
-            return gameItems.get(entity).touchesPositionOnScreen(yPos, xPos, new Matrix4f(viewMatrix), new Matrix4f(projectionMatrix));
+            return renderableEntities.get(entity).touchesPositionOnScreen(yPos, xPos, new Matrix4f(viewMatrix), new Matrix4f(projectionMatrix));
         else
-            return gameItems.get(entity).touchesPositionOnScreen(yPos, xPos, null, null);
+            return renderableEntities.get(entity).touchesPositionOnScreen(yPos, xPos, null, null);
     }
 
 
@@ -360,8 +356,8 @@ public class LWJGLRenderer implements Render{
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         if (window.isResized()) {
-            glViewport(0, 0, window.getWidth(), window.getHeight());
             window.setResized(false);
+            glViewport(0, 0, window.getWidth(), window.getHeight());
             // Update projection Matrix
             projectionMatrix.setPerspective(FOV, (float) window.getWidth() / window.getHeight(), 1/256f, 8192f);
         }
@@ -374,15 +370,11 @@ public class LWJGLRenderer implements Render{
             shaderProgram.setProjectionMatrix(projectionMatrix);
             shaderProgram.setViewMatrix(viewMatrix);
             shaderProgram.setTextureSampler(0);
-
-            shaderProgram.unbind();
         }
         // Render each gameItem
-        for (GameItem gameItem : gameItems) {
+        for (RenderableEntity renderableEntity : renderableEntities) {
             // Render the mesh for this game item
-            if(gameItem!=null){
-                gameItem.render();
-            }
+            renderableEntity.render();
         }
         window.update();
         readyToRender = true;
@@ -437,7 +429,7 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public int getNumEntities() {
-        return gameItems.size();
+        return renderableEntities.size();
     }
 
     /**
@@ -445,7 +437,7 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public int getNumEntitySlots() {
-        return gameItems.capacity();
+        return renderableEntities.capacity();
     }
 
     /**

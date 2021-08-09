@@ -23,16 +23,16 @@ public class Model {
     }
 
     public void cleanUp(){
-        mesh.cleanUp();
-        texture.cleanUp();
+        this.mesh.cleanUp();
+        this.texture.cleanUp();
     }
 
     public void render(){
-        texture.bind();
-        mesh.render();
-        texture.unbind();
+        this.texture.bind();
+        this.mesh.render();
+        this.texture.unbind();
     }
 
-    public Mesh getMesh(){return mesh;}
-    public Texture getTexture(){return texture;}
+    public Mesh getMesh(){return this.mesh;}
+    public Texture getTexture(){return this.texture;}
 }

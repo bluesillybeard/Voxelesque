@@ -25,7 +25,7 @@ public class Texture {
             for(int pixel: imgData){ //place data in ByteBuffer
                 imgDataBuffer.put((byte)(pixel >> 16 & 255));
                 imgDataBuffer.put((byte)(pixel >> 8 & 255)); //bit shifting stuff copied from Java.awt.Color
-                imgDataBuffer.put((byte)(pixel & 255));  //because I'm lazy.
+                imgDataBuffer.put((byte)(pixel & 255));
                 imgDataBuffer.put((byte)(pixel >> 24 & 255));
 
             }
@@ -41,7 +41,7 @@ public class Texture {
         }
         imgDataBuffer.flip();
 
-        textureID = glGenTextures();
+        this.textureID = glGenTextures();
         glBindTexture(GL_TEXTURE_2D, textureID);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
 
@@ -109,16 +109,16 @@ public class Texture {
         //I personally think this looks be best - I may change it later if the game's look changes (such as using high-res textures instead)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-        glGenerateMipmap(GL_TEXTURE_2D); //generate the mipmaps for this image
+        glGenerateMipmap(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
     public void bind(){
-        glBindTexture(GL_TEXTURE_2D, textureID);
+        glBindTexture(GL_TEXTURE_2D, this.textureID);
     }
     public void unbind(){
         glBindTexture(GL_TEXTURE_2D, 0);
     }
     public void cleanUp(){
-        glDeleteTextures(textureID);
+        glDeleteTextures(this.textureID);
     }
 }

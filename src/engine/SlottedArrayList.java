@@ -19,8 +19,8 @@ public class SlottedArrayList<T> implements Iterable<T>{
      * creates a SlottedArrayList.
      */
     public SlottedArrayList(){
-        list = new Object[8];
-        removedIndices = new ArrayList<>();
+        this.list = new Object[8];
+        this.removedIndices = new ArrayList<>();
     }
 
     /**
@@ -29,29 +29,29 @@ public class SlottedArrayList<T> implements Iterable<T>{
      */
     public SlottedArrayList(int initialCapacity){
         if(initialCapacity <= 0) throw new IllegalStateException("the initial capacity of a SlottedArrayList cannot be 0!");
-        list = new Object[initialCapacity];
-        removedIndices = new ArrayList<>();
+        this.list = new Object[initialCapacity];
+        this.removedIndices = new ArrayList<>();
     }
 
     public int add(T item){
-        totalItems++;
-        if(removedIndices.size() == 0){ // if there aren't any removed indices available
-            if(writeIndex >= list.length-1) grow(); //grow the list if required
-            list[writeIndex] = item; //and write the item
-            return writeIndex++;
+        this.totalItems++;
+        if(this.removedIndices.size() == 0){ // if there aren't any removed indices available
+            if(this.writeIndex >= this.list.length) grow(); //grow the list if required
+            this.list[this.writeIndex] = item; //and write the item
+            return this.writeIndex++;
         } else {
-            int removed = removedIndices.size()-1; //get the last item of removedIndices
-            int index = removedIndices.get(removed);
+            int removed = this.removedIndices.size()-1; //get the last item of removedIndices
+            int index = this.removedIndices.get(removed);
 
-            removedIndices.remove(removed); //remove the last item - the reason for the last item is for performance.
-            if(list[index] != null) throw new IllegalStateException("Cannot add item: removed index already contains data, which should* be impossible.");
+            this.removedIndices.remove(removed); //remove the removed index, because it now has data in it.
+            if(this.list[index] != null) throw new IllegalStateException("Cannot add item: removed index already contains data, which should* be impossible.");
 
-            list[index] = item;
+            this.list[index] = item;
             return index;
         }
     }
     private void grow(){
-        list = Arrays.copyOf(list, (int)(list.length*1.5+1));
+        this.list = Arrays.copyOf(this.list, (int)(this.list.length*1.5+1));
     }
 
     /**
@@ -60,31 +60,31 @@ public class SlottedArrayList<T> implements Iterable<T>{
      * @param index the index to remove. If this index is already empty, nothing happens.
      */
     public void remove(int index){
-        if(list[index] != null) {
-            totalItems--;
-            list[index] = null;
-            removedIndices.add(index);
+        if(this.list[index] != null) {
+            this.totalItems--;
+            this.list[index] = null;
+            this.removedIndices.add(index);
         }
     }
     public T get(int index){
-        return (T)list[index];
+        return (T) this.list[index];
     }
 
     public int size(){
-        return totalItems;
+        return this.totalItems;
     }
 
     public int capacity(){
-        return list.length;
+        return this.list.length;
     }
 
     public Object[] getList() {
-        return list;
+        return this.list;
     }
 
     @Override
     public Iterator iterator() {
-        return new SlottedArrayListIterator<T> (list, totalItems);
+        return new SlottedArrayListIterator<T> (this.list, this.totalItems);
     }
     static class SlottedArrayListIterator<E> implements Iterator<E>{
         int index;
@@ -92,14 +92,14 @@ public class SlottedArrayList<T> implements Iterable<T>{
         boolean hasNext;
         public SlottedArrayListIterator(Object[] list, int totalItems){
             this.list = list;
-            if(totalItems > 0) hasNext = true;
-            index = -1;
+            if(totalItems > 0) this.hasNext = true;
+            this.index = -1;
             incrementIndex();
         }
 
         @Override
         public boolean hasNext() {
-            return hasNext;
+            return this.hasNext;
         }
 
         @Override
@@ -107,19 +107,19 @@ public class SlottedArrayList<T> implements Iterable<T>{
             // get the object to return
             // go to the next filled index - if there is no next filled index, set hasNext to false.
             // return the object
-            Object returner = list[index];
+            Object returner = this.list[this.index];
             incrementIndex();
             return (E)returner;
         }
 
         private void incrementIndex(){
             do{
-                index++;
-                if(index >= list.length){
-                    hasNext = false;
+                this.index++;
+                if(this.index >= this.list.length){
+                    this.hasNext = false;
                     return;
                 }
-            }while(list[index]==null);
+            }while(this.list[this.index]==null);
         }
     }
 }

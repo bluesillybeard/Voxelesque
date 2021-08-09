@@ -95,7 +95,7 @@ public interface Render {
      * Deletes a VEMF model. Note that the texture, array buffers, etc, will also be destroyed, so make sure that there are no entities using this model.
      * @param model the model to be obliterated.
      */
-    void disposeVEMFModel(int model);
+    void removeVEMFModel(int model);
 
     /**
      * adds a renderable entity to the render - the entities are the in-game objects that are rendered.
@@ -196,7 +196,7 @@ public interface Render {
      * @return the X position of the cursor on screen, [-1, 1], -1 = left, 1=right
      */
     double getMouseYPos();
-    //other methods
+
     /**
      * @return a timestamp, in seconds. As long as it counts upwards in seconds, it works.
      */
