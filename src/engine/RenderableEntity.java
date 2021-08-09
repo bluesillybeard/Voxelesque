@@ -1,18 +1,10 @@
 package engine;
 
-import engine.Swing.CollisionDebugBoard;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
-import javax.swing.*;
-import java.awt.*;
-
 public class RenderableEntity {
-
-    private static CollisionDebugBoard board;
-    private static boolean debugInitialized;
-    private static JFrame frame;
 
     private final Vector3f position;
     
@@ -45,7 +37,7 @@ public class RenderableEntity {
     }
 
     public Vector3f getPosition() {
-        return position;
+        return this.position;
     }
 
     public void setPosition(float x, float y, float z) {
@@ -53,15 +45,15 @@ public class RenderableEntity {
         this.position.y = y;
         this.position.z = z;
         //update modelViewMatrix
-        modelViewMatrix.identity().translate(position).
-                rotateX(-rotation.x).
-                rotateY(-rotation.y).
-                rotateZ(-rotation.z).
-                scale(scale);
+        this.modelViewMatrix.identity().translate(this.position).
+                rotateX(-this.rotation.x).
+                rotateY(-this.rotation.y).
+                rotateZ(-this.rotation.z).
+                scale(this.scale);
     }
 
     public Vector3f getScale() {
-        return scale;
+        return this.scale;
     }
 
     public void setScale(float x, float y, float z) {
@@ -69,11 +61,11 @@ public class RenderableEntity {
         this.scale.y = y;
         this.scale.z = z;
         //update modelViewMatrix
-        modelViewMatrix.identity().translate(position).
-                rotateX(-rotation.x).
-                rotateY(-rotation.y).
-                rotateZ(-rotation.z).
-                scale(scale);
+        this.modelViewMatrix.identity().translate(this.position).
+                rotateX(-this.rotation.x).
+                rotateY(-this.rotation.y).
+                rotateZ(-this.rotation.z).
+                scale(this.scale);
     }
 
     public Vector3f getRotation() {
@@ -85,11 +77,11 @@ public class RenderableEntity {
         this.rotation.y = y;
         this.rotation.z = z;
         //update modelViewMatrix
-        modelViewMatrix.identity().translate(position).
-                rotateX(-rotation.x).
-                rotateY(-rotation.y).
-                rotateZ(-rotation.z).
-                scale(scale);
+        this.modelViewMatrix.identity().translate(this.position).
+                rotateX(-x).
+                rotateY(-y).
+                rotateZ(-z).
+                scale(this.scale);
     }
 
     public void setModel(Model model){
@@ -105,15 +97,12 @@ public class RenderableEntity {
     }
 
     public void render(){
-
-        shaderProgram.bind();
+        this.shaderProgram.bind();
 
         // Set model view matrix for this item
-        shaderProgram.setModelViewMatrix(modelViewMatrix);
+        this.shaderProgram.setModelViewMatrix(this.modelViewMatrix);
 
-        model.render();
-        shaderProgram.unbind();
-
+        this.model.render();
     }
 
     /**
@@ -128,13 +117,13 @@ public class RenderableEntity {
 
         Matrix4f MVP;
         if(projectionMatrix != null && viewMatrix != null) {
-            MVP = projectionMatrix.mul(viewMatrix).mul(modelViewMatrix);
+            MVP = projectionMatrix.mul(viewMatrix).mul(this.modelViewMatrix);
         }
         else
-            MVP = modelViewMatrix; //when the camera and projection are not used, useful for GUI.
+            MVP = this.modelViewMatrix; //when the camera and projection are not used, useful for GUI.
 
-        int[] indices = model.getMesh().getIndices();
-        float[] positions = model.getMesh().getPositions();
+        int[] indices = this.model.getMesh().getIndices();
+        float[] positions = this.model.getMesh().getPositions();
         // Go through each triangle
         // translate it to 2D coordinates
         //see if it collides with the position:
@@ -173,11 +162,11 @@ public class RenderableEntity {
     //thanks to https://www.tutorialspoint.com/Check-whether-a-given-point-lies-inside-a-Triangle for the following code:
     //I adapted it slightly to fit my code better.
 
-    private double triangleArea(float p1x, float p1y, float p2x, float p2y, float p3x, float p3y) {
+    private static double triangleArea(float p1x, float p1y, float p2x, float p2y, float p3x, float p3y) {
         return Math.abs((p1x*(p2y-p3y) + p2x*(p3y-p1y)+ p3x*(p1y-p2y))/2.0);
     }
 
-    private boolean isInside(float p1x, float p1y, float p2x, float p2y, float p3x, float p3y, float x, float y) {
+    private static boolean isInside(float p1x, float p1y, float p2x, float p2y, float p3x, float p3y, float x, float y) {
         double area = triangleArea (p1x, p1y, p2x, p2y, p3x, p3y) + .0000177;          ///area of triangle ABC //with a tiny bit of extra to avoid issues related to float precision errors
         double area1 = triangleArea (x, y, p2x, p2y, p3x, p3y);         ///area of PBC
         double area2 = triangleArea (p1x, p1y, x, y, p3x, p3y);         ///area of APC
