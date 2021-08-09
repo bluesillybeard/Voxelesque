@@ -103,19 +103,17 @@ public interface Render {
      * @param mesh the mesh of that entity.
      * @param texture the texture of that entity
      * @param shader the shader of that entity - yes, entities get their own shader.
-     * @param position the location, rotation, and scale of the entity. [XPos, YPos, ZPos, XRotation, YRotation, ZRotation, XScale, YScale, ZScale]
      * @return the ID of the entity - used for methods that require an entity.
      */
-    int addEntity(int mesh, int texture, int shader, float[] position);
+    int addEntity(int mesh, int texture, int shader, float XPos, float YPos, float ZPos, float XRotation, float YRotation, float ZRotation, float XScale, float YScale, float ZScale);
 
     /**
      * see addEntity(int int int float[])
      * @param model The VEMF model to be used in this entity, rather than a Mesh and texture.
      * @param shader the shader of that entity
-     * @param position the location, rotation, and scale of the entity. [XPos, YPos, ZPos, XRotation, YRotation, ZRotation, XScale, YScale, ZScale]
      * @return the ID of the entity - used for methods that require an entity.
      */
-    int addEntity(int model, int shader, float[] position);
+    int addEntity(int model, int shader, float XPos, float YPos, float ZPos, float XRotation, float YRotation, float ZRotation, float XScale, float YScale, float ZScale);
 
     /**
      * removes an entity from the Render, meaning it will no longer be rendered. Note that the Mesh, Texture, and Shader
@@ -128,9 +126,8 @@ public interface Render {
     /**
      *
      * @param entity the entity whose position shall be set
-     * @param position the new position of that entity [XPos, YPos, ZPos, XRotation, YRotation, ZRotation, XScale, YScale, ZScale]
      */
-    void setEntityPosition(int entity, float[] position);
+    void setEntityPosition(int entity, float XPos, float YPos, float ZPos, float XRotation, float YRotation, float ZRotation, float XScale, float YScale, float ZScale);
 
     /**
      * sets the model for an entity.

@@ -33,4 +33,5 @@ public class Model {
     }
 
     public Mesh getMesh(){return this.mesh;}
+    public Texture getTexture(){return this.texture;}
 }

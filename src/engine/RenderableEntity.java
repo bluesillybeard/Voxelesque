@@ -89,7 +89,9 @@ public class RenderableEntity {
     }
 
     public void setModel(Mesh mesh, Texture texture){
-        this.model = new Model(mesh, texture);
+        if(this.model.getMesh() != mesh || this.model.getTexture() != texture) { //if the model or mesh are different
+            this.model = new Model(mesh, texture);
+        }
     }
 
     public void setShaderProgram(ShaderProgram program){
@@ -117,7 +119,7 @@ public class RenderableEntity {
 
         Matrix4f MVP;
         if(projectionMatrix != null && viewMatrix != null) {
-            MVP = projectionMatrix.mul(viewMatrix).mul(this.modelViewMatrix);
+            MVP = projectionMatrix.mul(viewMatrix, new Matrix4f()).mul(this.modelViewMatrix);
         }
         else
             MVP = this.modelViewMatrix; //when the camera and projection are not used, useful for GUI.

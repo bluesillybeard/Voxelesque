@@ -39,7 +39,6 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public boolean init(String title) {
-
         try {
             window = new Window(title, 800, 600, true);
             window.init();
@@ -179,19 +178,18 @@ public class LWJGLRenderer implements Render{
      * @param mesh     the mesh of that entity.
      * @param texture  the texture of that entity
      * @param shader   the shader of that entity - yes, entities get their own shader.
-     * @param position the location, rotation, and scale of the entity. [XPos, YPos, ZPos, XRotation, YRotation, ZRotation, XScale, YScale, ZScale]
      * @return the ID of the entity - used for methods that require an entity.
      */
     @Override
-    public int addEntity(int mesh, int texture, int shader, float[] position) {
+    public int addEntity(int mesh, int texture, int shader, float XPos, float YPos, float ZPos, float XRotation, float YRotation, float ZRotation, float XScale, float YScale, float ZScale) {
         RenderableEntity item = new RenderableEntity(
                 meshes.get(mesh),
                 shaderPrograms.get(shader),
                 textures.get(texture)
         );
-        item.setPosition(position[0], position[1], position[2]);
-        item.setRotation(position[3], position[4], position[5]);
-        item.setScale(position[6], position[7], position[8]);
+        item.setPosition(XPos, YPos, ZPos);
+        item.setRotation(XRotation, YRotation, ZRotation);
+        item.setScale(XScale, YScale, ZScale);
         return renderableEntities.add(item);
     }
 
@@ -200,18 +198,17 @@ public class LWJGLRenderer implements Render{
      *
      * @param model    The VEMF model to be used in this entity, rather than a Mesh and texture.
      * @param shader   the shader of that entity
-     * @param position the location, rotation, and scale of the entity. [XPos, YPos, ZPos, XRotation, YRotation, ZRotation, XScale, YScale, ZScale]
      * @return the ID of the entity - used for methods that require an entity.
      */
     @Override
-    public int addEntity(int model, int shader, float[] position) {
+    public int addEntity(int model, int shader, float XPos, float YPos, float ZPos, float XRotation, float YRotation, float ZRotation, float XScale, float YScale, float ZScale) {
         RenderableEntity item = new RenderableEntity(
                 models.get(model),
                 shaderPrograms.get(shader)
         );
-        item.setPosition(position[0], position[1], position[2]);
-        item.setRotation(position[3], position[4], position[5]);
-        item.setScale(position[6], position[7], position[8]);
+        item.setPosition(XPos, YPos, ZPos);
+        item.setRotation(XRotation, YRotation, ZRotation);
+        item.setScale(XScale, YScale, ZScale);
         return renderableEntities.add(item);
     }
 
@@ -228,14 +225,13 @@ public class LWJGLRenderer implements Render{
 
     /**
      * @param entity   the entity whose position shall be set
-     * @param position the new position of that entity [XPos, YPos, ZPos, XRotation, YRotation, ZRotation, XScale, YScale, ZScale]
      */
     @Override
-    public void setEntityPosition(int entity, float[] position) {
+    public void setEntityPosition(int entity, float XPos, float YPos, float ZPos, float XRotation, float YRotation, float ZRotation, float XScale, float YScale, float ZScale) {
         RenderableEntity item = renderableEntities.get(entity);
-        item.setPosition(position[0], position[1], position[2]);
-        item.setRotation(position[3], position[4], position[5]);
-        item.setScale(position[6], position[7], position[8]);
+        item.setPosition(XPos, YPos, ZPos);
+        item.setRotation(XRotation, YRotation, ZRotation);
+        item.setScale(XScale, YScale, ZScale);
     }
 
     /**
@@ -288,7 +284,7 @@ public class LWJGLRenderer implements Render{
     @Override
     public boolean entityContacts(int entity, float yPos, float xPos, boolean usesCamera) {
         if(usesCamera)
-            return renderableEntities.get(entity).touchesPositionOnScreen(yPos, xPos, new Matrix4f(viewMatrix), new Matrix4f(projectionMatrix));
+            return renderableEntities.get(entity).touchesPositionOnScreen(yPos, xPos, viewMatrix, projectionMatrix);
         else
             return renderableEntities.get(entity).touchesPositionOnScreen(yPos, xPos, null, null);
     }

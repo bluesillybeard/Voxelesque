@@ -34,10 +34,10 @@ public class testGame {
         int guiShader = render.loadShader("/home/bluesillybeard/IdeaProjects/Voxelesque/src/engine/gui");
         System.err.println(render.getErrors()); //i'm too lazy to add an if statement lol
 
-        int entity1 = render.addEntity(grassBlockModel, normalShader, new float[]{0f, 0f, 0f, 0f,  1f, 0.5f, 0.5f, 1.0f, 0.5f});
-        int entity2 = render.addEntity(grassBlockModel, normalShader, new float[]{0f, 0f, -2f, 1f,  1f, 0f,   1.0f, 0.5f, 0.5f});
-        int entity3 = render.addEntity(grassBlockModel, normalShader, new float[]{0f, 0f, -4f, 0f,  0f, 1f,   0.5f, 0.5f, 1.0f});
-        int entity4 = render.addEntity(grassBlockModel, crazyShader, new float[] {0f, 0f, -6f, 0f,  2f, 0f,   0.5f, 0.5f, 0.5f});
+        int entity1 = render.addEntity(grassBlockModel, normalShader, 0f, 0f, 0f, 0f,  1f, 0.5f, 0.5f, 1.0f, 0.5f);
+        int entity2 = render.addEntity(grassBlockModel, normalShader, 0f, 0f, -2f, 1f,  1f, 0f,   1.0f, 0.5f, 0.5f);
+        int entity3 = render.addEntity(grassBlockModel, normalShader, 0f, 0f, -4f, 0f,  0f, 1f,   0.5f, 0.5f, 1.0f);
+        int entity4 = render.addEntity(grassBlockModel, crazyShader, 0f, 0f, -6f, 0f,  2f, 0f,   0.5f, 0.5f, 0.5f);
 
         int guiMesh1 = render.addMesh(new float[]{
                 -1, -1, 0,
@@ -57,7 +57,7 @@ public class testGame {
                 });
         int happyTexture = render.loadImage("/home/bluesillybeard/Pictures/happy.png");
         int sadTexture = render.loadImage("/home/bluesillybeard/Pictures/sad.png");
-        int guiEntity1 = render.addEntity(guiMesh1, happyTexture, guiShader, new float[]{-0.8f, -0.8f, -0.8f,  0, 0, 0,  0.2f, 0.2f, 0.2f});
+        int guiEntity1 = render.addEntity(guiMesh1, happyTexture, guiShader, -0.8f, -0.8f, -0.8f,  0, 0, 0,  0.2f, 0.2f, 0.2f);
 
         double lastStepTime = 0.0;
         double lastFramerateDebugTime = 0.0;
@@ -73,7 +73,7 @@ public class testGame {
                     render.setEntityModel(guiEntity1, guiMesh1, happyTexture);
                 }
                 if(render.getKey(GLFW_KEY_F) >= 2){
-                    spawnedEntities.add(render.addEntity(grassBlockModel, normalShader, new float[]{cameraPosition.x, cameraPosition.y-1, cameraPosition.z, (float)(Math.random()*Math.PI*2), (float)(Math.random()*Math.PI*2), (float)(Math.random()*Math.PI*2), 1.0f, 1.0f, 1.0f}));
+                    spawnedEntities.add(render.addEntity(grassBlockModel, normalShader, cameraPosition.x, cameraPosition.y-1, cameraPosition.z, (float)(Math.random()*Math.PI*2), (float)(Math.random()*Math.PI*2), (float)(Math.random()*Math.PI*2), 1.0f, 1.0f, 1.0f));
                 }
                 for(int i=0; i<spawnedEntities.size(); i++){
                     if(spawnedEntities.get(i) != -1 && (render.entityContacts(spawnedEntities.get(i), (float)render.getMouseYPos(), (float)render.getMouseXPos(), true) && render.getMouseButton(GLFW_MOUSE_BUTTON_LEFT) >= 2)) {
@@ -133,9 +133,9 @@ public class testGame {
                     render.setCameraPos(cameraPosition.x, cameraPosition.y, cameraPosition.z, cameraRotation.x, cameraRotation.y, cameraRotation.z);
                 }
 
-                render.setEntityPosition(entity1, new float[]{0f, 0f, -0f, (float)(render.getTime()/10),  (float)(render.getTime()*5), (float)render.getTime(), 0.5f, 1.0f, 0.5f});
-                render.setEntityPosition(entity2, new float[]{0f, 0f, -2f, (float)(render.getTime()*9),  (float)(render.getTime()/7), (float)render.getTime()*1.5f,   1.0f, 0.5f, 0.5f});
-                render.setEntityPosition(entity3, new float[]{0f, 0f, -4f, (float)(render.getTime()/3),  (float)(render.getTime()*2), (float)render.getTime()/0.5f,   0.5f, 0.5f, 1.0f});
+                render.setEntityPosition(entity1, 0f, 0f, -0f, (float)(render.getTime()/10),  (float)(render.getTime()*5), (float)render.getTime(), 0.5f, 1.0f, 0.5f);
+                render.setEntityPosition(entity2, 0f, 0f, -2f, (float)(render.getTime()*9),  (float)(render.getTime()/7), (float)render.getTime()*1.5f,   1.0f, 0.5f, 0.5f);
+                render.setEntityPosition(entity3, 0f, 0f, -4f, (float)(render.getTime()/3),  (float)(render.getTime()*2), (float)render.getTime()/0.5f,   0.5f, 0.5f, 1.0f);
             }
             if(render.getTime() - lastFramerateDebugTime > 1.0){
                 lastFramerateDebugTime = render.getTime();
