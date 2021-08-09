@@ -152,9 +152,11 @@ public class GameItem {
         int[] indices = model.getMesh().getIndices();
         float[] positions = model.getMesh().getPositions();
         // Go through each triangle
+        // translate it to 2D coordinates
         //see if it collides with the position:
         //  if it does, return true
         //  if it doesn't, continue.
+        //if none of the triangles collide, return false.
         for(int i=0; i<indices.length/3; i++){ //each triangle in the mesh
             //get that triangle
             Vector4f point1 = new Vector4f(
@@ -174,10 +176,13 @@ public class GameItem {
             point1.mulProject(MVP);
             point2.mulProject(MVP); //transform the points
             point3.mulProject(MVP);
-            //board.addTriangle(point1.x, point1.y, point2.x, point2.y, point3.x, point3.y);
-            // if the point is within the triangle, then return true
-            if(isInside(point1.x, point1.y, point2.x, point2.y, point3.x, point3.y, x, y)){
-                return true;
+            //remove points behind the camera - apparently the Z dimension goes above 1 when it is behind the camera.
+            if(point1.z < 1.0f && point2.z < 1.0f && point3.z < 1.0f) {
+                //board.addTriangle(point1.x, point1.y, point2.x, point2.y, point3.x, point3.y);
+                // if the point is within the triangle, then return true
+                if (isInside(point1.x, point1.y, point2.x, point2.y, point3.x, point3.y, x, y)) {
+                    return true;
+                }
             }
         }
         //if the point touches none of the triangles, return false.
