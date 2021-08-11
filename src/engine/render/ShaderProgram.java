@@ -1,4 +1,4 @@
-package engine;
+package engine.render;
 
 import org.joml.Matrix4f;
 import static org.lwjgl.opengl.GL20.*;

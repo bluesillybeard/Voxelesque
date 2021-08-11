@@ -1,4 +1,4 @@
-package engine;
+package engine.render;
 
 public interface Render {
     int WINDOW_INIT_ERROR = 1;
@@ -10,30 +10,6 @@ public interface Render {
      * @return true if it was successful, false if it was unsuccessful.
      */
     boolean init(String title);
-
-    /**
-     * the Major version of the Rendering engine. Major versions are completely incompatible; no intentional backwards compatibility of any kind.
-     * The current latest version is 0.
-     * @return the major version of the Render.
-     */
-    int getVersionMajor();
-
-    /**
-     * each minor version should be mostly backwards compatible with older versions.
-     * If the game needs version 2, then version 3, 4, 5, etc need to work as well.
-     * the current latest version is 0.
-     * @return the minor version of the Render
-     */
-    int getVersionMinor();
-
-    /**
-     * returns the patch version of the render. Patch versions should only fix bugs, exploits, glitches, etc,
-     * and any patch version should be 100% compatible with all other patch versions of a minor/major version.
-     * For example, if the game needs patch 2, patch 5 should work as well and vice versa if possible.
-     * the current latest version is 0.
-     * @return the patch version of the Render.
-     */
-    int getVersionPatch();
 
     /**
      * loads a shader pair within shaders. each shader pair is in the shaders directory, and it is two files:
@@ -151,6 +127,46 @@ public interface Render {
     void setEntityShader(int entity, int shader);
 
     /**
+     * adds a block mesh
+     * @param mesh an entity mesh, in case a block and entity have the same mesh for some reason
+     * @return the blockMesh ID
+     */
+    int addBlockMesh(int mesh);
+
+    /**
+     * adds a block mesh
+     * @param positions the positions of the block mesh
+     * @param textureCoordinates the texture coordinates / UV coordinates
+     * @param indices the indices of the mesh
+     * @return the blockMesh ID
+     */
+    int addBlockMesh(float[] positions, float[] textureCoordinates, int[] indices);
+
+    //int addBlockMesh(float[] positions, float[] textureCoordinates, int[] indices, int[] removableIndices);
+
+    /**
+     * removes a blockMesh - If this blockMesh was generated from an entity mesh, the entity mesh won't be destroyed.
+     * @param blockMesh the blockMesh to be deleted.
+     */
+    void removeBlockMesh(int blockMesh);
+
+    /**
+     * generates a texture atlas, and a blockModel for each of the blockMeshes.
+     * There is no addBlockModel method because that is supposed to be done by this method.
+     * The textures and blockMeshes with the same indexes map together.
+     * @param textures the list of textures
+     * @param blockMeshes the list of blockMeshes
+     * @return a list of blockModel IDs, in the same order as the textures and blockMeshes.
+     */
+    int[] generateBlockAtlas(int[] textures, int[] blockMeshes);
+    /**
+     * creates and adds a block to the list
+     * @param blockMesh the mesh of that block.
+     * @return the ID of the block model
+     */
+    int addBlockModel(int blockMesh, int shader);
+    //methods for input (many of these will be depreciated once I get the custom-controls input system complete)
+    /**
      * tells weather an entity collides with a coordinate on screen.
      * Useful for seeing if the cursor interacts with GUI,
      * or interacting with the environment.
@@ -161,7 +177,6 @@ public interface Render {
      * @return weather that item shows on that screen coordinate
      */
     boolean entityContacts(int entity, float yPos, float xPos, boolean usesCamera);
-    //methods for input (many of these will be depreciated once I get the custom-controls input system complete)
 
     /**
      * This takes a bit of explanation...

@@ -1,6 +1,6 @@
 package engine.VMF;
 
-import engine.Texture;
+import engine.model.Texture;
 
 import java.io.*;
 import java.util.Arrays;

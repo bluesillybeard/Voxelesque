@@ -1,5 +1,5 @@
-import engine.LWJGLRenderer;
-import engine.Render;
+import engine.render.LWJGLRenderer;
+import engine.render.Render;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;

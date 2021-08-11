@@ -1,4 +1,4 @@
-package engine;
+package engine.model;
 
 import org.lwjgl.system.MemoryUtil;
 
@@ -19,11 +19,13 @@ public class Mesh {
     private final int vertexCount;
 
     private final float[] positions; //these exist only so the CPU can look at them when it needs them
+    private final float[] UVCoords;
     private final int[] indices;
 
     public Mesh(float[] positions, float[] UVCoords, int[] indices) {
         this.positions = positions;
         this.indices = indices;
+        this.UVCoords = UVCoords;
         FloatBuffer posBuffer = null;
         FloatBuffer UVBuffer = null;
         IntBuffer indicesBuffer = null;
@@ -78,6 +80,7 @@ public class Mesh {
     }
     public float[] getPositions(){return this.positions;}
     public int[] getIndices(){return this.indices;}
+    public float[] getUVCoords(){return this.UVCoords;}
 
     public void render() {
         // Draw the mesh
