@@ -21,6 +21,10 @@ public class Model {
         this.mesh = mesh;
         this.texture = texture;
     }
+    public Model(BlockModel model){
+        this.mesh = new Mesh(model.getMesh());
+        this.texture = model.getTexture();
+    }
 
     public void cleanUp(){
         this.mesh.cleanUp();

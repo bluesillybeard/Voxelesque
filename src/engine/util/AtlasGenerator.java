@@ -1,18 +1,17 @@
 package engine.util;
-//copied from https://github.com/lukaszdk/texture-atlas-generator
+//The code below is a heavily edited version of https://github.com/lukaszdk/texture-atlas-generator
 import engine.model.BlockMesh;
 import engine.model.BlockModel;
+import engine.model.Texture;
+import engine.render.ShaderProgram;
 
+import java.awt.*;
+import java.sql.Blob;
 import java.util.*;
 import java.io.*;
-import javax.imageio.*;
-import java.awt.Rectangle;
-import java.awt.Graphics2D;
 import java.awt.image.*;
 
-public class AtlasGenerator
-{
-
+public class AtlasGenerator{
 
     /**
      * places the textures into an atlas,
@@ -24,139 +23,60 @@ public class AtlasGenerator
      * @param meshes the meshes to use.
      * @return the output array of BlockModels.
      */
-    public static BlockModel[] generateBlockModels(BufferedImage[] textures, BlockMesh[] meshes){
-
+    public static BlockModel[] generateBlockModels(BufferedImage[] textures, BlockMesh[] meshes, ShaderProgram shader){
+        int totalWidth = 0;
+        int totalHeight = 0;
+        for(BufferedImage tex: textures){
+            totalWidth += tex.getWidth();
+            totalHeight += tex.getHeight();
+        }
+        return Run(totalWidth*2, totalHeight*2, 0, false, textures, meshes, shader);
     }
 
-    public static void main(String[] args)
+    public static BlockModel[] Run(int width, int height, int padding, boolean ignoreErrors, BufferedImage[] images, BlockMesh[] meshes, ShaderProgram shader)
     {
-        if(args.length < 4)
-        {
-            System.out.println("Texture Atlas Generator by Lukasz Bruun - lukasz.dk");
-            System.out.println("\tUsage: AtlasGenerator <name> <width> <height> <padding> <ignorePaths> <unitCoordinates> <directory> [<directory> ...]");
-            System.out.println("\t\t<padding>: Padding between images in the final texture atlas.");
-            System.out.println("\t\t<ignorePaths>: Only writes out the file name without the path of it to the atlas txt file.");
-            System.out.println("\t\t<unitCoordinates>: Coordinates will be written to atlas txt file in 0..1 range instead of 0..width, 0..height range");
-            System.out.println("\tExample: AtlasGenerator atlas 2048 2048 5 1 1 images");
-            return;
-        }
-
-        AtlasGenerator atlasGenerator = new AtlasGenerator();
-        List<File> dirs = new ArrayList<>();
-        for(int i = 6; i < args.length; ++i)
-        {
-            dirs.add(new File(args[i]));
-        }
-        atlasGenerator.Run(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]), Integer.parseInt(args[3]), Integer.parseInt(args[4]) != 0, Integer.parseInt(args[5]) != 0, dirs);
-    }
-
-    public void Run(String name, int width, int height, int padding, boolean fileNameOnly, boolean unitCoordinates, List<File> dirs)
-    {
-        List<File> imageFiles = new ArrayList<>();
-
-        for(File file : dirs)
-        {
-            if(!file.exists() || !file.isDirectory())
-            {
-                System.out.println("Error: Could not find directory '" + file.getPath() + "'");
-                return;
-            }
-
-            GetImageFiles(file, imageFiles);
-        }
-
-        System.out.println("Found " + imageFiles.size() + " images");
-
         Set<ImageName> imageNameSet = new TreeSet<>(new ImageNameComparator());
 
-        for(File f : imageFiles)
+        for(int i=0; i<images.length; i++)
         {
-            try
+            BufferedImage image = images[i];
+            if(image.getWidth() > width || image.getHeight() > height)
             {
-                BufferedImage image = ImageIO.read(f);
-
-                if(image.getWidth() > width || image.getHeight() > height)
-                {
-                    System.out.println("Error: '" + f.getPath() + "' (" + image.getWidth() + "x" + image.getHeight() + ") is larger than the atlas (" + width + "x" + height + ")");
-                    return;
-                }
-
-                String path = f.getPath().substring(0, f.getPath().lastIndexOf(".")).replace("\\", "/");
-
-                imageNameSet.add(new ImageName(image, path));
-
+                if(!ignoreErrors)
+                    throw new RuntimeException("image" + i + " (" + image.getWidth() + "x" + image.getHeight() + ") is larger than the atlas (" + width + "x" + height + ")");
+                else
+                    System.err.println("image" + i + " (" + image.getWidth() + "x" + image.getHeight() + ") is larger than the atlas (" + width + "x" + height + ")");
             }
-            catch(IOException e)
-            {
-                System.out.println("Could not open file: '" + f.getAbsoluteFile() + "'");
-            }
+
+            imageNameSet.add(new ImageName(image, i));
+
         }
 
-        List<Texture> textures = new ArrayList<>();
-
-        textures.add(new Texture(width, height));
-
-        int count = 0;
+        Texture atlas = new Texture(width, height);
 
         for(ImageName imageName : imageNameSet)
         {
-            boolean added = false;
-
-            System.out.println("Adding " + imageName.name + " to atlas (" + (++count) + ")");
-
-            for(Texture texture : textures)
+            if(!atlas.AddImage(imageName.image, imageName.index, padding))
             {
-                if(texture.AddImage(imageName.image, imageName.name, padding))
-                {
-                    added = true;
-                    break;
-                }
-            }
-
-            if(!added)
-            {
-                Texture texture = new Texture(width, height);
-                texture.AddImage(imageName.image, imageName.name, padding);
-                textures.add(texture);
+                if(!ignoreErrors)
+                    throw new RuntimeException("unable to add image " + imageName.index + " to the atlas!");
+                else
+                    System.err.println("unable to add image " + imageName.index + " to the atlas!");
             }
         }
-
-        count = 0;
-
-        for(Texture texture : textures)
-        {
-            System.out.println("Writing atlas: " + name + (++count));
-            texture.Write(name + count, fileNameOnly, unitCoordinates, width, height);
-        }
+        return atlas.Write(width, height, meshes, shader);
     }
 
-    private void GetImageFiles(File file, List<File> imageFiles)
-    {
-        if(file.isDirectory())
-        {
-            File[] files = file.listFiles(new ImageFilenameFilter());
-            File[] directories = file.listFiles(new DirectoryFileFilter());
-
-            assert files != null;
-            imageFiles.addAll(Arrays.asList(files));
-
-            assert directories != null;
-            for(File d : directories)
-            {
-                GetImageFiles(d, imageFiles);
-            }
-        }
-    }
 
     private static class ImageName
     {
         public BufferedImage image;
-        public String name;
+        public int index;
 
-        public ImageName(BufferedImage image, String name)
+        public ImageName(BufferedImage image, int name)
         {
             this.image = image;
-            this.name = name;
+            this.index = name;
         }
     }
 
@@ -173,24 +93,8 @@ public class AtlasGenerator
             }
             else
             {
-                return image1.name.compareTo(image2.name);
+                return image1.index - image2.index;
             }
-        }
-    }
-
-    private static class ImageFilenameFilter implements FilenameFilter
-    {
-        public boolean accept(File dir, String name)
-        {
-            return name.toLowerCase().endsWith(".png");
-        }
-    }
-
-    private static class DirectoryFileFilter implements FileFilter
-    {
-        public boolean accept(File pathname)
-        {
-            return pathname.isDirectory();
         }
     }
 
@@ -270,7 +174,7 @@ public class AtlasGenerator
         private final BufferedImage image;
         private final Graphics2D graphics;
         private final Node root;
-        private final Map<String, Rectangle> rectangleMap;
+        private final Map<Integer, Rectangle> rectangleMap;
 
         public Texture(int width, int height)
         {
@@ -281,7 +185,7 @@ public class AtlasGenerator
             rectangleMap = new TreeMap<>();
         }
 
-        public boolean AddImage(BufferedImage image, String name, int padding)
+        public boolean AddImage(BufferedImage image, int index, int padding)
         {
             Node node = root.Insert(image, padding);
 
@@ -290,42 +194,31 @@ public class AtlasGenerator
                 return false;
             }
 
-            rectangleMap.put(name, node.rect);
+            rectangleMap.put(index, node.rect);
             graphics.drawImage(image, null, node.rect.x, node.rect.y);
-
 
             return true;
         }
 
-        public void Write(String name, boolean fileNameOnly, boolean unitCoordinates, int width, int height)
+        public BlockModel[] Write(int width, int height, BlockMesh[] meshes, ShaderProgram shader)
         {
-            try
+            engine.model.Texture glTexture = new engine.model.Texture(this.image);
+            BlockModel[] out = new BlockModel[meshes.length];
+            for(Map.Entry<Integer, Rectangle> UVMapping : rectangleMap.entrySet())
             {
-                ImageIO.write(image, "png", new File(name + ".png"));
-
-                BufferedWriter atlas = new BufferedWriter(new FileWriter(name + ".txt"));
-
-                for(Map.Entry<String, Rectangle> e : rectangleMap.entrySet())
-                {
-                    Rectangle r = e.getValue();
-                    String keyVal = e.getKey();
-                    if (fileNameOnly)
-                        keyVal = keyVal.substring(keyVal.lastIndexOf('/') + 1);
-                    if (unitCoordinates)
-                    {
-                        atlas.write(keyVal + " " + r.x/(float)width + " " + r.y/(float)height + " " + r.width/(float)width + " " + r.height/(float)height);
-                    }
-                    else
-                        atlas.write(keyVal + " " + r.x + " " + r.y + " " + r.width + " " + r.height);
-                    atlas.newLine();
+                Rectangle rect = UVMapping.getValue();
+                float rx = (float)rect.x/width;
+                float ry = (float)rect.y/height;
+                float rw = (float)rect.width/width;
+                float rh = (float)rect.height/height;
+                int keyVal = UVMapping.getKey();
+                for(int i=0; i<meshes[keyVal].UVCoords.length/2; i++){
+                    meshes[keyVal].UVCoords[2*i  ] = meshes[keyVal].UVCoords[2*i  ]*rw+rx;
+                    meshes[keyVal].UVCoords[2*i+1] = meshes[keyVal].UVCoords[2*i+1]*rh+ry;
                 }
-
-                atlas.close();
+                out[keyVal] = new BlockModel(meshes[keyVal], glTexture, shader);
             }
-            catch(IOException ignored)
-            {
-
-            }
+            return out;
         }
     }
 }

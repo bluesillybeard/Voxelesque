@@ -5,6 +5,8 @@ public interface Render {
     int SHADER_INIT_ERROR = 2;
     int TEXTURE_INIT_ERROR = 3;
     int VEMF_LOAD_ERROR = 4;
+    int TEXTURE_LOAD_ERROR = 5;
+    int TEXTURE_ATLAS_ERROR = 6;
     /**
      * the first method called by the game. It should initialize any engine components, as well as create and show the window.
      * @return true if it was successful, false if it was unsuccessful.
@@ -22,10 +24,17 @@ public interface Render {
 
     /**
      * loads an image file (guarantee .png, it would be nice that if you are creating a Render that you also support other formats as well)
+     * Before use as a texture, it must first be converted to a texture using the addTexture() method.
      * @param image the path of the image, within the resources directory.
      * @return the image's ID - this is used for future methods that require an image. returns -1 of the loading failed somehow - see String getErrors()
      */
     int loadImage(String image);
+
+    /**
+     * unloads an image to free memory
+     * @param image the image to be unloaded.
+     */
+    void unloadImage(int image);
 
     /**
      * this function is called if init(), loadShader(), or loadImage() return false / -1
@@ -91,6 +100,13 @@ public interface Render {
      */
     int addEntity(int model, int shader, float XPos, float YPos, float ZPos, float XRotation, float YRotation, float ZRotation, float XScale, float YScale, float ZScale);
 
+
+    /**
+     * @param blockModel The block model to be used in this entity
+     * @return the ID of the entity - used for methods that require an entity.
+     */
+    int addEntity(int blockModel, float XPos, float YPos, float ZPos, float XRotation, float YRotation, float ZRotation, float XScale, float YScale, float ZScale);
+
     /**
      * removes an entity from the Render, meaning it will no longer be rendered. Note that the Mesh, Texture, and Shader
      * are not deleted, as they are separate objects.
@@ -127,6 +143,14 @@ public interface Render {
     void setEntityShader(int entity, int shader);
 
     /**
+     * converts an image into a texture
+     * @param image the image from loadImage()
+     * @return the ID of the texture, to be used in methods that require a texture.
+     */
+    int addTexture(int image);
+
+    //methods related to blocks
+    /**
      * adds a block mesh
      * @param mesh an entity mesh, in case a block and entity have the same mesh for some reason
      * @return the blockMesh ID
@@ -142,7 +166,12 @@ public interface Render {
      */
     int addBlockMesh(float[] positions, float[] textureCoordinates, int[] indices);
 
-    //int addBlockMesh(float[] positions, float[] textureCoordinates, int[] indices, int[] removableIndices);
+    /**
+     * copies a block meshes data into a new one.
+     * @param blockMesh the block mesh to be copied
+     * @return the ID of the new block mesh
+     */
+    int copyBlockMesh(int blockMesh);
 
     /**
      * removes a blockMesh - If this blockMesh was generated from an entity mesh, the entity mesh won't be destroyed.
@@ -154,17 +183,14 @@ public interface Render {
      * generates a texture atlas, and a blockModel for each of the blockMeshes.
      * There is no addBlockModel method because that is supposed to be done by this method.
      * The textures and blockMeshes with the same indexes map together.
-     * @param textures the list of textures
-     * @param blockMeshes the list of blockMeshes
+     *
+     * @param images the list of textures to use. They will be combined into one texture then sent to the GPU.
+     * @param blockMeshes the list of blockMeshes. Their UV/texture coordinates will be modified to use the atlased texture.
+     * @param shader the shader that all the blockModels will use.
      * @return a list of blockModel IDs, in the same order as the textures and blockMeshes.
      */
-    int[] generateBlockAtlas(int[] textures, int[] blockMeshes);
-    /**
-     * creates and adds a block to the list
-     * @param blockMesh the mesh of that block.
-     * @return the ID of the block model
-     */
-    int addBlockModel(int blockMesh, int shader);
+    int[] generateBlockAtlas(int[] images, int[] blockMeshes, int shader);
+
     //methods for input (many of these will be depreciated once I get the custom-controls input system complete)
     /**
      * tells weather an entity collides with a coordinate on screen.

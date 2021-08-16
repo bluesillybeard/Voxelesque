@@ -9,6 +9,8 @@ import org.joml.Vector4f;
 
 public class RenderableEntity {
 
+    private boolean hidden;
+
     private final Vector3f position;
     
     private final Vector3f scale;
@@ -28,6 +30,7 @@ public class RenderableEntity {
         this.scale = new Vector3f();
         this.rotation = new Vector3f();
         this.modelViewMatrix = new Matrix4f();
+        hidden = false;
     }
 
     public RenderableEntity(Model model, ShaderProgram shaderProgram) {
@@ -37,6 +40,7 @@ public class RenderableEntity {
         this.scale = new Vector3f();
         this.rotation = new Vector3f();
         this.modelViewMatrix = new Matrix4f();
+        hidden = false;
     }
 
     public Vector3f getPosition() {
@@ -102,12 +106,14 @@ public class RenderableEntity {
     }
 
     public void render(){
-        this.shaderProgram.bind();
+        if(!hidden) {
+            this.shaderProgram.bind();
 
-        // Set model view matrix for this item
-        this.shaderProgram.setModelViewMatrix(this.modelViewMatrix);
+            // Set model view matrix for this item
+            this.shaderProgram.setModelViewMatrix(this.modelViewMatrix);
 
-        this.model.render();
+            this.model.render();
+        }
     }
 
     /**

@@ -75,6 +75,59 @@ public class Mesh {
         }
     }
 
+    public Mesh(BlockMesh mesh) {
+        this.positions = mesh.positions;
+        this.indices = mesh.indices;
+        this.UVCoords = mesh.UVCoords;
+        FloatBuffer posBuffer = null;
+        FloatBuffer UVBuffer = null;
+        IntBuffer indicesBuffer = null;
+        try {
+            this.vertexCount = indices.length;
+
+            this.vaoId = glGenVertexArrays();
+            glBindVertexArray(this.vaoId);
+
+            // Position VBO
+            this.posVboId = glGenBuffers();
+            posBuffer = MemoryUtil.memAllocFloat(positions.length);
+            posBuffer.put(positions).flip();
+            glBindBuffer(GL_ARRAY_BUFFER, this.posVboId);
+            glBufferData(GL_ARRAY_BUFFER, posBuffer, GL_STATIC_DRAW);
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+
+            // UV VBO
+            this.UVVboId = glGenBuffers();
+            UVBuffer = MemoryUtil.memAllocFloat(UVCoords.length);
+            UVBuffer.put(UVCoords).flip();
+            glBindBuffer(GL_ARRAY_BUFFER, this.UVVboId);
+            glBufferData(GL_ARRAY_BUFFER, UVBuffer, GL_STATIC_DRAW);
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0);
+
+            // Index VBO
+            this.idxVboId = glGenBuffers();
+            indicesBuffer = MemoryUtil.memAllocInt(indices.length);
+            indicesBuffer.put(indices).flip();
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this.idxVboId);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesBuffer, GL_STATIC_DRAW);
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
+        } finally {
+            if (posBuffer != null) {
+                MemoryUtil.memFree(posBuffer);
+            }
+            if (UVBuffer != null) {
+                MemoryUtil.memFree(UVBuffer);
+            }
+            if (indicesBuffer != null) {
+                MemoryUtil.memFree(indicesBuffer);
+            }
+        }
+    }
+
     public int getVaoId() {
         return this.vaoId;
     }

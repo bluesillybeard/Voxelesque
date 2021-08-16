@@ -1,14 +1,13 @@
 package engine.model;
 
-/**
- * same as a normal mesh, but it also stores some data that is used during chunk construction.
- */
+import java.util.Arrays;
+
 public class BlockMesh{
-    float[] positions;
-    float[] UVCoords;
-    int[] indices;
-    int[] removableTriangles;
-    int[] blockableTriangles;
+    public float[] positions;
+    public float[] UVCoords;
+    public int[] indices;
+    public int[] removableTriangles;
+    public int[] blockableTriangles;
     public BlockMesh(float[] positions, float[] UVCoords, int[] indices) {
         this.positions = positions;
         this.UVCoords = UVCoords;
@@ -22,6 +21,9 @@ public class BlockMesh{
         this.indices = indices;
         this.removableTriangles = removableTriangles;
         this.blockableTriangles = blockableTriangles;
+    }
+    public BlockMesh clone(){
+        return new BlockMesh(Arrays.copyOf(positions, positions.length), Arrays.copyOf(UVCoords, UVCoords.length), Arrays.copyOf(indices, indices.length));
     }
 
 }

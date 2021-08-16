@@ -1,16 +1,16 @@
 package engine.render;
 
 import engine.VMF.VEMFLoader;
-import engine.model.BlockMesh;
-import engine.model.Mesh;
-import engine.model.Model;
-import engine.model.Texture;
+import engine.model.*;
+import engine.util.AtlasGenerator;
 import engine.util.SlottedArrayList;
 import engine.util.StringOutputStream;
 import engine.util.Utils;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -31,12 +31,14 @@ public class LWJGLRenderer implements Render{
     private final Vector3f cameraPosition = new Vector3f();
     private final Vector3f cameraRotation = new Vector3f();
 
+    private final SlottedArrayList<BufferedImage> images = new SlottedArrayList<>();
     private final SlottedArrayList<RenderableEntity> renderableEntities = new SlottedArrayList<>();
     private final SlottedArrayList<ShaderProgram> shaderPrograms = new SlottedArrayList<>();
     private final SlottedArrayList<Texture>textures = new SlottedArrayList<>();
     private final SlottedArrayList<Mesh> meshes = new SlottedArrayList<>();
     private final SlottedArrayList<Model> models = new SlottedArrayList<>();
-    private final SlottedArrayList<BlockMesh> blockMeshes = new SlottedArrayList<BlockMesh>();
+    private final SlottedArrayList<BlockMesh> blockMeshes = new SlottedArrayList<>();
+    private final SlottedArrayList<BlockModel> blockModels = new SlottedArrayList<>();
 
     private final VEMFLoader entityLoad = new VEMFLoader();
     /**
@@ -99,13 +101,22 @@ public class LWJGLRenderer implements Render{
     @Override
     public int loadImage(String image) {
         try {
-            textures.add(new Texture(image));
-            return textures.size() - 1;
+            return images.add(ImageIO.read(new File(image)));
         } catch(Exception e){
             errorString = getStackTrace(e);
-            errorCode = TEXTURE_INIT_ERROR;
+            errorCode = TEXTURE_LOAD_ERROR;
             return -1;
         }
+    }
+
+    /**
+     * unloads an image to free memory
+     *
+     * @param image the image to be unloaded.
+     */
+    @Override
+    public void unloadImage(int image) {
+        images.remove(image);
     }
 
     /**
@@ -135,8 +146,7 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public int addMesh(float[] positions, float[] textureCoordinates, int[] indices) {
-        meshes.add(new Mesh(positions, textureCoordinates, indices));
-        return meshes.size()-1;
+        return meshes.add(new Mesh(positions, textureCoordinates, indices));
     }
 
     /**
@@ -158,8 +168,7 @@ public class LWJGLRenderer implements Render{
     @Override
     public int loadVEMFModel(String modelPath) {
         try {
-            models.add(new Model(entityLoad.loadVEMF(new File(modelPath))));
-            return models.size()-1;
+            return models.add(new Model(entityLoad.loadVEMF(new File(modelPath))));
         } catch(IOException e){
             errorString = getStackTrace(e);
             errorCode = VEMF_LOAD_ERROR;
@@ -220,6 +229,20 @@ public class LWJGLRenderer implements Render{
     }
 
     /**
+     * @param blockModel The block model to be used in this entity
+     * @return the ID of the entity - used for methods that require an entity.
+     */
+    @Override
+    public int addEntity(int blockModel, float XPos, float YPos, float ZPos, float XRotation, float YRotation, float ZRotation, float XScale, float YScale, float ZScale) {
+        RenderableEntity entity = new RenderableEntity(new Model(blockModels.get(blockModel)), blockModels.get(blockModel).getShader());
+        entity.setPosition(XPos, YPos, ZPos);
+        entity.setRotation(XRotation, YRotation, ZRotation);
+        entity.setScale(XScale, YScale, ZScale);
+        return renderableEntities.add(entity);
+    }
+
+
+    /**
      * removes an entity from the Render, meaning it will no longer be rendered. Note that the Mesh, Texture, and Shader
      * are not deleted, as they are separate objects.
      *
@@ -276,6 +299,18 @@ public class LWJGLRenderer implements Render{
     }
 
     /**
+     * converts an image into a texture
+     *
+     * @param image the image from loadImage()
+     * @return the ID of the texture, to be used in methods that require a texture.
+     */
+    @Override
+    public int addTexture(int image) {
+        return textures.add(new Texture(images.get(image)));
+    }
+
+
+    /**
      * adds a block mesh
      *
      * @param mesh an entity mesh, in case a block and entity have the same mesh for some reason
@@ -283,7 +318,8 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public int addBlockMesh(int mesh) { //TODO (HIGH PRIORITY) implement these methods
-        return blockMeshes.add(new BlockMesh(mesh.));
+        Mesh mesh1 = meshes.get(mesh);
+        return blockMeshes.add(new BlockMesh(mesh1.getPositions(), mesh1.getUVCoords(), mesh1.getIndices()));
     }
 
     /**
@@ -297,6 +333,17 @@ public class LWJGLRenderer implements Render{
     @Override
     public int addBlockMesh(float[] positions, float[] textureCoordinates, int[] indices) {
         return blockMeshes.add(new BlockMesh(positions, textureCoordinates, indices));
+    }
+
+    /**
+     * copies a block meshes data into a new one.
+     *
+     * @param blockMesh the block mesh to be copied
+     * @return the ID of the new block mesh
+     */
+    @Override
+    public int copyBlockMesh(int blockMesh) {
+        return blockMeshes.add(blockMeshes.get(blockMesh).clone());
     }
 
     /**
@@ -314,25 +361,31 @@ public class LWJGLRenderer implements Render{
      * There is no addBlockModel method because that is supposed to be done by this method.
      * The textures and blockMeshes with the same indexes map together.
      *
-     * @param textures    the list of textures
+     * @param images the list of textures to use. Make sure that they are local textures!
      * @param blockMeshes the list of blockMeshes
      * @return a list of blockModel IDs, in the same order as the textures and blockMeshes.
      */
     @Override
-    public int[] generateBlockAtlas(int[] textures, int[] blockMeshes) {
-        return new int[0];
-    }
-
-    /**
-     * creates and adds a block to the list
-     *
-     * @param blockMesh the mesh of that block.
-     * @param shader
-     * @return the ID of the block model
-     */
-    @Override
-    public int addBlockModel(int blockMesh, int shader) {
-        return 0;
+    public int[] generateBlockAtlas(int[] images, int[] blockMeshes, int shader) {
+        if(images.length != blockMeshes.length){
+            this.errorString = "in Render.generateBlockAtlas: localTextures and blockMeshes differ in length! \n" +
+                    "Cannot link textures to meshes when there are meshes/textures that link to a nonexistent texture/mesh.";
+            this.errorCode = TEXTURE_ATLAS_ERROR;
+            return null;
+        }
+        BufferedImage[] textures = new BufferedImage[images.length];
+        BlockMesh[] meshes = new BlockMesh[blockMeshes.length];
+        for(int i = 0; i< images.length; i++){
+            textures[i] = this.images.get(images[i]);
+            meshes[i] = this.blockMeshes.get(blockMeshes[i]);
+        }
+        BlockModel[] models = AtlasGenerator.generateBlockModels(textures, meshes, this.shaderPrograms.get(shader));
+        assert models != null;
+        int[] returner = new int[models.length];
+        for(int i = 0; i< images.length; i++){
+            returner[i] = this.blockModels.add(models[i]);
+        }
+        return returner;
     }
 
     /**

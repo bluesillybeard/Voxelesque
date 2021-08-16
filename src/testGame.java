@@ -27,12 +27,67 @@ public class testGame {
         //load "assets"
         int grassBlockModel = render.loadVEMFModel("/home/bluesillybeard/IdeaProjects/Voxelesque/src/test2.vemf0");
         System.err.println(render.getErrors()); //i'm too lazy to add an if statement lol
+
+        int grassImage = render.loadImage("/home/bluesillybeard/IdeaProjects/Voxelesque/grass.png");
+        System.err.println(render.getErrors()); //i'm too lazy to add an if statement lol
+        int stoneImage = render.loadImage("/home/bluesillybeard/IdeaProjects/Voxelesque/stone.png");
+        System.err.println(render.getErrors()); //i'm too lazy to add an if statement lol
+
         int normalShader = render.loadShader("/home/bluesillybeard/IdeaProjects/Voxelesque/src/engine/");
         System.err.println(render.getErrors()); //i'm too lazy to add an if statement lol
         int crazyShader = render.loadShader("/home/bluesillybeard/IdeaProjects/Voxelesque/src/engine/silly");
         System.err.println(render.getErrors()); //i'm too lazy to add an if statement lol
         int guiShader = render.loadShader("/home/bluesillybeard/IdeaProjects/Voxelesque/src/engine/gui");
         System.err.println(render.getErrors()); //i'm too lazy to add an if statement lol
+
+        int grassBlockMesh = render.addBlockMesh(new float[]{
+                0.25f, 0.5f, 0.433025404157f, //top face positions for side faces (texture coordinates)
+                0, 0.5f, 0,
+                0.5f, 0.5f, 0,
+
+                0.25f, 0, 0.433025404157f, //bottom face positions for side faces (texture coordinates)
+                0, 0, 0,
+                0.5f, 0, 0,
+
+                0.25f, 0.5f, 0.433025404157f, //top face
+                0, 0.5f, 0,
+                0.5f, 0.5f, 0,
+
+                0.25f, 0, 0.433025404157f, //bottom face
+                0, 0, 0,
+                0.5f, 0, 0,
+        }, new float[]{
+                0.0f, 0.3f,
+                1.0f, 0.3f,
+                0.5f, 0.3f,
+
+                0.0f, 0.7f,
+                1.0f, 0.7f,
+                0.5f, 0.7f,
+
+                0.0f, 0.0f,
+                1.0f, 0.0f,
+                0.5f, 0.5f,
+
+                0.0f, 0.6f,
+                1.0f, 0.6f,
+                0.5f, 1.0f,
+        }, new int[]{
+                6, 7, 8, //top face
+                9, 10, 11, //bottom face
+
+                //side faces:
+                0, 1, 3,
+                1, 3, 4,
+
+                1, 2, 4,
+                2, 4, 5,
+
+                2, 0, 3,
+                2, 5, 3,
+        });
+
+        int stoneBlockMesh = render.copyBlockMesh(grassBlockMesh);
 
         int entity1 = render.addEntity(grassBlockModel, normalShader, 0f, 0f, 0f, 0f,  1f, 0.5f, 0.5f, 1.0f, 0.5f);
         int entity2 = render.addEntity(grassBlockModel, normalShader, 0f, 0f, -2f, 1f,  1f, 0f,   1.0f, 0.5f, 0.5f);
@@ -55,9 +110,15 @@ public class testGame {
                         0, 1, 2,
                         1, 2, 3,
                 });
-        int happyTexture = render.loadImage("/home/bluesillybeard/Pictures/happy.png");
-        int sadTexture = render.loadImage("/home/bluesillybeard/Pictures/sad.png");
-        int guiEntity1 = render.addEntity(guiMesh1, happyTexture, guiShader, -0.8f, -0.8f, -0.8f,  0, 0, 0,  0.2f, 0.2f, 0.2f);
+        int happyImage = render.loadImage("/home/bluesillybeard/Pictures/happy.png");
+        int sadImage = render.loadImage("/home/bluesillybeard/Pictures/sad.png");
+
+        int[] atlasModels = render.generateBlockAtlas(new int[]{grassImage, stoneImage}, new int[]{grassBlockMesh, stoneBlockMesh}, normalShader);
+
+        int grassTexture = render.addTexture(grassImage);
+        int happyTexture = render.addTexture(happyImage);
+        int sadTexture = render.addTexture(sadImage);
+        int guiEntity1 = render.addEntity(guiMesh1, happyTexture, guiShader, -0.8f, -0.8f, 0.0f,  0, 0, 0,  0.2f, 0.2f, 0.0f);
 
         double lastStepTime = 0.0;
         double lastFramerateDebugTime = 0.0;
@@ -73,7 +134,7 @@ public class testGame {
                     render.setEntityModel(guiEntity1, guiMesh1, happyTexture);
                 }
                 if(render.getKey(GLFW_KEY_F) >= 2){
-                    spawnedEntities.add(render.addEntity(grassBlockModel, normalShader, cameraPosition.x, cameraPosition.y-1, cameraPosition.z, (float)(Math.random()*Math.PI*2), (float)(Math.random()*Math.PI*2), (float)(Math.random()*Math.PI*2), 1.0f, 1.0f, 1.0f));
+                    spawnedEntities.add(render.addEntity(atlasModels[(int)(Math.random()*2)], cameraPosition.x, cameraPosition.y-1, cameraPosition.z, 0, 0, 0, 1.0f, 1.0f, 1.0f));
                 }
                 for(int i=0; i<spawnedEntities.size(); i++){
                     if(spawnedEntities.get(i) != -1 && (render.entityContacts(spawnedEntities.get(i), (float)render.getMouseYPos(), (float)render.getMouseXPos(), true) && render.getMouseButton(GLFW_MOUSE_BUTTON_LEFT) >= 2)) {
