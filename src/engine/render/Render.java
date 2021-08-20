@@ -9,9 +9,10 @@ public interface Render {
     int TEXTURE_ATLAS_ERROR = 6;
     /**
      * the first method called by the game. It should initialize any engine components, as well as create and show the window.
+     * @param resourcesPath the path to the resources folder - an absolute path that is added in front of every path specified in future methods.
      * @return true if it was successful, false if it was unsuccessful.
      */
-    boolean init(String title);
+    boolean init(String title, String resourcesPath);
 
     /**
      * loads a shader pair within shaders. each shader pair is in the shaders directory, and it is two files:

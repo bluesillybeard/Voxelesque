@@ -6,6 +6,7 @@ import engine.util.AtlasGenerator;
 import engine.util.SlottedArrayList;
 import engine.util.StringOutputStream;
 import engine.util.Utils;
+
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -21,6 +22,9 @@ import static org.lwjgl.opengl.GL11.glViewport;
 public class LWJGLRenderer implements Render{
     private Window window;
     private String errorString;
+    private String resourcesPath;
+
+
     private int errorCode;
     private boolean readyToRender;
     private float FOV;
@@ -41,22 +45,24 @@ public class LWJGLRenderer implements Render{
     private final SlottedArrayList<BlockModel> blockModels = new SlottedArrayList<>();
 
     private final VEMFLoader entityLoad = new VEMFLoader();
+
     /**
      * the first method called by the game. It should initialize any engine components, as well as create and show the window.
-     *
+     * @param resourcesPath the path to the resources folder - an absolute path that is added in front of every path specified in future methods.
      * @return true if it was successful, false if it was unsuccessful.
      */
     @Override
-    public boolean init(String title) {
+    public boolean init(String title, String resourcesPath) {
         try {
-            window = new Window(title, 800, 600, true);
-            window.init();
-            readyToRender = true;
+            this.window = new Window(title, 800, 600, true);
+            this.window.init();
+            this.readyToRender = true;
+            this.resourcesPath = resourcesPath;
             return true; //everything went well, so return true.
         } catch(Exception e){
-            errorString = getStackTrace(e);
-            errorCode = WINDOW_INIT_ERROR;
-            readyToRender = true;
+            this.errorString = getStackTrace(e);
+            this.errorCode = WINDOW_INIT_ERROR;
+            this.readyToRender = true;
             return false;
         }
     }
@@ -67,10 +73,8 @@ public class LWJGLRenderer implements Render{
         return out.toString();
     }
 
-
-
     /**
-     * loads a shader pair within shaders. each shader pair is in the shaders directory, and it is two files:
+     * loads a shader pair within shaders. each shader pair is in the GLSLShaders directory within the resources directory, and it is two files:
      * [shader]Vertex.glsl and [shader]Fragment.glsl
      * each entity has its own shader.
      *
@@ -81,8 +85,8 @@ public class LWJGLRenderer implements Render{
     public int loadShader(String shader) {
         try {
             shaderPrograms.add(new ShaderProgram(
-                    Utils.loadResource(shader + "Vertex.glsl"),
-                    Utils.loadResource(shader + "Fragment.glsl")
+                    Utils.loadResource(resourcesPath + "GLSLShaders/" + shader + "Vertex.glsl"),
+                    Utils.loadResource(resourcesPath + "GLSLShaders/" + shader + "Fragment.glsl")
             ));
             return shaderPrograms.size()-1;
         } catch (Exception e) {
@@ -101,7 +105,7 @@ public class LWJGLRenderer implements Render{
     @Override
     public int loadImage(String image) {
         try {
-            return images.add(ImageIO.read(new File(image)));
+            return images.add(ImageIO.read(new File(resourcesPath + image)));
         } catch(Exception e){
             errorString = getStackTrace(e);
             errorCode = TEXTURE_LOAD_ERROR;
@@ -168,7 +172,7 @@ public class LWJGLRenderer implements Render{
     @Override
     public int loadVEMFModel(String modelPath) {
         try {
-            return models.add(new Model(entityLoad.loadVEMF(new File(modelPath))));
+            return models.add(new Model(entityLoad.loadVEMF(new File(resourcesPath + modelPath))));
         } catch(IOException e){
             errorString = getStackTrace(e);
             errorCode = VEMF_LOAD_ERROR;
@@ -317,7 +321,7 @@ public class LWJGLRenderer implements Render{
      * @return the blockMesh ID
      */
     @Override
-    public int addBlockMesh(int mesh) { //TODO (HIGH PRIORITY) implement these methods
+    public int addBlockMesh(int mesh) {
         Mesh mesh1 = meshes.get(mesh);
         return blockMeshes.add(new BlockMesh(mesh1.getPositions(), mesh1.getUVCoords(), mesh1.getIndices()));
     }
@@ -377,13 +381,13 @@ public class LWJGLRenderer implements Render{
         BlockMesh[] meshes = new BlockMesh[blockMeshes.length];
         for(int i = 0; i< images.length; i++){
             textures[i] = this.images.get(images[i]);
-            meshes[i] = this.blockMeshes.get(blockMeshes[i]);
+            meshes[i] = this.blockMeshes.get(blockMeshes[i]); //get the image and mesh objects
         }
         BlockModel[] models = AtlasGenerator.generateBlockModels(textures, meshes, this.shaderPrograms.get(shader));
         assert models != null;
         int[] returner = new int[models.length];
         for(int i = 0; i< images.length; i++){
-            returner[i] = this.blockModels.add(models[i]);
+            returner[i] = this.blockModels.add(models[i]); //place the model objects into the lists.
         }
         return returner;
     }
@@ -392,8 +396,6 @@ public class LWJGLRenderer implements Render{
      * tells weather an entity collides with a coordinate on screen.
      * Useful for seeing if the cursor interacts with GUI,
      * or interacting with the environment.
-     *
-     * Please note: usesCamera = true does not work properly atm
      *
      * @param entity     the entity to test
      * @param yPos       the Y position to test

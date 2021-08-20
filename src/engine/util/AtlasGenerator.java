@@ -40,16 +40,7 @@ public class AtlasGenerator{
         for(int i=0; i<images.length; i++)
         {
             BufferedImage image = images[i];
-            if(image.getWidth() > width || image.getHeight() > height)
-            {
-                if(!ignoreErrors)
-                    throw new RuntimeException("image" + i + " (" + image.getWidth() + "x" + image.getHeight() + ") is larger than the atlas (" + width + "x" + height + ")");
-                else
-                    System.err.println("image" + i + " (" + image.getWidth() + "x" + image.getHeight() + ") is larger than the atlas (" + width + "x" + height + ")");
-            }
-
             imageNameSet.add(new ImageName(image, i));
-
         }
 
         Texture atlas = new Texture(width, height);

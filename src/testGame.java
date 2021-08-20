@@ -19,25 +19,25 @@ public class testGame {
 
     public static void main(String[] args){
         Render render = new LWJGLRenderer();
-        if(!render.init("A test of Voxelesque engine")){
+        if(!render.init("A test of Voxelesque engine", "/home/bluesillybeard/IdeaProjects/Voxelesque/resources/")){
             System.err.println(render.getErrors());
             System.exit(-1);
         }
         render.setFov((float)Math.toRadians(90));
         //load "assets"
-        int grassBlockModel = render.loadVEMFModel("/home/bluesillybeard/IdeaProjects/Voxelesque/src/test2.vemf0");
+        int grassBlockModel = render.loadVEMFModel("VMFModels/test2.vemf0");
         System.err.println(render.getErrors()); //i'm too lazy to add an if statement lol
 
-        int grassImage = render.loadImage("/home/bluesillybeard/IdeaProjects/Voxelesque/grass.png");
+        int grassImage = render.loadImage("Textures/grass.png");
         System.err.println(render.getErrors()); //i'm too lazy to add an if statement lol
-        int stoneImage = render.loadImage("/home/bluesillybeard/IdeaProjects/Voxelesque/stone.png");
+        int stoneImage = render.loadImage("Textures/stone.png");
         System.err.println(render.getErrors()); //i'm too lazy to add an if statement lol
 
-        int normalShader = render.loadShader("/home/bluesillybeard/IdeaProjects/Voxelesque/src/engine/");
+        int normalShader = render.loadShader(""); //default shaders
         System.err.println(render.getErrors()); //i'm too lazy to add an if statement lol
-        int crazyShader = render.loadShader("/home/bluesillybeard/IdeaProjects/Voxelesque/src/engine/silly");
+        int crazyShader = render.loadShader("silly");
         System.err.println(render.getErrors()); //i'm too lazy to add an if statement lol
-        int guiShader = render.loadShader("/home/bluesillybeard/IdeaProjects/Voxelesque/src/engine/gui");
+        int guiShader = render.loadShader("gui");
         System.err.println(render.getErrors()); //i'm too lazy to add an if statement lol
 
         int grassBlockMesh = render.addBlockMesh(new float[]{
@@ -110,8 +110,8 @@ public class testGame {
                         0, 1, 2,
                         1, 2, 3,
                 });
-        int happyImage = render.loadImage("/home/bluesillybeard/Pictures/happy.png");
-        int sadImage = render.loadImage("/home/bluesillybeard/Pictures/sad.png");
+        int happyImage = render.loadImage("Textures/happy.png");
+        int sadImage = render.loadImage("Textures/sad.png");
 
         int[] atlasModels = render.generateBlockAtlas(new int[]{grassImage, stoneImage}, new int[]{grassBlockMesh, stoneBlockMesh}, normalShader);
 
