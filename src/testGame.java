@@ -25,8 +25,8 @@ public class testGame {
         }
         render.setFov((float)Math.toRadians(90));
         //load "assets"
-        int grassBlockModel = render.loadVEMFModel("VMFModels/test2.vemf0");
-        System.err.println(render.getErrors()); //i'm too lazy to add an if statement lol
+        //int grassBlockModel = render.loadVEMFModel("VMFModels/test2.vemf0");
+        //System.err.println(render.getErrors()); //i'm too lazy to add an if statement lol
 
         int grassImage = render.loadImage("Textures/grass.png");
         System.err.println(render.getErrors()); //i'm too lazy to add an if statement lol
@@ -35,27 +35,28 @@ public class testGame {
 
         int normalShader = render.loadShader(""); //default shaders
         System.err.println(render.getErrors()); //i'm too lazy to add an if statement lol
-        int crazyShader = render.loadShader("silly");
-        System.err.println(render.getErrors()); //i'm too lazy to add an if statement lol
+        //int crazyShader = render.loadShader("silly");
+        //System.err.println(render.getErrors()); //i'm too lazy to add an if statement lol
         int guiShader = render.loadShader("gui");
         System.err.println(render.getErrors()); //i'm too lazy to add an if statement lol
 
         int grassBlockMesh = render.addBlockMesh(new float[]{
-                0.25f, 0.5f, 0.433025404157f, //top face positions for side faces (texture coordinates)
-                0, 0.5f, 0,
-                0.5f, 0.5f, 0,
+                //(0.57735026919,-0.5),(-0.57735026919, -0.5),(0.0, 0.5)
+                0.57735026919f, 0.5f, -0.5f, //top face positions for side faces (texture coordinates)
+                -0.57735026919f, 0.5f, -0.5f,
+                0.0f, 0.5f, 0.5f,
 
-                0.25f, 0, 0.433025404157f, //bottom face positions for side faces (texture coordinates)
-                0, 0, 0,
-                0.5f, 0, 0,
+                0.57735026919f, 0.5f, -0.5f, //bottom face positions for side faces (texture coordinates)
+                -0.57735026919f, 0.0f, -0.5f,
+                0.0f, 0.0f, 0.5f,
 
-                0.25f, 0.5f, 0.433025404157f, //top face
-                0, 0.5f, 0,
-                0.5f, 0.5f, 0,
+                0.57735026919f, 0.5f, -0.5f, //top face
+                -0.57735026919f, 0.5f, -0.5f,
+                0.0f, 0.5f, 0.5f,
 
-                0.25f, 0, 0.433025404157f, //bottom face
-                0, 0, 0,
-                0.5f, 0, 0,
+                0.57735026919f, 0.5f, -0.5f, //bottom face
+                -0.57735026919f, 0.0f, -0.5f,
+                0.0f, 0.0f, 0.5f,
         }, new float[]{
                 0.0f, 0.3f,
                 1.0f, 0.3f,
@@ -89,10 +90,10 @@ public class testGame {
 
         int stoneBlockMesh = render.copyBlockMesh(grassBlockMesh);
 
-        int entity1 = render.addEntity(grassBlockModel, normalShader, 0f, 0f, 0f, 0f,  1f, 0.5f, 0.5f, 1.0f, 0.5f);
-        int entity2 = render.addEntity(grassBlockModel, normalShader, 0f, 0f, -2f, 1f,  1f, 0f,   1.0f, 0.5f, 0.5f);
-        int entity3 = render.addEntity(grassBlockModel, normalShader, 0f, 0f, -4f, 0f,  0f, 1f,   0.5f, 0.5f, 1.0f);
-        int entity4 = render.addEntity(grassBlockModel, crazyShader, 0f, 0f, -6f, 0f,  2f, 0f,   0.5f, 0.5f, 0.5f);
+        //int entity1 = render.addEntity(grassBlockModel, normalShader, 0f, 0f, 0f, 0f,  1f, 0.5f, 0.5f, 1.0f, 0.5f);
+        //int entity2 = render.addEntity(grassBlockModel, normalShader, 0f, 0f, -2f, 1f,  1f, 0f,   1.0f, 0.5f, 0.5f);
+        //int entity3 = render.addEntity(grassBlockModel, normalShader, 0f, 0f, -4f, 0f,  0f, 1f,   0.5f, 0.5f, 1.0f);
+        //int entity4 = render.addEntity(grassBlockModel, crazyShader, 0f, 0f, -6f, 0f,  2f, 0f,   0.5f, 0.5f, 0.5f);
 
         int guiMesh1 = render.addMesh(new float[]{
                 -1, -1, 0,
@@ -115,11 +116,39 @@ public class testGame {
 
         int[] atlasModels = render.generateBlockAtlas(new int[]{grassImage, stoneImage}, new int[]{grassBlockMesh, stoneBlockMesh}, normalShader);
 
-        int grassTexture = render.addTexture(grassImage);
         int happyTexture = render.addTexture(happyImage);
         int sadTexture = render.addTexture(sadImage);
         int guiEntity1 = render.addEntity(guiMesh1, happyTexture, guiShader, -0.8f, -0.8f, 0.0f,  0, 0, 0,  0.2f, 0.2f, 0.0f);
 
+        int grassBlock = atlasModels[0];
+        int stoneBlock = atlasModels[1];
+        int airBlock = -1; //when a chunk is rendered, -1 is treated as void, aka nothing renders in that spot.
+        render.addChunk(4, new int[][][]{
+                {
+                        {stoneBlock, stoneBlock, stoneBlock, stoneBlock},
+                        {stoneBlock, stoneBlock, stoneBlock, stoneBlock},
+                        {stoneBlock, stoneBlock, stoneBlock, stoneBlock},
+                        {grassBlock, grassBlock, grassBlock, grassBlock},
+                },
+                {
+                        {stoneBlock, stoneBlock, stoneBlock, stoneBlock},
+                        {stoneBlock, stoneBlock, stoneBlock, stoneBlock},
+                        {stoneBlock, stoneBlock, stoneBlock, stoneBlock},
+                        {grassBlock, grassBlock, grassBlock, grassBlock},
+                },
+                {
+                        {stoneBlock, stoneBlock, stoneBlock, stoneBlock},
+                        {stoneBlock, stoneBlock, stoneBlock, stoneBlock},
+                        {stoneBlock, stoneBlock, stoneBlock, stoneBlock},
+                        {grassBlock, grassBlock, grassBlock, grassBlock},
+                },
+                {
+                        {stoneBlock, stoneBlock, stoneBlock, stoneBlock},
+                        {stoneBlock, stoneBlock, stoneBlock, stoneBlock},
+                        {stoneBlock, stoneBlock, stoneBlock, stoneBlock},
+                        {grassBlock, grassBlock, grassBlock, grassBlock},
+                },
+        }, 0, 0, 0);
         double lastStepTime = 0.0;
         double lastFramerateDebugTime = 0.0;
         double lastMouseYPos = render.getMouseYPos();
@@ -133,9 +162,9 @@ public class testGame {
                 } else {
                     render.setEntityModel(guiEntity1, guiMesh1, happyTexture);
                 }
-                if(render.getKey(GLFW_KEY_F) >= 2){
-                    spawnedEntities.add(render.addEntity(atlasModels[(int)(Math.random()*2)], cameraPosition.x, cameraPosition.y-1, cameraPosition.z, 0, 0, 0, 1.0f, 1.0f, 1.0f));
-                }
+                //if(render.getKey(GLFW_KEY_F) >= 2){
+                //    spawnedEntities.add(render.addEntity(grassBlockModel, normalShader, cameraPosition.x, cameraPosition.y-1, cameraPosition.z, 0, 0, 0, 1.0f, 1.0f, 1.0f));
+                //}
                 for(int i=0; i<spawnedEntities.size(); i++){
                     if(spawnedEntities.get(i) != -1 && (render.entityContacts(spawnedEntities.get(i), (float)render.getMouseYPos(), (float)render.getMouseXPos(), true) && render.getMouseButton(GLFW_MOUSE_BUTTON_LEFT) >= 2)) {
                         render.removeEntity(spawnedEntities.get(i)); //remove each entity
@@ -194,16 +223,16 @@ public class testGame {
                     render.setCameraPos(cameraPosition.x, cameraPosition.y, cameraPosition.z, cameraRotation.x, cameraRotation.y, cameraRotation.z);
                 }
 
-                render.setEntityPosition(entity1, 0f, 0f, -0f, (float)(render.getTime()/10),  (float)(render.getTime()*5), (float)render.getTime(), 0.5f, 1.0f, 0.5f);
-                render.setEntityPosition(entity2, 0f, 0f, -2f, (float)(render.getTime()*9),  (float)(render.getTime()/7), (float)render.getTime()*1.5f,   1.0f, 0.5f, 0.5f);
-                render.setEntityPosition(entity3, 0f, 0f, -4f, (float)(render.getTime()/3),  (float)(render.getTime()*2), (float)render.getTime()/0.5f,   0.5f, 0.5f, 1.0f);
+                //render.setEntityPosition(entity1, 0f, 0f, -0f, (float)(render.getTime()/10),  (float)(render.getTime()*5), (float)render.getTime(), 0.5f, 1.0f, 0.5f);
+                //render.setEntityPosition(entity2, 0f, 0f, -2f, (float)(render.getTime()*9),  (float)(render.getTime()/7), (float)render.getTime()*1.5f,   1.0f, 0.5f, 0.5f);
+                //render.setEntityPosition(entity3, 0f, 0f, -4f, (float)(render.getTime()/3),  (float)(render.getTime()*2), (float)render.getTime()/0.5f,   0.5f, 0.5f, 1.0f);
             }
             if(render.getTime() - lastFramerateDebugTime > 1.0){
                 lastFramerateDebugTime = render.getTime();
-                System.out.print("rendering " + render.getNumEntities() + " entities");
+                System.out.print("Entities: " + render.getNumEntities());
+                System.out.print(" | Chunks: " + render.getNumChunks());
                 System.out.print(" | framerate:" + frames);
-                System.out.print(" | used memory: " + (((jre.totalMemory() - jre.freeMemory()) * 100.0) / jre.maxMemory()) + "%");
-                System.out.print(" | entity slots: " + render.getNumEntitySlots());
+                System.out.print(" | free memory: " + (jre.freeMemory()/1048576) +  "mb");
 
                 System.out.print("\n");
                 frames = 0;
@@ -213,7 +242,6 @@ public class testGame {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
             if(render.shouldRender()){
                 render.render();
                 frames++;

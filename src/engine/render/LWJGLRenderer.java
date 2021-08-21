@@ -365,7 +365,7 @@ public class LWJGLRenderer implements Render{
      * generates a texture atlas, and a blockModel for each of the blockMeshes.
      * There is no addBlockModel method because that is supposed to be done by this method.
      * The textures and blockMeshes with the same indexes map together.
-     *
+     * note: you don't neet to make a model for blocks that are blank - use -1 as the block ID to render nothing.
      * @param images the list of textures to use. Make sure that they are local textures!
      * @param blockMeshes the list of blockMeshes
      * @return a list of blockModel IDs, in the same order as the textures and blockMeshes.
