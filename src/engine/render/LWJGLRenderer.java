@@ -43,6 +43,7 @@ public class LWJGLRenderer implements Render{
     private final SlottedArrayList<Model> models = new SlottedArrayList<>();
     private final SlottedArrayList<BlockMesh> blockMeshes = new SlottedArrayList<>();
     private final SlottedArrayList<BlockModel> blockModels = new SlottedArrayList<>();
+    private final SlottedArrayList<RenderableChunk> chunks = new SlottedArrayList<>();
 
     private final VEMFLoader entityLoad = new VEMFLoader();
 
@@ -393,6 +394,59 @@ public class LWJGLRenderer implements Render{
     }
 
     /**
+     * creates a chunk at the chunk position [x, y, z]
+     *
+     * @param blockData a 3D array of blockModel IDs that represent that chunk's block data.
+     * @return the ID of the new chunk.
+     */
+    @Override
+    public int addChunk(int size, int[][][] blockData, int x, int y, int z) {
+        return chunks.add(new RenderableChunk(size, blockData));
+    }
+
+    /**
+     * sets the block data of a chunk.
+     *
+     * @param chunk     the chunk whose data will be set.
+     * @param blockData a 3D array of blockModel IDs that represent that chunk's block data.
+     */
+    @Override
+    public void setChunkData(int chunk, int[][][] blockData) {
+        chunks.get(chunk).setData(blockData);
+    }
+
+    /**
+     * sets a specific block [z, y, x] of a chunk.
+     *
+     * @param chunk the chunk whose block will be modified
+     * @param block the blockModel to be used
+     */
+    @Override
+    public void setChunkBlock(int chunk, int block, int x, int y, int z) {
+        chunks.get(chunk).setBlock(block, x, y, z);
+    }
+
+    /**
+     * removes a chunk from memory so it is no longer rendered
+     *
+     * @param chunk the ID of the chunk to remove
+     */
+    @Override
+    public void removeChunk(int chunk) {
+        chunks.remove(chunk);
+    }
+
+    @Override
+    public int getNumChunks() {
+        return chunks.size();
+    }
+
+    @Override
+    public int getNumChunkSlots() {
+        return chunks.capacity();
+    }
+
+    /**
      * tells weather an entity collides with a coordinate on screen.
      * Useful for seeing if the cursor interacts with GUI,
      * or interacting with the environment.
@@ -493,6 +547,11 @@ public class LWJGLRenderer implements Render{
         for (RenderableEntity renderableEntity : renderableEntities) {
             // Render the mesh for this game item
             renderableEntity.render();
+        }
+        //render each chunk
+        for (RenderableChunk chunk: chunks){
+            chunk.build(blockModels.toArray(new BlockModel[blockModels.size()]));
+            chunk.render();
         }
         window.update();
         readyToRender = true;

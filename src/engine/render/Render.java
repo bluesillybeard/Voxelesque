@@ -192,6 +192,38 @@ public interface Render {
      */
     int[] generateBlockAtlas(int[] images, int[] blockMeshes, int shader);
 
+    //methods for Chunks
+
+    /**
+     * creates a chunk at the chunk position [x, y, z]
+     * @param size how big the chunk is in each dimension
+     * @param blockData a 3D array of blockModel IDs that represent that chunk's block data.
+     * @return the ID of the new chunk.
+     */
+    int addChunk(int size, int[][][] blockData, int x, int y, int z);
+
+    /**
+     * sets the block data of a chunk.
+     * @param blockData a 3D array of blockModel IDs that represent that chunk's block data.
+     * @param chunk the chunk whose data will be set.
+     */
+    void setChunkData(int chunk, int[][][] blockData);
+
+    /**
+     * sets a specific block [z, y, x] of a chunk.
+     * @param chunk the chunk whose block will be modified
+     * @param block the blockModel to be used
+     */
+    void setChunkBlock(int chunk, int block, int x, int y, int z);
+    /**
+     * removes a chunk from memory so it is no longer rendered
+     * @param chunk the ID of the chunk to remove
+     */
+    void removeChunk(int chunk);
+
+    int getNumChunks();
+
+    int getNumChunkSlots();
     //methods for input (many of these will be depreciated once I get the custom-controls input system complete)
     /**
      * tells weather an entity collides with a coordinate on screen.

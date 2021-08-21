@@ -9,7 +9,7 @@ import org.joml.Vector4f;
 
 public class RenderableEntity {
 
-    private boolean hidden;
+    private final boolean hidden;
 
     private final Vector3f position;
     
@@ -41,6 +41,10 @@ public class RenderableEntity {
         this.rotation = new Vector3f();
         this.modelViewMatrix = new Matrix4f();
         hidden = false;
+    }
+
+    public Model getModel() {
+        return model;
     }
 
     public Vector3f getPosition() {

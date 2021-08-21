@@ -2,6 +2,7 @@ package engine.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 
 /**
@@ -9,7 +10,7 @@ import java.util.Iterator;
  * except the index of added elements is constant,
  * and new items will be added to the first available slot
  */
-public class SlottedArrayList<T> implements Iterable<T>{
+public class SlottedArrayList<T> implements Iterable<T> {
     private Object[] list; //the actual list
     private final ArrayList<Integer> removedIndices; //every free space that comes before the write index
     private int writeIndex; //the farthest an item has been written
@@ -121,5 +122,12 @@ public class SlottedArrayList<T> implements Iterable<T>{
                 }
             }while(this.list[this.index]==null);
         }
+    }
+    public T[] toArray(T[] arr){
+        if(arr.length < this.totalItems) throw new IllegalStateException("the input array is too short");
+        for(int i=0; i < this.totalItems; i++){
+            arr[i] = (T)this.list[i];
+        }
+        return arr;
     }
 }
