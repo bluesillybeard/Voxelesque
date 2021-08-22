@@ -100,7 +100,7 @@ public class testGame {
         int stoneImage = render.loadImage("Textures/stone.png");
         int happyImage = render.loadImage("Textures/happy.png");
         int sadImage = render.loadImage("Textures/sad.png");
-        int textImage = render.loadImage("Textures/ASCII-Extended.png");
+        int textImage = render.loadImage("Textures/ASCII.png");
 
         //textures
         int textTexture = render.addTexture(textImage);
