@@ -8,17 +8,17 @@ public class BlockMesh{
     public int[] indices;
 
     public int[] removableTriangles;
-    public int[] blockedFaces;
+    public boolean[] blockedFaces;
 
     public BlockMesh(float[] positions, float[] UVCoords, int[] indices) {
         this.positions = positions;
         this.UVCoords = UVCoords;
         this.indices = indices;
         this.removableTriangles = new int[0];
-        this.blockedFaces = new int[0];
+        this.blockedFaces = new boolean[0];
     }
-
-    public BlockMesh(float[] positions, float[] UVCoords, int[] indices, int[] removableTriangles, int[] blockedFaces) {
+    //blockedFaces: [top (+y), bottom(-y), (-z / +z), -x, +x]
+    public BlockMesh(float[] positions, float[] UVCoords, int[] indices, int[] removableTriangles, boolean[] blockedFaces) {
         this.positions = positions;
         this.UVCoords = UVCoords;
         this.indices = indices;

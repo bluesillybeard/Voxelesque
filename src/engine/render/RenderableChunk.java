@@ -96,7 +96,7 @@ public class RenderableChunk {
                             shaderIndex = chunkModels.size() - 1;
                         }
                         //cloning, index removal, and vertex position modification done within the BlockMeshBuilder
-                        chunkModels.get(shaderIndex).addBlockMesh(model.getMesh(), x, y, z);
+                        chunkModels.get(shaderIndex).addBlockMesh(model.getMesh(), x, y, z, null);
                     }
                 }
             }

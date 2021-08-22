@@ -149,6 +149,16 @@ public interface Render {
      * @return the ID of the texture, to be used in methods that require a texture.
      */
     int addTexture(int image);
+    //methods related to text
+
+    /**
+     *
+     * @param text the text to generate the model from
+     * @param texture the texture atlas to use - look at resources/Textures/ASCII-Extended for example texture
+     * @param shader the shader to use for the entity
+     * @return the entity ID of the text - use in any method that requires an entity or TextureEntity
+     */
+    int addEntityFromText(String text, int texture, int shader, float XPos, float YPos, float ZPos, float XRotation, float YRotation, float ZRotation, float XScale, float YScale, float ZScale);
 
     //methods related to blocks
     /**

@@ -2,10 +2,7 @@ package engine.render;
 
 import engine.VMF.VEMFLoader;
 import engine.model.*;
-import engine.util.AtlasGenerator;
-import engine.util.SlottedArrayList;
-import engine.util.StringOutputStream;
-import engine.util.Utils;
+import engine.util.*;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -246,6 +243,19 @@ public class LWJGLRenderer implements Render{
         return renderableEntities.add(entity);
     }
 
+    /**
+     * @param text      the text to generate the model from
+     * @param shader    the shader to use for the entity
+     * @return the entity ID of the text - use in any method that requires an entity or TextureEntity
+     */
+    @Override
+    public int addEntityFromText(String text, int texture, int shader, float XPos, float YPos, float ZPos, float XRotation, float YRotation, float ZRotation, float XScale, float YScale, float ZScale) {
+        RenderableEntity entity = TextMeshBuilder.generateEntity(text, textures.get(texture), shaderPrograms.get(shader), true, true);
+        entity.setPosition(XPos, YPos, ZPos);
+        entity.setRotation(XRotation, YRotation, ZRotation);
+        entity.setScale(XScale, YScale, ZScale);
+        return renderableEntities.add(entity);
+    }
 
     /**
      * removes an entity from the Render, meaning it will no longer be rendered. Note that the Mesh, Texture, and Shader
@@ -313,7 +323,6 @@ public class LWJGLRenderer implements Render{
     public int addTexture(int image) {
         return textures.add(new Texture(images.get(image)));
     }
-
 
     /**
      * adds a block mesh

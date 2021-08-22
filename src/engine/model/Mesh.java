@@ -1,5 +1,6 @@
 package engine.model;
 
+import org.lwjgl.system.CallbackI;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;
@@ -141,6 +142,38 @@ public class Mesh {
         glDrawElements(GL_TRIANGLES, this.vertexCount, GL_UNSIGNED_INT, 0);
     }
 
+    public String toString(){
+        StringBuilder str = new StringBuilder();
+        str.append("\npositions:\n");
+        for(int i=0; i < positions.length/3; i++){
+            str.append("    ");
+            str.append(positions[i*3]);
+            str.append(", ");
+            str.append(positions[i*3+1]);
+            str.append(", ");
+            str.append(positions[i*3+2]);
+            str.append(",\n");
+        }
+        str.append("\ntextureCoordinates:\n");
+        for(int i=0; i<UVCoords.length/2; i++){
+            str.append("    ");
+            str.append(UVCoords[i*2]);
+            str.append(", ");
+            str.append(UVCoords[i*2+1]);
+            str.append(",\n");
+        }
+        str.append("\nindices:\n");
+        for(int i=0; i<indices.length/3; i++){
+            str.append("    ");
+            str.append(indices[i*3]);
+            str.append(", ");
+            str.append(indices[i*3+1]);
+            str.append(", ");
+            str.append(indices[i*3+2]);
+            str.append(",\n");
+        }
+        return str.toString();
+    }
     public void cleanUp() {
         glDisableVertexAttribArray(0);
 
