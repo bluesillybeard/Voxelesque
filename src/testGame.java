@@ -106,7 +106,7 @@ public class testGame {
         int happyImage = render.loadImage("Textures/happy.png");
         int sadImage = render.loadImage("Textures/sad.png");
         int textImage = render.loadImage("Textures/ASCII-Extended.png");
-
+        System.out.println(render.getErrors());
         //textures
         int textTexture = render.addTexture(textImage);
         int happyTexture = render.addTexture(happyImage);
