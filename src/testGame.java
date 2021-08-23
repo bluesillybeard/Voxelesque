@@ -17,9 +17,14 @@ public class testGame {
 
     private static final Runtime jre = Runtime.getRuntime();
 
+    /**
+     * the main method of the test game - the "game" created to test the Voxelesque engine's features
+     * @param args the arguments.
+     *             First argument: the absolute path to the resources folder. example: "/home/bluesillybeard/IdeaProjects/Voxelesque/resources/
+     */
     public static void main(String[] args){
         Render render = new LWJGLRenderer();
-        if(!render.init("A test of Voxelesque engine", "/home/bluesillybeard/IdeaProjects/Voxelesque/resources/")){
+        if(!render.init("A test of Voxelesque engine", args[0])){
             System.err.println(render.getErrors());
             System.exit(-1);
         }
@@ -100,7 +105,7 @@ public class testGame {
         int stoneImage = render.loadImage("Textures/stone.png");
         int happyImage = render.loadImage("Textures/happy.png");
         int sadImage = render.loadImage("Textures/sad.png");
-        int textImage = render.loadImage("Textures/ASCII.png");
+        int textImage = render.loadImage("Textures/ASCII-Extended.png");
 
         //textures
         int textTexture = render.addTexture(textImage);
