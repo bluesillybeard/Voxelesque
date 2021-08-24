@@ -5,6 +5,7 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL14.glBlendFuncSeparate;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Window {
@@ -120,10 +121,12 @@ public class Window {
         GL.createCapabilities(); //I'm pretty sure this is a LWJGL thing, not an OpenGL thing.
 
         // Set the clear color
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
         //enable depth testing
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
+        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     }
     public int getKey(int key) {
         int keyValue = keys[key];

@@ -122,8 +122,6 @@ public class testGame {
         int entity3 = render.addEntity(grassBlockModel, normalShader, 0f, 10f, -4f, 0f,  0f, 1f,   0.5f, 0.5f, 1.0f);
         int entity4 = render.addEntity(grassBlockModel, crazyShader,  0f, 10f, -6f, 0f,  2f, 0f,   0.5f, 0.5f, 0.5f);
 
-        int textEntity = render.addEntityFromText("I just rewrote the entire \ntext rendering algorithm just to add new lines!" +
-                "\n Seriously, it was surprisingly difficult, \nbut at least it is much more flexible now! :D", textTexture, normalShader,10, 0, 0, 0, 1, 0, 0.25f, 0.25f, 0.25f);
         //Chunks
         int grassBlock = atlasModels[0];
         int stoneBlock = atlasModels[1];
@@ -155,6 +153,11 @@ public class testGame {
                 },
         }, 0, 0, 0);
 
+        int textEntity = render.addEntityFromText("""
+                I just rewrote the entire\s
+                text rendering algorithm just to add new lines!
+                 Seriously, it was surprisingly difficult,\s
+                but at least it is much more flexible now! :D""", textTexture, normalShader,10, 0, 0, 0, 1, 0, 0.25f, 0.25f, 0.25f);
 
         double lastStepTime = 0.0;
         double lastFramerateDebugTime = 0.0;
