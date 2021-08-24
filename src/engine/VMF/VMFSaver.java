@@ -2,11 +2,87 @@ package engine.VMF;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-public class VEMFSaver {
+public class VMFSaver {
+
+    public static void saveVBMF(String path, float[] vertices, float[] textureCoordinates, int[] indices, String pathToTexture, int[] removableTriangles, int[] blockedFaces) throws IOException {
+
+        byte[] verticesBytes =           new byte[          vertices.length*4+4]; //create new array for bytes to be saved into file
+        byte[] textureCoordinatesBytes = new byte[textureCoordinates.length*4+4];
+        byte[] indicesBytes =            new byte[           indices.length*4+4];
+        byte[] removableTrianglesBytes = new byte[removableTriangles.length*4+4];
+        byte[] blockedFacesBytes =       new byte[      blockedFaces.length*4+4];
+
+        byte[] fourLengthBytes = getFourBytes(vertices.length/3); //save length into bytes
+        verticesBytes[0] = fourLengthBytes[0];
+        verticesBytes[1] = fourLengthBytes[1];
+        verticesBytes[2] = fourLengthBytes[2];
+        verticesBytes[3] = fourLengthBytes[3];
+
+
+        for(int i=0; i<vertices.length; i++){
+            byte[] fourBytes = getFourBytes(vertices[i]); //save data into bytes
+            verticesBytes[i*4+4] = fourBytes[0];
+            verticesBytes[i*4+5] = fourBytes[1];
+            verticesBytes[i*4+6] = fourBytes[2];
+            verticesBytes[i*4+7] = fourBytes[3];
+        } //repeat for each data type
+
+        fourLengthBytes = getFourBytes(textureCoordinates.length/2);
+        textureCoordinatesBytes[0] = fourLengthBytes[0];
+        textureCoordinatesBytes[1] = fourLengthBytes[1];
+        textureCoordinatesBytes[2] = fourLengthBytes[2];
+        textureCoordinatesBytes[3] = fourLengthBytes[3];
+        for(int i=0; i<textureCoordinates.length; i++){
+            byte[] fourBytes = getFourBytes(textureCoordinates[i]);
+            textureCoordinatesBytes[i*4+4] = fourBytes[0];
+            textureCoordinatesBytes[i*4+5] = fourBytes[1];
+            textureCoordinatesBytes[i*4+6] = fourBytes[2];
+            textureCoordinatesBytes[i*4+7] = fourBytes[3];
+        }
+        fourLengthBytes = getFourBytes(indices.length);
+        indicesBytes[0] = fourLengthBytes[0];
+        indicesBytes[1] = fourLengthBytes[1];
+        indicesBytes[2] = fourLengthBytes[2];
+        indicesBytes[3] = fourLengthBytes[3];
+        for(int i=0; i<indices.length; i++){
+            byte[] fourBytes = getFourBytes(indices[i]);
+            indicesBytes[i*4+4] = fourBytes[0];
+            indicesBytes[i*4+5] = fourBytes[1];
+            indicesBytes[i*4+6] = fourBytes[2];
+            indicesBytes[i*4+7] = fourBytes[3];
+        }
+
+        fourLengthBytes = getFourBytes(removableTriangles.length/2);
+        removableTrianglesBytes[0] = fourLengthBytes[0];
+        removableTrianglesBytes[1] = fourLengthBytes[1];
+        removableTrianglesBytes[2] = fourLengthBytes[2];
+        removableTrianglesBytes[3] = fourLengthBytes[3];
+        for(int i=0; i<removableTriangles.length; i++){
+            byte[] fourBytes = getFourBytes(removableTriangles[i]);
+            removableTrianglesBytes[i*4+4] = fourBytes[0];
+            removableTrianglesBytes[i*4+5] = fourBytes[1];
+            removableTrianglesBytes[i*4+6] = fourBytes[2];
+            removableTrianglesBytes[i*4+7] = fourBytes[3];
+        }
+
+        fourLengthBytes = getFourBytes(blockedFaces.length/2);
+        blockedFacesBytes[0] = fourLengthBytes[0];
+        blockedFacesBytes[1] = fourLengthBytes[1];
+        blockedFacesBytes[2] = fourLengthBytes[2];
+        blockedFacesBytes[3] = fourLengthBytes[3];
+        for(int i=0; i<blockedFaces.length; i++){
+            byte[] fourBytes = getFourBytes(blockedFaces[i]);
+            blockedFacesBytes[i*4+4] = fourBytes[0];
+            blockedFacesBytes[i*4+5] = fourBytes[1];
+            blockedFacesBytes[i*4+6] = fourBytes[2];
+            blockedFacesBytes[i*4+7] = fourBytes[3];
+        }
+
+        saveZipFile(path, indicesBytes, textureCoordinatesBytes, verticesBytes, removableTrianglesBytes, blockedFacesBytes, pathToTexture);
+    }
     public static void saveVEMF(String path, float[] vertices, float[] textureCoordinates, int[] indices, String pathToTexture) throws IOException {
 
         byte[] verticesBytes = new byte[vertices.length*4+4]; //create new array for bytes to be saved into file
@@ -53,9 +129,38 @@ public class VEMFSaver {
         }
 
         saveZipFile(path, indicesBytes, textureCoordinatesBytes, verticesBytes, pathToTexture);
+    }
+    private static void saveZipFile(String path, byte[] i, byte[] t, byte[] v, byte[] r, byte[] b, String pathToTexture) throws IOException {
+        ZipOutputStream out = new ZipOutputStream(new FileOutputStream(path));
 
-        System.out.println(Arrays.toString(verticesBytes));
+        out.putNextEntry(new ZipEntry("i")); //write indices
+        out.write(i);
+        out.closeEntry();
 
+        out.putNextEntry(new ZipEntry("t"));//write texture coordinates
+        out.write(t);
+        out.closeEntry();
+
+        out.putNextEntry(new ZipEntry("tex"));
+        out.write(new FileInputStream(pathToTexture).readAllBytes()); //write texture file
+        out.closeEntry();
+
+        out.putNextEntry(new ZipEntry("v")); //write vertex coordinates
+        out.write(v);
+        out.closeEntry();
+
+        out.putNextEntry(new ZipEntry("r")); //write vertex coordinates
+        out.write(r);
+        out.closeEntry();
+
+        out.putNextEntry(new ZipEntry("b")); //write vertex coordinates
+        out.write(b);
+        out.closeEntry();
+
+        out.putNextEntry(new ZipEntry("y")); //write texture file ending
+        out.write(pathToTexture.substring(getLastIndexOf(pathToTexture, '.')).getBytes(StandardCharsets.US_ASCII));
+        out.closeEntry();
+        out.close();
     }
     private static void saveZipFile(String path, byte[] i, byte[] t, byte[] v, String pathToTexture) throws IOException {
         ZipOutputStream out = new ZipOutputStream(new FileOutputStream(path));
