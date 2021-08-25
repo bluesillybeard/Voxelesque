@@ -27,7 +27,7 @@ public class BlockMesh{
     }
 
     public BlockMesh clone(){
-        return new BlockMesh(Arrays.copyOf(positions, positions.length), Arrays.copyOf(UVCoords, UVCoords.length), Arrays.copyOf(indices, indices.length));
+        return new BlockMesh(Arrays.copyOf(positions, positions.length), Arrays.copyOf(UVCoords, UVCoords.length), Arrays.copyOf(indices, indices.length), Arrays.copyOf(removableTriangles, removableTriangles.length), Arrays.copyOf(blockedFaces, blockedFaces.length));
     }
 
 }

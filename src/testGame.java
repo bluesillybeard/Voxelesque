@@ -80,6 +80,9 @@ public class testGame {
 
                 2, 0, 3,
                 2, 5, 3,
+        }, new int[0], new boolean[]{
+                //[top (+y)| bottom(-y)  | (-z / +z)| -x    |+x]
+                   true,    true,         true,      true,   true
         });
 
         int stoneBlockMesh = render.copyBlockMesh(blockMesh);
@@ -126,33 +129,16 @@ public class testGame {
         int grassBlock = atlasModels[0];
         int stoneBlock = atlasModels[1];
         int airBlock = -1; //when a chunk is rendered, -1 is treated as void, aka nothing renders in that spot.
-        render.addChunk(4, new int[][][]{
-                {
-                        {stoneBlock, stoneBlock, stoneBlock, stoneBlock},
-                        {stoneBlock, stoneBlock, stoneBlock, stoneBlock},
-                        {grassBlock, grassBlock, grassBlock, grassBlock},
-                        {airBlock, airBlock, airBlock, airBlock},
-                },
-                {
-                        {stoneBlock, stoneBlock, stoneBlock, stoneBlock},
-                        {stoneBlock, stoneBlock, stoneBlock, stoneBlock},
-                        {grassBlock, stoneBlock, grassBlock, grassBlock},
-                        {airBlock, grassBlock, airBlock, airBlock},
-                },
-                {
-                        {stoneBlock, stoneBlock, stoneBlock, stoneBlock},
-                        {stoneBlock, stoneBlock, stoneBlock, stoneBlock},
-                        {grassBlock, grassBlock, grassBlock, grassBlock},
-                        {airBlock, airBlock, airBlock, airBlock},
-                },
-                {
-                        {stoneBlock, stoneBlock, stoneBlock, stoneBlock},
-                        {stoneBlock, stoneBlock, stoneBlock, stoneBlock},
-                        {grassBlock, grassBlock, grassBlock, grassBlock},
-                        {airBlock, airBlock, airBlock, airBlock},
-                },
-        }, 0, 0, 0);
-
+        int[][][] randomChunk = new int[64][64][64];
+        for(int x = 0; x < randomChunk.length; x++){
+            for(int y=0; y<randomChunk[x].length; y++){
+                for(int z=0; z<randomChunk[x][y].length; z++){
+                    randomChunk[x][y][z] = (int)(Math.random()*3-1);
+                }
+            }
+        }
+        render.addChunk(64, randomChunk, 0, 0, 0);
+        render.addChunk(64, randomChunk, 100, 0, 0);
         int textEntity = render.addEntityFromText("""
                 I just rewrote the entire\s
                 text rendering algorithm just to add new lines!

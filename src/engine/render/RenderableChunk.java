@@ -2,11 +2,11 @@ package engine.render;
 
 import engine.model.BlockMesh;
 import engine.model.BlockModel;
-import engine.model.Model;
+import engine.model.Mesh;
 import engine.util.BlockMeshBuilder;
-import org.lwjgl.system.CallbackI;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class RenderableChunk {
     int[][][] data;
@@ -21,6 +21,7 @@ public class RenderableChunk {
         this.data = new int[size][size][size];
         this.shouldBuild = false;
         this.canRender = false;
+        this.size = size;
     }
 
     public RenderableChunk(int size, int[][][] data){
@@ -31,6 +32,7 @@ public class RenderableChunk {
         this.data = data;
         this.shouldBuild = true;
         this.canRender = false;
+        this.size = size;
     }
 
     public void setData(int[][][] data){
@@ -96,7 +98,7 @@ public class RenderableChunk {
                             shaderIndex = chunkModels.size() - 1;
                         }
                         //cloning, index removal, and vertex position modification done within the BlockMeshBuilder
-                        chunkModels.get(shaderIndex).addBlockMesh(model.getMesh(), x, y, z, null);
+                        chunkModels.get(shaderIndex).addBlockMesh(model.getMesh(), x, y, z, this.getBlockedFaces(models, x, y, z));
                     }
                 }
             }
@@ -109,5 +111,29 @@ public class RenderableChunk {
             this.canRender = true;
             this.shouldBuild = false;
         }
+    }
+
+
+    //blockedFaces: [top (+y), bottom(-y), (-z / +z), -x, +x]
+    private boolean[] getBlockedFaces(BlockModel[] models, int x, int y, int z){
+        //exclude the blocks at the edges
+        boolean[] blockedFaces = new boolean[5];
+        int[] xMap = new int[]{0, 0, 0, -1, 1};
+        int[] yMap = new int[]{1, -1, 0, 0, 0}; //to make the code slightly cleaner
+        int[] zMap = new int[]{0, 0, ((x + z) & 1)*2-1, 0, 0}; //the ((x + z) & 1)*2-1 is to make sure Z is inverted if it needs to be.
+
+        for(int i=0; i < 5; i++){
+            //System.out.print("xyz:" + (x+xMap[i]) + "," + (y+yMap[i]) + "," + (z+zMap[i]));
+            if(x+xMap[i]<0 || x+xMap[i]>this.size-1){/*System.out.println(" skipped0x" + this.size);*/continue; }
+            if(y+yMap[i]<0 || y+yMap[i]>this.size-1){/*System.out.println(" skipped0y");*/continue; }
+            if(z+zMap[i]<0 || z+zMap[i]>this.size-1){/*System.out.println(" skipped0z");*/continue; }//skip it if it would cause an exception
+
+            BlockMesh mesh = models[data[x+xMap[i]][y+yMap[i]][z+zMap[i]]].getMesh(); //get the mesh of the block connecting to the face we are looking at.
+            if(mesh.blockedFaces.length==0){/*System.out.println(" skipped1");*/continue;} //skip if that mesh doesn't block faces
+            //System.out.println(" accepted");
+            blockedFaces[i] = mesh.blockedFaces[i];
+        }
+        //System.out.println(Arrays.toString(blockedFaces));
+        return blockedFaces;
     }
 }

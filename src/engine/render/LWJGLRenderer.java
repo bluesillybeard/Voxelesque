@@ -349,6 +349,22 @@ public class LWJGLRenderer implements Render{
         return blockMeshes.add(new BlockMesh(positions, textureCoordinates, indices));
     }
 
+
+    /**
+     * adds a block mesh
+     *
+     * @param positions          the positions of the block mesh
+     * @param textureCoordinates the texture coordinates / UV coordinates
+     * @param indices            the indices of the mesh
+     * @param removableTriangles TODO: explain
+     * @param blockedFaces       the faces that this block blocks of other blocks [top (+y), bottom(-y), (-z / +z), -x, +x]
+     * @return the blockMesh ID
+     */
+    @Override
+    public int addBlockMesh(float[] positions, float[] textureCoordinates, int[] indices, int[] removableTriangles, boolean[] blockedFaces) {
+        return blockMeshes.add(new BlockMesh(positions, textureCoordinates, indices, removableTriangles, blockedFaces));
+    }
+
     /**
      * copies a block meshes data into a new one.
      *

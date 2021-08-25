@@ -4,18 +4,44 @@ import engine.model.BlockMesh;
 import engine.model.Mesh;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class BlockMeshBuilder {
-    ArrayList<Float> positions;
-    ArrayList<Float> textureCoordinates;
-    ArrayList<Integer> indices;
+    private final ArrayList<Float> positions;
+    private final ArrayList<Float> textureCoordinates;
+    private final ArrayList<Integer> indices;
     public BlockMeshBuilder(){
-        positions = new ArrayList<>();
-        textureCoordinates = new ArrayList<>();
-        indices = new ArrayList<>();
+        this.positions = new ArrayList<>();
+        this.textureCoordinates = new ArrayList<>();;
+        this.indices = new ArrayList<>();
+    }
+
+    public void addBlockMesh(BlockMesh mesh, int x, int y, int z){
+        int indexOffset = this.positions.size()/3;
+
+        //STEP ONE: translate and mirror the block mesh and add those to the position buffer
+        float mirror = ((x + z) & 1) - 0.5f; //it's upside down or not (-1 if it needs to be mirrored on the Y axis
+        for(int i=0; i<mesh.positions.length/3; i++){
+            this.positions.add(mesh.positions[3 * i    ] * 0.5f + x*0.288675134595f); //X position
+            this.positions.add(mesh.positions[3 * i + 1] * 0.5f + y*0.5f); //Y position
+            this.positions.add(mesh.positions[3 * i + 2] * mirror + z*0.5f); //z position
+        }
+        //STEP TWO: add texture coordinates (these don't change)
+        for(float coord: mesh.UVCoords){
+            this.textureCoordinates.add(coord);
+        }
+        //STEP THREE: modify indices and add them to the buffer
+        for(int i = 0; i < mesh.indices.length; i++){
+
+            indices.add(mesh.indices[i] + indexOffset);
+        }
     }
 
     public void addBlockMesh(BlockMesh mesh, int x, int y, int z, boolean[] blockedFaces){
+        if(blockedFaces[0] && blockedFaces[1] && blockedFaces[2] && blockedFaces[3] && blockedFaces [4]){
+            return; //if all the faces are blocked, just skip the block completely.
+        }
+
         int indexOffset = this.positions.size()/3;
 
         //STEP ONE: translate and mirror the block mesh and add those to the position buffer

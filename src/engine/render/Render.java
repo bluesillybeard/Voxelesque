@@ -1,5 +1,7 @@
 package engine.render;
 
+import engine.model.BlockMesh;
+
 public interface Render {
     int WINDOW_INIT_ERROR = 1;
     int SHADER_INIT_ERROR = 2;
@@ -177,6 +179,17 @@ public interface Render {
      */
     int addBlockMesh(float[] positions, float[] textureCoordinates, int[] indices);
 
+    /**
+     * adds a block mesh
+     *
+     * @param positions          the positions of the block mesh
+     * @param textureCoordinates the texture coordinates / UV coordinates
+     * @param indices            the indices of the mesh
+     * @param removableTriangles TODO: explain
+     * @param blockedFaces       the faces that this block blocks of other blocks [top (+y), bottom(-y), (-z / +z), -x, +x]
+     * @return the blockMesh ID
+     */
+    int addBlockMesh(float[] positions, float[] textureCoordinates, int[] indices, int[] removableTriangles, boolean[] blockedFaces);
     /**
      * copies a block meshes data into a new one.
      * @param blockMesh the block mesh to be copied
