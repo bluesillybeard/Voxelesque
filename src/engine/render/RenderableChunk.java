@@ -2,13 +2,12 @@ package engine.render;
 
 import engine.model.BlockMesh;
 import engine.model.BlockModel;
-import engine.model.Mesh;
 import engine.util.BlockMeshBuilder;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class RenderableChunk {
+    final int xPos, yPos, zPos;
     int[][][] data;
     int size;
     RenderableEntity[] chunkModel;
@@ -17,14 +16,17 @@ public class RenderableChunk {
 
     boolean canRender;
 
-    public RenderableChunk(int size){
+    public RenderableChunk(int size, int xPos, int yPos, int zPos){
         this.data = new int[size][size][size];
         this.shouldBuild = false;
         this.canRender = false;
         this.size = size;
+        this.xPos = xPos;
+        this.yPos = yPos;
+        this.zPos = zPos;
     }
 
-    public RenderableChunk(int size, int[][][] data){
+    public RenderableChunk(int size, int[][][] data, int xPos, int yPos, int zPos){
         if(data.length != size || data[0].length != size || data[0][0].length != size){
             throw new IllegalStateException("a chunk's data cannot be any other size than " + size + "," +
                     "\n but the data given to the constructor has dimensions (" + data.length + ", " + data[0].length + ", " + data[0][0].length + ")");
@@ -33,6 +35,9 @@ public class RenderableChunk {
         this.shouldBuild = true;
         this.canRender = false;
         this.size = size;
+        this.xPos = xPos;
+        this.yPos = yPos;
+        this.zPos = zPos;
     }
 
     public void setData(int[][][] data){
@@ -48,7 +53,7 @@ public class RenderableChunk {
         this.shouldBuild = true;
     }
     public void setBlock(int block, int x, int y, int z){
-        data[x][y][x] = block;
+        data[x][y][z] = block;
     }
     public void render(){
         if(!canRender) return; //don't render if it can't
@@ -61,8 +66,8 @@ public class RenderableChunk {
      * clears the vertex data from the GPU.
      */
     public void clearFromGPU(){
-        for(RenderableEntity model: this.chunkModel){
-            model.getModel().cleanUp();
+        for(RenderableEntity entity: this.chunkModel){
+            entity.getModel().cleanUp();
         }
     }
     public void build(BlockModel[] models){
@@ -88,7 +93,7 @@ public class RenderableChunk {
                 for (int y = 0; y < data[x].length; y++) {
                     for (int z = 0; z < data[x][y].length; z++) {
                         int block = data[x][y][z];
-                        if (block == -1) continue; //skip rendering this block if it is -1.
+                        if (block == -1) continue; //skip rendering this block if it is -1. (void)
                         BlockModel model = models[block];
                         ShaderProgram program = model.getShader();
                         int shaderIndex = shaderPrograms.indexOf(program);
@@ -105,7 +110,10 @@ public class RenderableChunk {
             //finally, take the buffers and convert them into a renderable form.
             RenderableEntity[] model = new RenderableEntity[shaderPrograms.size()];
             for (int i = 0; i < model.length; i++) {
-                model[i] = new RenderableEntity(chunkModels.get(i).getMesh(), shaderPrograms.get(i), models[0].getTexture());
+                RenderableEntity entity = new RenderableEntity(chunkModels.get(i).getMesh(), shaderPrograms.get(i), models[0].getTexture());
+                entity.setPosition(this.xPos*this.size, this.yPos*this.size, this.yPos*this.size);
+                entity.setScale(1, 1, 1);
+                model[i] = entity;
             }
             this.chunkModel = model;
             this.canRender = true;
@@ -120,20 +128,26 @@ public class RenderableChunk {
         boolean[] blockedFaces = new boolean[5];
         int[] xMap = new int[]{0, 0, 0, -1, 1};
         int[] yMap = new int[]{1, -1, 0, 0, 0}; //to make the code slightly cleaner
-        int[] zMap = new int[]{0, 0, ((x + z) & 1)*2-1, 0, 0}; //the ((x + z) & 1)*2-1 is to make sure Z is inverted if it needs to be.
+        int[] zMap = new int[]{0, 0, ((x + z) & 1)*-2+1, 0, 0}; //the ((x + z) & 1)*-2+1 is to make sure Z is inverted if it needs to be.
 
         for(int i=0; i < 5; i++){
-            //System.out.print("xyz:" + (x+xMap[i]) + "," + (y+yMap[i]) + "," + (z+zMap[i]));
-            if(x+xMap[i]<0 || x+xMap[i]>this.size-1){/*System.out.println(" skipped0x" + this.size);*/continue; }
-            if(y+yMap[i]<0 || y+yMap[i]>this.size-1){/*System.out.println(" skipped0y");*/continue; }
-            if(z+zMap[i]<0 || z+zMap[i]>this.size-1){/*System.out.println(" skipped0z");*/continue; }//skip it if it would cause an exception
+            int xM = x+xMap[i];
+            int yM = y+yMap[i];
+            int zM = z+zMap[i];
 
-            BlockMesh mesh = models[data[x+xMap[i]][y+yMap[i]][z+zMap[i]]].getMesh(); //get the mesh of the block connecting to the face we are looking at.
-            if(mesh.blockedFaces.length==0){/*System.out.println(" skipped1");*/continue;} //skip if that mesh doesn't block faces
-            //System.out.println(" accepted");
+            if(xM<0 || xM>this.size-1)continue;
+            if(yM<0 || yM>this.size-1)continue;
+            if(zM<0 || zM>this.size-1)continue;//skip it if it would cause an exception
+            int block = data[xM][yM][zM];
+            BlockMesh mesh;
+            if(block == -1) {
+                mesh = new BlockMesh(null, null, null);
+            } else {
+                mesh = models[block].getMesh(); //get the mesh of the block connecting to the face we are looking at.
+            }
+            if(mesh.blockedFaces.length==0)continue; //skip if that mesh doesn't block faces
             blockedFaces[i] = mesh.blockedFaces[i];
         }
-        //System.out.println(Arrays.toString(blockedFaces));
         return blockedFaces;
     }
 }

@@ -31,18 +31,26 @@ public class RenderableEntity {
         this.rotation = new Vector3f();
         this.modelViewMatrix = new Matrix4f();
         hidden = false;
+        updateViewMatrix();
     }
 
     public RenderableEntity(Model model, ShaderProgram shaderProgram) {
         this.model = model;
         this.shaderProgram = shaderProgram;
         this.position = new Vector3f();
-        this.scale = new Vector3f();
+        this.scale = new Vector3f(1, 1, 1);
         this.rotation = new Vector3f();
         this.modelViewMatrix = new Matrix4f();
         hidden = false;
+        updateViewMatrix();
     }
-
+    private void updateViewMatrix(){
+        this.modelViewMatrix.identity().translate(this.position).
+                rotateX(-this.rotation.x).
+                rotateY(-this.rotation.y).
+                rotateZ(-this.rotation.z).
+                scale(this.scale);
+    }
     public Model getModel() {
         return model;
     }
@@ -55,12 +63,7 @@ public class RenderableEntity {
         this.position.x = x;
         this.position.y = y;
         this.position.z = z;
-        //update modelViewMatrix
-        this.modelViewMatrix.identity().translate(this.position).
-                rotateX(-this.rotation.x).
-                rotateY(-this.rotation.y).
-                rotateZ(-this.rotation.z).
-                scale(this.scale);
+        updateViewMatrix();
     }
 
     public Vector3f getScale() {
@@ -71,12 +74,7 @@ public class RenderableEntity {
         this.scale.x = x;
         this.scale.y = y;
         this.scale.z = z;
-        //update modelViewMatrix
-        this.modelViewMatrix.identity().translate(this.position).
-                rotateX(-this.rotation.x).
-                rotateY(-this.rotation.y).
-                rotateZ(-this.rotation.z).
-                scale(this.scale);
+        updateViewMatrix();
     }
 
     public Vector3f getRotation() {
@@ -87,12 +85,7 @@ public class RenderableEntity {
         this.rotation.x = x;
         this.rotation.y = y;
         this.rotation.z = z;
-        //update modelViewMatrix
-        this.modelViewMatrix.identity().translate(this.position).
-                rotateX(-x).
-                rotateY(-y).
-                rotateZ(-z).
-                scale(this.scale);
+        updateViewMatrix();
     }
 
     public void setModel(Model model){

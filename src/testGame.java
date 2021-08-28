@@ -124,7 +124,7 @@ public class testGame {
         int entity2 = render.addEntity(grassBlockModel, normalShader, 0f, 10f, -2f, 1f,  1f, 0f,   1.0f, 0.5f, 0.5f);
         int entity3 = render.addEntity(grassBlockModel, normalShader, 0f, 10f, -4f, 0f,  0f, 1f,   0.5f, 0.5f, 1.0f);
         int entity4 = render.addEntity(grassBlockModel, crazyShader,  0f, 10f, -6f, 0f,  2f, 0f,   0.5f, 0.5f, 0.5f);
-
+        int entity5 = render.addEntity(grassBlockModel, normalShader, 0, 0, 64, 0, 0, 0, 10, 10, 10);
         //Chunks
         int grassBlock = atlasModels[0];
         int stoneBlock = atlasModels[1];
@@ -137,8 +137,17 @@ public class testGame {
                 }
             }
         }
+        int[][][] randomChunk2 = new int[64][64][64];
+        for(int x = 0; x < randomChunk2.length; x++) {
+            for (int y = 0; y < randomChunk2[x].length; y++) {
+                for (int z = 0; z < randomChunk2[x][y].length; z++) {
+                    randomChunk2[x][y][z] = (int) (Math.random() * 3 - 1);
+                    if(randomChunk2[x][y][z] == -1){ System.out.println("block " + x + ", " + y + ", " + z + " is void");}
+                }
+            }
+        }
         render.addChunk(64, randomChunk, 0, 0, 0);
-        render.addChunk(64, randomChunk, 100, 0, 0);
+        render.addChunk(64, randomChunk2, 0, 0, 1);
         int textEntity = render.addEntityFromText("""
                 I just rewrote the entire\s
                 text rendering algorithm just to add new lines!
@@ -193,7 +202,7 @@ public class testGame {
                     cameraInc.y = 1;
                     cameraUpdated = true;
                 }
-                double CAMERA_POS_STEP = 1/10d;
+                double CAMERA_POS_STEP = 1/3d;
                 // Update camera position
                 if ( cameraInc.z != 0 ) {
                     cameraPosition.x += (float)Math.sin(Math.toRadians(cameraRotation.y)) * -1.0f * cameraInc.z * CAMERA_POS_STEP;

@@ -426,7 +426,7 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public int addChunk(int size, int[][][] blockData, int x, int y, int z) {
-        return chunks.add(new RenderableChunk(size, blockData));
+        return chunks.add(new RenderableChunk(size, blockData, x, y, z));
     }
 
     /**
@@ -575,7 +575,7 @@ public class LWJGLRenderer implements Render{
         }
         //render each chunk
         for (RenderableChunk chunk: chunks){
-            chunk.build(blockModels.toArray(new BlockModel[blockModels.size()]));
+            if(chunk.shouldBuild)chunk.build(blockModels.toArray(new BlockModel[blockModels.size()]));
             chunk.render();
         }
         window.update();
