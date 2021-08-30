@@ -37,29 +37,35 @@ public class BlockMeshBuilder {
         }
     }
 
-    public void addBlockMesh(BlockMesh mesh, int x, int y, int z, boolean[] blockedFaces){
-        if(blockedFaces[0] && blockedFaces[1] && blockedFaces[2] && blockedFaces[3] && blockedFaces [4]){
-            return; //if all the faces are blocked, just skip the block completely.
+    public void addBlockMesh(BlockMesh mesh, int x, int y, int z, byte blockedFaces){
+        if((~blockedFaces & 0b11111) == 0){
+            return; //if all the faces are blocked, just skip the voxel completely.
         }
 
         int indexOffset = this.positions.size()/3;
+        float mirror = ((x + z) & 1) - 0.5f; //it's upside down or not (-1 if it needs to be mirrored on the Z axis)
 
-        //STEP ONE: translate and mirror the block mesh and add those to the position buffer
-        float mirror = ((x + z) & 1) - 0.5f; //it's upside down or not (-1 if it needs to be mirrored on the Y axis
         for(int i=0; i<mesh.positions.length/3; i++){
-            this.positions.add(mesh.positions[3 * i    ] * 0.5f + x*0.288675134595f); //X position
-            this.positions.add(mesh.positions[3 * i + 1] * 0.5f + y*0.5f); //Y position
-            this.positions.add(mesh.positions[3 * i + 2] * mirror + z*0.5f); //z position
+            this.positions.add(mesh.positions[3 * i    ] / 2f + x/3.465f); //X position
+            this.positions.add(mesh.positions[3 * i + 1] / 2f + y/2f); //Y position
+            this.positions.add(mesh.positions[3 * i + 2] * mirror + z/2f); //z position
         }
         //STEP TWO: add texture coordinates (these don't change)
         for(float coord: mesh.UVCoords){
             this.textureCoordinates.add(coord);
         }
         //STEP THREE: modify indices and add them to the buffer
-        for(int i = 0; i < mesh.indices.length; i++){
+        for (int tri = 0; tri < mesh.indices.length/3; tri++) {
+            if(mesh.removableTriangles.length == 0) continue;
+            if((mesh.removableTriangles[tri] & blockedFaces)!=0) {
+                continue; // Skip this triangle if it should be removed
+            }
 
-            indices.add(mesh.indices[i] + indexOffset);
+            indices.add(mesh.indices[3 * tri    ] + indexOffset);
+            indices.add(mesh.indices[3 * tri + 1] + indexOffset); //add the triangle's indices to the mesh
+            indices.add(mesh.indices[3 * tri + 2] + indexOffset);
         }
+
     }
 
     public Mesh getMesh(){

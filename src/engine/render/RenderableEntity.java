@@ -5,6 +5,7 @@ import engine.model.Model;
 import engine.model.Texture;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.joml.Vector4d;
 import org.joml.Vector4f;
 
 public class RenderableEntity {
@@ -23,6 +24,9 @@ public class RenderableEntity {
 
     private final Vector3f rotation;
 
+    private static final Vector4f point1 = new Vector4f();
+    private static final Vector4f point2 = new Vector4f();
+    private static final Vector4f point3 = new Vector4f(); //used for the touchesPositionOnScreen()
     public RenderableEntity(Mesh mesh, ShaderProgram shaderProgram, Texture texture) {
         this.model = new Model(mesh, texture);
         this.shaderProgram = shaderProgram;
@@ -140,18 +144,18 @@ public class RenderableEntity {
         //if none of the triangles collide, return false.
         for(int i=0; i<indices.length/3; i++){ //each triangle in the mesh
             //get that triangle
-            Vector4f point1 = new Vector4f(
+            point1.set(
                     positions[3*indices[3*i  ]],
                     positions[3*indices[3*i  ]+1],
                     positions[3*indices[3*i  ]+2], 1);
-            Vector4f point2 = new Vector4f(
+            point2.set(
                     positions[3*indices[3*i+1]],
                     positions[3*indices[3*i+1]+1],
                     positions[3*indices[3*i+1]+2], 1);
-            Vector4f point3 = new Vector4f(
+            point3.set(
                     positions[3*indices[3*i+2]],
                     positions[3*indices[3*i+2]+1],
-                    positions[3*indices[3*i+2]+2], 1); //I think I did this right
+                    positions[3*indices[3*i+2]+2], 1);
 
             //transform that triangle to the screen coordinates
             point1.mulProject(MVP);
@@ -168,10 +172,10 @@ public class RenderableEntity {
 
 
     //thanks to https://www.tutorialspoint.com/Check-whether-a-given-point-lies-inside-a-Triangle for the following code:
-    //I adapted it slightly to fit my code better.
+    //I adapted it slightly to fit my code better, and to fix a bug related to float precision
 
     private static double triangleArea(float p1x, float p1y, float p2x, float p2y, float p3x, float p3y) {
-        return Math.abs((p1x*(p2y-p3y) + p2x*(p3y-p1y)+ p3x*(p1y-p2y))/2.0);
+        return Math.abs((p1x * (p2y - p3y) + p2x * (p3y - p1y) + p3x * (p1y - p2y)) / 2.0);
     }
 
     private static boolean isInside(float p1x, float p1y, float p2x, float p2y, float p3x, float p3y, float x, float y) {

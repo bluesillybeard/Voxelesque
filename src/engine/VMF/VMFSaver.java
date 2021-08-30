@@ -6,14 +6,25 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class VMFSaver {
-
-    public static void saveVBMF(String path, float[] vertices, float[] textureCoordinates, int[] indices, String pathToTexture, int[] removableTriangles, int[] blockedFaces) throws IOException {
+    /**
+     * Saves a VBMF model to a file
+     * @param path the file to save - make sure to include the .vbmf0 at the end, as that isn't added automatically.
+     * @param vertices the OpenGL vertices
+     * @param textureCoordinates the OpenGL texture coordinates
+     * @param indices the OpenGL indices
+     * @param pathToTexture the path to the texture - see saveUVBMF for no texture
+     * @param removableTriangles the removable triangles - A bit-field (8 bits, only 5 of which are used) which tells which triangles are not blocked by which sides.
+     *                           bit order [1s, 2s, 4s, 8s, 16s], [top (+y), bottom(-y), z, -x, +x]
+     *                           There is one byte for each triangle (every 3 indices) of a mesh. A triangle will only be removed when (~blockedFaces | ~removableTriangles[triangle index]) == 0
+     * @param blockedFaces the faces (a bit field with the same bit order as a removableTriangle) that are blocked by this voxel [top (+y), bottom(-y), z, -x, +x]
+     * @throws IOException if the texture doesn't exist.
+     */
+    public static void saveVBMF(String path, float[] vertices, float[] textureCoordinates, int[] indices, String pathToTexture, byte[] removableTriangles, byte blockedFaces) throws IOException {
 
         byte[] verticesBytes =           new byte[          vertices.length*4+4]; //create new array for bytes to be saved into file
         byte[] textureCoordinatesBytes = new byte[textureCoordinates.length*4+4];
         byte[] indicesBytes =            new byte[           indices.length*4+4];
         byte[] removableTrianglesBytes = new byte[removableTriangles.length*4+4];
-        byte[] blockedFacesBytes =       new byte[      blockedFaces.length*4+4];
 
         byte[] fourLengthBytes = getFourBytes(vertices.length/3); //save length into bytes
         verticesBytes[0] = fourLengthBytes[0];
@@ -68,20 +79,7 @@ public class VMFSaver {
             removableTrianglesBytes[i*4+7] = fourBytes[3];
         }
 
-        fourLengthBytes = getFourBytes(blockedFaces.length/2);
-        blockedFacesBytes[0] = fourLengthBytes[0];
-        blockedFacesBytes[1] = fourLengthBytes[1];
-        blockedFacesBytes[2] = fourLengthBytes[2];
-        blockedFacesBytes[3] = fourLengthBytes[3];
-        for(int i=0; i<blockedFaces.length; i++){
-            byte[] fourBytes = getFourBytes(blockedFaces[i]);
-            blockedFacesBytes[i*4+4] = fourBytes[0];
-            blockedFacesBytes[i*4+5] = fourBytes[1];
-            blockedFacesBytes[i*4+6] = fourBytes[2];
-            blockedFacesBytes[i*4+7] = fourBytes[3];
-        }
-
-        saveZipFile(path, indicesBytes, textureCoordinatesBytes, verticesBytes, removableTrianglesBytes, blockedFacesBytes, pathToTexture);
+        saveZipFile(path, indicesBytes, textureCoordinatesBytes, verticesBytes, removableTrianglesBytes, blockedFaces, pathToTexture);
     }
     public static void saveVEMF(String path, float[] vertices, float[] textureCoordinates, int[] indices, String pathToTexture) throws IOException {
 
@@ -130,7 +128,7 @@ public class VMFSaver {
 
         saveZipFile(path, indicesBytes, textureCoordinatesBytes, verticesBytes, pathToTexture);
     }
-    private static void saveZipFile(String path, byte[] i, byte[] t, byte[] v, byte[] r, byte[] b, String pathToTexture) throws IOException {
+    private static void saveZipFile(String path, byte[] i, byte[] t, byte[] v, byte[] r, byte b, String pathToTexture) throws IOException {
         ZipOutputStream out = new ZipOutputStream(new FileOutputStream(path));
 
         out.putNextEntry(new ZipEntry("i")); //write indices
@@ -149,17 +147,14 @@ public class VMFSaver {
         out.write(v);
         out.closeEntry();
 
-        out.putNextEntry(new ZipEntry("r")); //write vertex coordinates
+        out.putNextEntry(new ZipEntry("r")); //write removable triangles
         out.write(r);
         out.closeEntry();
 
-        out.putNextEntry(new ZipEntry("b")); //write vertex coordinates
+        out.putNextEntry(new ZipEntry("b")); //write blocked faces
         out.write(b);
         out.closeEntry();
 
-        out.putNextEntry(new ZipEntry("y")); //write texture file ending
-        out.write(pathToTexture.substring(getLastIndexOf(pathToTexture, '.')).getBytes(StandardCharsets.US_ASCII));
-        out.closeEntry();
         out.close();
     }
     private static void saveZipFile(String path, byte[] i, byte[] t, byte[] v, String pathToTexture) throws IOException {
@@ -181,9 +176,6 @@ public class VMFSaver {
         out.write(v);
         out.closeEntry();
 
-        out.putNextEntry(new ZipEntry("y")); //write texture file ending
-        out.write(pathToTexture.substring(getLastIndexOf(pathToTexture, '.')).getBytes(StandardCharsets.US_ASCII));
-        out.closeEntry();
         out.close();
     }
     private static byte[] getFourBytes(float f){
@@ -192,14 +184,6 @@ public class VMFSaver {
     }
     private static byte[] getFourBytes(int i){
         return new byte[]{(byte)i, (byte)(i>>8), (byte)(i>>16), (byte)(i>>24)};
-    }
-    private static int getLastIndexOf(String str, char c){
-        for(int i=str.length()-1; i>=0; i--){
-            if(str.charAt(i) == c){
-                return i;
-            }
-        }
-        return -1;
     }
 
     public static void main(String[] args) throws IOException {

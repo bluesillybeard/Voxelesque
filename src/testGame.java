@@ -80,10 +80,22 @@ public class testGame {
 
                 2, 0, 3,
                 2, 5, 3,
-        }, new int[0], new boolean[]{
-                //[top (+y)| bottom(-y)  | (-z / +z)| -x    |+x]
-                   true,    true,         true,      true,   true
-        });
+        }, new byte[]{
+                //|16s| 8s| 4s| 2s| 1s| (place value) - Yes, java binary is big endian
+                //|+x | -x|  z| -y| +y| (importance)
+                0b00001, //one for each set of three indices (each triangle)
+                0b00010,
+                0b00100,
+                0b00100,
+                0b01000,
+                0b01000,
+                0b10000,
+                0b10000,
+        },
+                //|1s| 2s| 4s| 8s| 16s| (place value)
+                //|+y| -y|  z| -x|  +x| (importance)
+                (byte) 0b11111
+        );
 
         int stoneBlockMesh = render.copyBlockMesh(blockMesh);
 
@@ -133,7 +145,7 @@ public class testGame {
         for(int x = 0; x < randomChunk.length; x++){
             for(int y=0; y<randomChunk[x].length; y++){
                 for(int z=0; z<randomChunk[x][y].length; z++){
-                    randomChunk[x][y][z] = (int)(Math.random()*3-1);
+                    randomChunk[x][y][z] = (int)(Math.random()*3-2);
                 }
             }
         }
@@ -141,13 +153,14 @@ public class testGame {
         for(int x = 0; x < randomChunk2.length; x++) {
             for (int y = 0; y < randomChunk2[x].length; y++) {
                 for (int z = 0; z < randomChunk2[x][y].length; z++) {
-                    randomChunk2[x][y][z] = (int) (Math.random() * 3 - 1);
-                    if(randomChunk2[x][y][z] == -1){ System.out.println("block " + x + ", " + y + ", " + z + " is void");}
+                    randomChunk2[x][y][z] = (int) (Math.random() * Integer.MAX_VALUE);
                 }
             }
         }
         render.addChunk(64, randomChunk, 0, 0, 0);
         render.addChunk(64, randomChunk2, 0, 0, 1);
+        render.addChunk(64, randomChunk, 1, 0, 0);
+        render.addChunk(64, randomChunk2, 1, 0, 1);
         int textEntity = render.addEntityFromText("""
                 I just rewrote the entire\s
                 text rendering algorithm just to add new lines!

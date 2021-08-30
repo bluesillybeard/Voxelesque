@@ -361,7 +361,7 @@ public class LWJGLRenderer implements Render{
      * @return the blockMesh ID
      */
     @Override
-    public int addBlockMesh(float[] positions, float[] textureCoordinates, int[] indices, int[] removableTriangles, boolean[] blockedFaces) {
+    public int addBlockMesh(float[] positions, float[] textureCoordinates, int[] indices, byte[] removableTriangles, byte blockedFaces) {
         return blockMeshes.add(new BlockMesh(positions, textureCoordinates, indices, removableTriangles, blockedFaces));
     }
 

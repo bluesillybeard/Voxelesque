@@ -111,7 +111,7 @@ public class RenderableChunk {
             RenderableEntity[] model = new RenderableEntity[shaderPrograms.size()];
             for (int i = 0; i < model.length; i++) {
                 RenderableEntity entity = new RenderableEntity(chunkModels.get(i).getMesh(), shaderPrograms.get(i), models[0].getTexture());
-                entity.setPosition(this.xPos*this.size, this.yPos*this.size, this.yPos*this.size);
+                entity.setPosition(this.xPos*this.size/3.465f, this.yPos*this.size/2f, this.zPos*this.size/2f);
                 entity.setScale(1, 1, 1);
                 model[i] = entity;
             }
@@ -123,12 +123,12 @@ public class RenderableChunk {
 
 
     //blockedFaces: [top (+y), bottom(-y), (-z / +z), -x, +x]
-    private boolean[] getBlockedFaces(BlockModel[] models, int x, int y, int z){
+    private byte getBlockedFaces(BlockModel[] models, int x, int y, int z){
         //exclude the blocks at the edges
-        boolean[] blockedFaces = new boolean[5];
+        byte blockedFaces = 0;
         int[] xMap = new int[]{0, 0, 0, -1, 1};
         int[] yMap = new int[]{1, -1, 0, 0, 0}; //to make the code slightly cleaner
-        int[] zMap = new int[]{0, 0, ((x + z) & 1)*-2+1, 0, 0}; //the ((x + z) & 1)*-2+1 is to make sure Z is inverted if it needs to be.
+        int[] zMap = new int[]{0, 0, (z + x & 1) * -2 + 1, 0, 0}; //the ((x + z) & 1)*-2+1 is to make sure Z is inverted if it needs to be.
 
         for(int i=0; i < 5; i++){
             int xM = x+xMap[i];
@@ -138,15 +138,12 @@ public class RenderableChunk {
             if(xM<0 || xM>this.size-1)continue;
             if(yM<0 || yM>this.size-1)continue;
             if(zM<0 || zM>this.size-1)continue;//skip it if it would cause an exception
+
             int block = data[xM][yM][zM];
-            BlockMesh mesh;
-            if(block == -1) {
-                mesh = new BlockMesh(null, null, null);
-            } else {
-                mesh = models[block].getMesh(); //get the mesh of the block connecting to the face we are looking at.
-            }
-            if(mesh.blockedFaces.length==0)continue; //skip if that mesh doesn't block faces
-            blockedFaces[i] = mesh.blockedFaces[i];
+            if(block == -1) continue; //
+            BlockMesh mesh = models[block].getMesh(); //get the mesh of the block connecting to the face we are looking at.
+            if(mesh.blockedFaces == 0)continue; //skip if that mesh doesn't block faces
+            blockedFaces |= (mesh.blockedFaces & (1 << i));
         }
         return blockedFaces;
     }

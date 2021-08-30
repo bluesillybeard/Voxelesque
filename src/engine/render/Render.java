@@ -189,7 +189,7 @@ public interface Render {
      * @param blockedFaces       the faces that this block blocks of other blocks [top (+y), bottom(-y), (-z / +z), -x, +x]
      * @return the blockMesh ID
      */
-    int addBlockMesh(float[] positions, float[] textureCoordinates, int[] indices, int[] removableTriangles, boolean[] blockedFaces);
+    int addBlockMesh(float[] positions, float[] textureCoordinates, int[] indices, byte[] removableTriangles, byte blockedFaces);
     /**
      * copies a block meshes data into a new one.
      * @param blockMesh the block mesh to be copied
