@@ -7,9 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class NBTFolder implements NBTElement{
-    private final ArrayList<NBTElement> elements = new ArrayList<>();
+    private final ArrayList<NBTElement> elements;
     private String name;
-
+    NBTFolder(String name){
+        this.elements = new ArrayList<>();
+        this.name = name;
+    }
     @Override
     public byte getType() {
         return NBT_ELEMENT_TYPE_FOLDER;
@@ -48,10 +51,11 @@ public class NBTFolder implements NBTElement{
         } else {
             throw new IllegalStateException("ByteBuffer.allocate() returned a non-array buffer! Try using a different JRE.");
         }
-    } //TODO: NBT class, serialization(basically done atm), deserialization, and testing of those three features
+    }
 
     //NOTE there are no addElement or removeElement methods - instead, directly modify the list given by this method.
     public List<NBTElement> getElements(){
         return elements;
     }
+
 }

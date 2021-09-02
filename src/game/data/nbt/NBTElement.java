@@ -14,4 +14,5 @@ public interface NBTElement {
     Object getAsObject();
 
     byte[] serialize();
+
 }

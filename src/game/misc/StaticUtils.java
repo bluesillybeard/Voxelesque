@@ -14,7 +14,12 @@ public class StaticUtils {
         int floatInt = Float.floatToIntBits(f);
         return getFourBytes(floatInt);
     }
-
+    public static int getIntFromFourBytes(byte b0, byte b1, byte b2, byte b3){
+        return Byte.toUnsignedInt(b0) + (Byte.toUnsignedInt(b1) << 8) + (Byte.toUnsignedInt(b2) << 16) + (Byte.toUnsignedInt(b3) << 24);
+    }
+    public static float getFloatFromFourBytes(byte b0, byte b1, byte b2, byte b3){
+        return Float.intBitsToFloat(getIntFromFourBytes(b0, b1, b2, b3));
+    }
 
     public static ByteBuffer getNBTSerialData(NBTElement element, byte[] valueBytes){
         byte[] name = element.getName().getBytes(StandardCharsets.UTF_8);
@@ -33,6 +38,6 @@ public class StaticUtils {
                 putInt(size). //the length of the element in bytes (4 bytes)
                         put(element.getType()). //the type of the element (1 byte)
                         put(name).put((byte) 0). //the name of the element and the null terminator (name.length+1 bytes)
-                        put(valueBytes); //the value of the element (valueBytes.length bytes)
+                        put(valueBytes.flip()); //the value of the element (valueBytes.length bytes)
     }
 }

@@ -9,6 +9,11 @@ public class NBTString implements NBTElement{
     private String value;
     private String name;
 
+    public NBTString(String name, String value){
+        this.name = name;
+        this.value = value;
+    }
+
     @Override
     public byte getType() {
         return NBT_ELEMENT_TYPE_STRING;
@@ -47,5 +52,9 @@ public class NBTString implements NBTElement{
 
     public void setValue(String value){
         this.value = value;
+    }
+
+    public String toString(){
+        return name + ":" + value;
     }
 }
