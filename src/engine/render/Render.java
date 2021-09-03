@@ -1,7 +1,6 @@
 package engine.render;
 
-import engine.model.BlockMesh;
-
+@SuppressWarnings("unused")
 public interface Render {
     int WINDOW_INIT_ERROR = 1;
     int SHADER_INIT_ERROR = 2;

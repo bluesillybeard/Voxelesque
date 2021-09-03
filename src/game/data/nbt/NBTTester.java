@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -32,9 +33,15 @@ public class NBTTester {
         fileOut.write(out.toString().getBytes(StandardCharsets.US_ASCII));
         fileOut.close();*/
 
-        NBTInteger into = new NBTInteger("An-NBT_String", 1024);
-
-        NBTInteger inta = new NBTInteger(into.serialize());
+        NBTFolder into = new NBTFolder("A_Folder");
+        List<NBTElement> intoElements = into.getElements();
+        intoElements.add(new NBTInteger("int0", 9));
+        intoElements.add(new NBTString("string0", "value0"));
+        intoElements.add(new NBTFloat("float0", 8.5f));
+        System.out.println(into);
+        byte[] serialized = into.serialize();
+        System.out.println(Arrays.toString(serialized));
+        NBTFolder inta = new NBTFolder(into.serialize());
         System.out.println(inta);
 
     }
