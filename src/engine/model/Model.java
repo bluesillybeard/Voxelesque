@@ -13,16 +13,16 @@ public class Model {
      * Creates a Model.
      * @param l The VEMFLoader that the data will be taken from. Make sure the VEMFLoader has loaded a VEMF file properly.
      */
-    public Model(VEMFLoader l){
-        this.mesh = new Mesh(l.getVertices(), l.getTextureCoordinates(), l.getIndices());
+    public Model(VEMFLoader l, boolean storeOnCPU){
+        this.mesh = new Mesh(l.getVertices(), l.getTextureCoordinates(), l.getIndices(), storeOnCPU);
         this.texture = l.getTexture();
     }
     public Model(Mesh mesh, Texture texture){
         this.mesh = mesh;
         this.texture = texture;
     }
-    public Model(BlockModel model){
-        this.mesh = new Mesh(model.getMesh());
+    public Model(BlockModel model, boolean storeOnCPU){
+        this.mesh = new Mesh(model.getMesh(), storeOnCPU);
         this.texture = model.getTexture();
     }
 

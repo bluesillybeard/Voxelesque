@@ -148,7 +148,7 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public int addMesh(float[] positions, float[] textureCoordinates, int[] indices) {
-        return meshes.add(new Mesh(positions, textureCoordinates, indices));
+        return meshes.add(new Mesh(positions, textureCoordinates, indices, true));
     }
 
     /**
@@ -170,7 +170,7 @@ public class LWJGLRenderer implements Render{
     @Override
     public int loadVEMFModel(String modelPath) {
         try {
-            return models.add(new Model(entityLoad.loadVEMF(new File(resourcesPath + modelPath))));
+            return models.add(new Model(entityLoad.loadVEMF(new File(resourcesPath + modelPath)), true));
         } catch(IOException e){
             errorString = getStackTrace(e);
             errorCode = VEMF_LOAD_ERROR;
@@ -236,7 +236,7 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public int addEntity(int blockModel, float XPos, float YPos, float ZPos, float XRotation, float YRotation, float ZRotation, float XScale, float YScale, float ZScale) {
-        RenderableEntity entity = new RenderableEntity(new Model(blockModels.get(blockModel)), blockModels.get(blockModel).getShader());
+        RenderableEntity entity = new RenderableEntity(new Model(blockModels.get(blockModel), true), blockModels.get(blockModel).getShader());
         entity.setPosition(XPos, YPos, ZPos);
         entity.setRotation(XRotation, YRotation, ZRotation);
         entity.setScale(XScale, YScale, ZScale);

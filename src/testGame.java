@@ -141,26 +141,26 @@ public class testGame {
         int grassBlock = atlasModels[0];
         int stoneBlock = atlasModels[1];
         int airBlock = -1; //when a chunk is rendered, -1 is treated as void, aka nothing renders in that spot.
-        int[][][] randomChunk = new int[64][64][64];
+        int[][][] randomChunk = new int[128][128][128];
         for(int x = 0; x < randomChunk.length; x++){
             for(int y=0; y<randomChunk[x].length; y++){
                 for(int z=0; z<randomChunk[x][y].length; z++){
-                    randomChunk[x][y][z] = (int)(Math.random()*3-2);
+                    randomChunk[x][y][z] = (int)(Math.random()*3-1);
                 }
             }
         }
-        int[][][] randomChunk2 = new int[64][64][64];
-        for(int x = 0; x < randomChunk2.length; x++) {
-            for (int y = 0; y < randomChunk2[x].length; y++) {
-                for (int z = 0; z < randomChunk2[x][y].length; z++) {
-                    randomChunk2[x][y][z] = (int) (Math.random() * Integer.MAX_VALUE);
-                }
-            }
-        }
-        render.addChunk(64, randomChunk, 0, 0, 0);
-        render.addChunk(64, randomChunk2, 0, 0, 1);
-        render.addChunk(64, randomChunk, 1, 0, 0);
-        render.addChunk(64, randomChunk2, 1, 0, 1);
+        //int[][][] randomChunk2 = new int[1024][1024][1024];
+        //for(int x = 0; x < randomChunk2.length; x++) {
+        //    for (int y = 0; y < randomChunk2[x].length; y++) {
+        //        for (int z = 0; z < randomChunk2[x][y].length; z++) {
+        //            randomChunk2[x][y][z] = (int) (Math.random() * Integer.MAX_VALUE);
+        //        }
+        //    }
+        //}
+        render.addChunk(128, randomChunk, 0, 0, 0);
+        //render.addChunk(1024, randomChunk2, 0, 0, 1);
+        //render.addChunk(1024, randomChunk, 1, 0, 0);
+        //render.addChunk(1024, randomChunk2, 1, 0, 1);
         int textEntity = render.addEntityFromText("""
                 I just rewrote the entire\s
                 text rendering algorithm just to add new lines!

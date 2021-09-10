@@ -23,10 +23,16 @@ public class Mesh {
     private final float[] UVCoords;
     private final int[] indices;
 
-    public Mesh(float[] positions, float[] UVCoords, int[] indices) {
-        this.positions = positions;
-        this.indices = indices;
-        this.UVCoords = UVCoords;
+    public Mesh(float[] positions, float[] UVCoords, int[] indices, boolean storeOnCPU) {
+        if(storeOnCPU) {
+            this.positions = positions;
+            this.indices = indices;
+            this.UVCoords = UVCoords;
+        } else {
+            this.positions = null;
+            this.indices = null;
+            this.UVCoords = null;
+        }
         FloatBuffer posBuffer = null;
         FloatBuffer UVBuffer = null;
         IntBuffer indicesBuffer = null;
@@ -76,10 +82,17 @@ public class Mesh {
         }
     }
 
-    public Mesh(BlockMesh mesh) {
-        this.positions = mesh.positions;
-        this.indices = mesh.indices;
-        this.UVCoords = mesh.UVCoords;
+    public Mesh(BlockMesh mesh, boolean storeOnCPU) {
+        if(storeOnCPU) {
+            this.positions = mesh.positions;
+            this.indices = mesh.indices;
+            this.UVCoords = mesh.UVCoords;
+        } else {
+            this.positions = null;
+            this.indices = null;
+            this.UVCoords = null;
+        }
+
         FloatBuffer posBuffer = null;
         FloatBuffer UVBuffer = null;
         IntBuffer indicesBuffer = null;

@@ -8,5 +8,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="joml-1.10.0-javadoc" level="project" />
+    <orderEntry type="library" name="eo-yaml-5.2.2-jar-with-dependencies" level="project" />
   </component>
 </module>

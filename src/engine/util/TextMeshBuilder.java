@@ -7,7 +7,6 @@ import engine.render.RenderableEntity;
 import engine.render.ShaderProgram;
 
 import java.util.ArrayList;
-import java.util.Locale;
 
 public class TextMeshBuilder {
     public static Mesh generateMesh(String text, boolean centerX, boolean centerY){
@@ -90,8 +89,7 @@ public class TextMeshBuilder {
             }
         }
 
-        Mesh mesh = new Mesh(positions, textureCoordinates, indices);
-        return mesh;
+        return new Mesh(positions, textureCoordinates, indices, false);
     }
     public static Model generateModel(String text, Texture texture, boolean centerX, boolean centerY){
         return new Model(generateMesh(text, centerX, centerY), texture);

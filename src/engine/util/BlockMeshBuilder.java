@@ -88,6 +88,6 @@ public class BlockMeshBuilder {
             indices[i] = this.indices.get(i);
         }
 
-        return new Mesh(positions, textureCoordinates, indices);
+        return new Mesh(positions, textureCoordinates, indices, false);
     }
 }
