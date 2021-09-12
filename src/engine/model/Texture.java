@@ -58,6 +58,7 @@ public class Texture {
     }
 
     private int loadTexture(ByteBuffer rawImgDataBuffer, int width, int height){
+        System.out.println("loading a texture");
         int textureID = glGenTextures();
         glBindTexture(GL_TEXTURE_2D, textureID);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
@@ -68,14 +69,14 @@ public class Texture {
                 GL_RGBA, //the texture data type to be stored internally
                 width, //width and height
                 height,
-                1, //must be 0
+                0, //must be 0
                 GL_RGBA, //the format of the data
                 GL_UNSIGNED_BYTE, //the data type
                 rawImgDataBuffer //the actual data
         );
         //I personally think this looks be best - I may change it later if the game's look changes (such as using high-res textures instead)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glGenerateMipmap(GL_TEXTURE_2D); //generate the mipmaps for this image
         glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -84,9 +85,8 @@ public class Texture {
 
     private int loadTexture(BufferedImage img){
         ByteBuffer imgDataBuffer;
-        int width, height;
-        width = img.getWidth();
-        height = img.getHeight();
+        int width = img.getWidth();
+        int height = img.getHeight();
         int[] imgData = img.getRGB(0, 0, width, height, new int[img.getWidth() * img.getHeight()], 0, img.getWidth());
         //get the RGBA image data
         imgDataBuffer = ByteBuffer.allocateDirect(4 * width * height); //get the ByteBuffer ready for data
