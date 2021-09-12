@@ -1,6 +1,5 @@
 package engine.model;
 
-import org.lwjgl.system.CallbackI;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;

@@ -1,6 +1,7 @@
 package game.misc;
 
 import game.data.nbt.NBTElement;
+import org.joml.Vector3f;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -39,5 +40,12 @@ public class StaticUtils {
                         put(element.getType()). //the type of the element (1 byte)
                         put(name).put((byte) 0). //the name of the element and the null terminator (name.length+1 bytes)
                         put(valueBytes.flip()); //the value of the element (valueBytes.length bytes)
+    }
+    public static double getDistance(Vector3f a, Vector3f b){
+        return Math.sqrt(
+                ((a.x - b.x)*(a.x - b.x))
+                +((a.y - b.y)*(a.y - b.y))
+                +((a.z - b.z)*(a.z - b.z))
+                );
     }
 }

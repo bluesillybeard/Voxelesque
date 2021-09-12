@@ -12,86 +12,53 @@ import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 
 public class Texture {
     private final int textureID;
+
     public Texture(String filePath){
-        ByteBuffer imgDataBuffer;
-        int width, height;
+        int textureID1;
         try {
-            BufferedImage img = ImageIO.read(new File(filePath)); //load image
-            width = img.getWidth();
-            height = img.getHeight();
-            int[] imgData = img.getRGB(0, 0, width, height, new int[img.getWidth() * img.getHeight()], 0, img.getWidth());
-            //get the RGBA image data
-            imgDataBuffer = ByteBuffer.allocateDirect(4 * width * height); //get the ByteBuffer ready for data
-            for(int pixel: imgData){ //place data in ByteBuffer
-                imgDataBuffer.put((byte)(pixel >> 16 & 255));
-                imgDataBuffer.put((byte)(pixel >> 8 & 255)); //bit shifting stuff copied from Java.awt.Color
-                imgDataBuffer.put((byte)(pixel & 255));
-                imgDataBuffer.put((byte)(pixel >> 24 & 255));
-
-            }
-        } catch (IOException e) {
+            BufferedImage img = ImageIO.read(new File(filePath));
+            textureID1 = loadTexture(img);
+        } catch (IOException e){
             e.printStackTrace();
-            width = 2;
-            height = 2;
+            int width = 2;
+            int height = 2;
             //use the default error texture
-            imgDataBuffer = ByteBuffer.allocateDirect(4 * width * height); //get the ByteBuffer ready for data
-
-            imgDataBuffer.put(new byte[]{-1, 0, -1, -1,    0, 0,  0, -1, //magenta, black,
-                    0, 0,  0, -1,   -1, 0, -1, -1}); //black, magenta
+            ByteBuffer imgDataBuffer = ByteBuffer.allocateDirect(4 * width * height) //get the ByteBuffer ready for data
+                    .put(new byte[]{-1, 0, -1, -1,    0, 0,  0, -1, //magenta, black,
+                            0, 0,  0, -1,   -1, 0, -1, -1}); //black, magenta
+            textureID1 = loadTexture(imgDataBuffer, width, height);
         }
-        imgDataBuffer.flip();
-
-        this.textureID = glGenTextures();
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
-
-        glTexImage2D(
-                GL_TEXTURE_2D, //the type of texture
-                0, //used for mipmaps, this is the base layer.
-                GL_RGBA, //the texture data type to be stored internally
-                width, //width and height
-                height,
-                0, //must be 0
-                GL_RGBA, //the format of the data
-                GL_UNSIGNED_BYTE, //the data type
-                imgDataBuffer //the actual data
-        );
-        //I personally think this looks be best - I may change it later if the game's look changes (such as using high-res textures instead)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-        glGenerateMipmap(GL_TEXTURE_2D); //generate the mipmaps for this image
-        glBindTexture(GL_TEXTURE_2D, 0);
+        this.textureID = textureID1;
     }
     public Texture(InputStream stream){
-        ByteBuffer imgDataBuffer;
-        int width, height;
+        int textureID1;
         try {
-            BufferedImage img  = ImageIO.read(stream); //load image
-            width = img.getWidth();
-            height = img.getHeight();
-            int[] imgData = img.getRGB(0, 0, width, height, new int[img.getWidth() * img.getHeight()], 0, img.getWidth());
-            //get the RGBA image data
-            imgDataBuffer = ByteBuffer.allocateDirect(4 * width * height); //get the ByteBuffer ready for data
-            for(int pixel: imgData){ //place data in ByteBuffer
-                imgDataBuffer.put((byte)(pixel >> 16 & 255));
-                imgDataBuffer.put((byte)(pixel >> 8 & 255)); //bit shifting stuff copied from Java.awt.Color
-                imgDataBuffer.put((byte)(pixel & 255));  //because I'm lazy.
-                imgDataBuffer.put((byte)(pixel >> 24 & 255));
-
-            }
-        } catch (IOException e) {
+            BufferedImage img = ImageIO.read(stream);
+            textureID1 = loadTexture(img);
+        } catch (IOException e){
             e.printStackTrace();
-            width = 2;
-            height = 2;
+            int width = 2;
+            int height = 2;
             //use the default error texture
-            imgDataBuffer = ByteBuffer.allocateDirect(4 * width * height); //get the ByteBuffer ready for data
-
-            imgDataBuffer.put(new byte[]{-1, 0, -1, -1,    0, 0,  0, -1, //magenta, black,
-                    0, 0,  0, -1,   -1, 0, -1, -1}); //black, magenta
+            ByteBuffer imgDataBuffer = ByteBuffer.allocateDirect(4 * width * height) //get the ByteBuffer ready for data
+            .put(new byte[]{-1, 0, -1, -1,    0, 0,  0, -1, //magenta, black,
+                           0, 0,  0, -1,   -1, 0, -1, -1}); //black, magenta
+            textureID1 = loadTexture(imgDataBuffer, width, height);
         }
-        imgDataBuffer.flip();
+        this.textureID = textureID1;
+    }
+    public Texture(BufferedImage img){
+        this.textureID = loadTexture(img);
+    }
+    public void bind(){
+        glBindTexture(GL_TEXTURE_2D, this.textureID);
+    }
+    public void cleanUp(){
+        glDeleteTextures(this.textureID);
+    }
 
-        textureID = glGenTextures();
+    private int loadTexture(ByteBuffer rawImgDataBuffer, int width, int height){
+        int textureID = glGenTextures();
         glBindTexture(GL_TEXTURE_2D, textureID);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
 
@@ -101,18 +68,21 @@ public class Texture {
                 GL_RGBA, //the texture data type to be stored internally
                 width, //width and height
                 height,
-                0, //must be 0
+                1, //must be 0
                 GL_RGBA, //the format of the data
                 GL_UNSIGNED_BYTE, //the data type
-                imgDataBuffer //the actual data
+                rawImgDataBuffer //the actual data
         );
         //I personally think this looks be best - I may change it later if the game's look changes (such as using high-res textures instead)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-        glGenerateMipmap(GL_TEXTURE_2D);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+        glGenerateMipmap(GL_TEXTURE_2D); //generate the mipmaps for this image
         glBindTexture(GL_TEXTURE_2D, 0);
+
+        return textureID;
     }
-    public Texture(BufferedImage img){
+
+    private int loadTexture(BufferedImage img){
         ByteBuffer imgDataBuffer;
         int width, height;
         width = img.getWidth();
@@ -129,31 +99,6 @@ public class Texture {
         }
         imgDataBuffer.flip();
 
-        this.textureID = glGenTextures();
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 0);
-
-        glTexImage2D(
-                GL_TEXTURE_2D, //the type of texture
-                0, //used for mipmaps, this is the base layer.
-                GL_RGBA, //the texture data type to be stored internally
-                width, //width and height
-                height,
-                0, //must be 0
-                GL_RGBA, //the format of the data
-                GL_UNSIGNED_BYTE, //the data type
-                imgDataBuffer //the actual data
-        );
-        //I personally think this looks be best - I may change it later if the game's look changes (such as using high-res textures instead)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-        glGenerateMipmap(GL_TEXTURE_2D); //generate the mipmaps for this image
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }
-    public void bind(){
-        glBindTexture(GL_TEXTURE_2D, this.textureID);
-    }
-    public void cleanUp(){
-        glDeleteTextures(this.textureID);
+        return loadTexture(imgDataBuffer, width, height);
     }
 }

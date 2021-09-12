@@ -149,18 +149,16 @@ public class testGame {
                 }
             }
         }
-        //int[][][] randomChunk2 = new int[1024][1024][1024];
-        //for(int x = 0; x < randomChunk2.length; x++) {
-        //    for (int y = 0; y < randomChunk2[x].length; y++) {
-        //        for (int z = 0; z < randomChunk2[x][y].length; z++) {
-        //            randomChunk2[x][y][z] = (int) (Math.random() * Integer.MAX_VALUE);
-        //        }
-        //    }
-        //}
         render.addChunk(128, randomChunk, 0, 0, 0);
-        //render.addChunk(1024, randomChunk2, 0, 0, 1);
-        //render.addChunk(1024, randomChunk, 1, 0, 0);
-        //render.addChunk(1024, randomChunk2, 1, 0, 1);
+        render.addChunk(128, randomChunk, 0, 0, 1);
+        render.addChunk(128, randomChunk, 0, 1, 0);
+        render.addChunk(128, randomChunk, 0, 1, 1);
+        render.addChunk(128, randomChunk, 1, 0, 0);
+        render.addChunk(128, randomChunk, 1, 0, 1);
+        render.addChunk(128, randomChunk, 1, 1, 0);
+        render.addChunk(128, randomChunk, 1, 1, 1);
+
+
         int textEntity = render.addEntityFromText("""
                 I just rewrote the entire\s
                 text rendering algorithm just to add new lines!
@@ -250,7 +248,7 @@ public class testGame {
                 System.out.print("Entities: " + render.getNumEntities());
                 System.out.print(" | Chunks: " + render.getNumChunks());
                 System.out.print(" | framerate:" + frames);
-                System.out.print(" | free memory: " + (jre.freeMemory()/1048576) +  "mb");
+                System.out.print(" | memory: " + (jre.totalMemory()/1048576) + " / " + (jre.maxMemory()/1048576) + " mb used");
 
                 System.out.print("\n");
                 frames = 0;

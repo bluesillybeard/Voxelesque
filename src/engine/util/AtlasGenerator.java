@@ -2,13 +2,10 @@ package engine.util;
 //The code below is a heavily edited version of https://github.com/lukaszdk/texture-atlas-generator
 import engine.model.BlockMesh;
 import engine.model.BlockModel;
-import engine.model.Texture;
 import engine.render.ShaderProgram;
 
 import java.awt.*;
-import java.sql.Blob;
 import java.util.*;
-import java.io.*;
 import java.awt.image.*;
 
 public class AtlasGenerator{
