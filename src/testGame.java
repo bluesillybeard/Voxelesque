@@ -10,7 +10,7 @@ import static org.lwjgl.glfw.GLFW.GLFW_KEY_X;
 public class testGame {
     private static final double MOUSE_SENSITIVITY = 100;
     private static final Vector3f cameraInc = new Vector3f();
-    private static final Vector3f cameraPosition = new Vector3f();
+    private static final Vector3f cameraPosition = new Vector3f(0, 70, 0);
     private static final Vector3f cameraRotation = new Vector3f();
 
     private static final ArrayList<Integer> spawnedEntities = new ArrayList<>();
@@ -141,7 +141,8 @@ public class testGame {
         int grassBlock = atlasModels[0];
         int stoneBlock = atlasModels[1];
         int airBlock = -1; //when a chunk is rendered, -1 is treated as void, aka nothing renders in that spot.
-        int[][][] randomChunk = new int[128][128][128];
+
+        int[][][] randomChunk = new int[64][64][64];
         for(int x = 0; x < randomChunk.length; x++){
             for(int y=0; y<randomChunk[x].length; y++){
                 for(int z=0; z<randomChunk[x][y].length; z++){
@@ -149,14 +150,61 @@ public class testGame {
                 }
             }
         }
-        render.addChunk(128, randomChunk, 0, 0, 0);
-        render.addChunk(128, randomChunk, 0, 0, 1);
-        render.addChunk(128, randomChunk, 0, 1, 0);
-        render.addChunk(128, randomChunk, 0, 1, 1);
-        render.addChunk(128, randomChunk, 1, 0, 0);
-        render.addChunk(128, randomChunk, 1, 0, 1);
-        render.addChunk(128, randomChunk, 1, 1, 0);
-        render.addChunk(128, randomChunk, 1, 1, 1);
+        render.addChunk(64, randomChunk, 0, 0, 0);
+        render.addChunk(64, randomChunk, 0, 0, 1);
+        render.addChunk(64, randomChunk, 0, 0, -1);
+        render.addChunk(64, randomChunk, 0, 1, 0);
+        render.addChunk(64, randomChunk, 0, 1, 1);
+        render.addChunk(64, randomChunk, 0, 1, -1);
+        render.addChunk(64, randomChunk, 0, -1, 0);
+        render.addChunk(64, randomChunk, 0, -1, 1);
+        render.addChunk(64, randomChunk, 0, -1, -1);
+        render.addChunk(64, randomChunk, 1, 0, 0);
+        render.addChunk(64, randomChunk, 1, 0, 1);
+        render.addChunk(64, randomChunk, 1, 0, -1);
+        render.addChunk(64, randomChunk, 1, 1, 0);
+        render.addChunk(64, randomChunk, 1, 1, 1);
+        render.addChunk(64, randomChunk, 1, 1, -1);
+        render.addChunk(64, randomChunk, 1, -1, 0);
+        render.addChunk(64, randomChunk, 1, -1, 1);
+        render.addChunk(64, randomChunk, 1, -1, -1);
+        render.addChunk(64, randomChunk, -1, 0, 0);
+        render.addChunk(64, randomChunk, -1, 0, 1);
+        render.addChunk(64, randomChunk, -1, 0, -1);
+        render.addChunk(64, randomChunk, -1, 1, 0);
+        render.addChunk(64, randomChunk, -1, 1, 1);
+        render.addChunk(64, randomChunk, -1, 1, -1);
+        render.addChunk(64, randomChunk, -1, -1, 0);
+        render.addChunk(64, randomChunk, -1, -1, 1);
+        render.addChunk(64, randomChunk, -1, -1, -1);
+
+        render.addChunk(64, randomChunk, 3, 0, 0);
+        render.addChunk(64, randomChunk, 3, 0, 1);
+        render.addChunk(64, randomChunk, 3, 0, -1);
+        render.addChunk(64, randomChunk, 3, 1, 0);
+        render.addChunk(64, randomChunk, 3, 1, 1);
+        render.addChunk(64, randomChunk, 3, 1, -1);
+        render.addChunk(64, randomChunk, 3, -1, 0);
+        render.addChunk(64, randomChunk, 3, -1, 1);
+        render.addChunk(64, randomChunk, 3, -1, -1);
+        render.addChunk(64, randomChunk, 4, 0, 0);
+        render.addChunk(64, randomChunk, 4, 0, 1);
+        render.addChunk(64, randomChunk, 4, 0, -1);
+        render.addChunk(64, randomChunk, 4, 1, 0);
+        render.addChunk(64, randomChunk, 4, 1, 1);
+        render.addChunk(64, randomChunk, 4, 1, -1);
+        render.addChunk(64, randomChunk, 4, -1, 0);
+        render.addChunk(64, randomChunk, 4, -1, 1);
+        render.addChunk(64, randomChunk, 4, -1, -1);
+        render.addChunk(64, randomChunk, 2, 0, 0);
+        render.addChunk(64, randomChunk, 2, 0, 1);
+        render.addChunk(64, randomChunk, 2, 0, -1);
+        render.addChunk(64, randomChunk, 2, 1, 0);
+        render.addChunk(64, randomChunk, 2, 1, 1);
+        render.addChunk(64, randomChunk, 2, 1, -1);
+        render.addChunk(64, randomChunk, 2, -1, 0);
+        render.addChunk(64, randomChunk, 2, -1, 1);
+        render.addChunk(64, randomChunk, 2, -1, -1);
 
 
         int textEntity = render.addEntityFromText("""
@@ -170,6 +218,7 @@ public class testGame {
         double lastMouseYPos = render.getMouseYPos();
         double lastMouseXPos = render.getMouseXPos();
         int frames = 0;
+        render.setCameraPos(cameraPosition.x, cameraPosition.y, cameraPosition.z, cameraRotation.x, cameraRotation.y, cameraRotation.z);
         do{
             if(render.getTime() - lastStepTime > 0.033333){//30 times per second
                 lastStepTime = render.getTime();

@@ -563,6 +563,7 @@ public class LWJGLRenderer implements Render{
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         if(dirtyChunks.size() > 0){
             RenderableChunk dirtyChunk = dirtyChunks.remove();
+            dirtyChunk.build(blockModels.toArray(new BlockModel[blockModels.size()]));
         }
 
         if (window.isResized()) {
@@ -609,9 +610,7 @@ public class LWJGLRenderer implements Render{
             mesh.cleanUp();
         }
         for(ShaderProgram shaderProgram: shaderPrograms) {
-            if (shaderProgram != null) {
-                shaderProgram.cleanup();
-            }
+            shaderProgram.cleanup();
         }
         for(Texture texture: textures){
             texture.cleanUp();

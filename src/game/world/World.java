@@ -47,4 +47,8 @@ public class World {
         chunks.entrySet().removeIf(entry -> StaticUtils.getDistance(pos, new Vector3f(entry.getKey().x, entry.getKey().y, entry.getKey().z)) > distance);
         //remove all the chunks that are further from the point than specified in the distance.
     }
+
+    public void updateChunks(){
+
+    }
 }

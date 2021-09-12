@@ -11,5 +11,6 @@ public class Main {
 
         GlobalBits.render = render;
         GlobalBits.playerPosition = new Vector3f();
+        GlobalBits.renderDistance = 500.0f;
     }
 }

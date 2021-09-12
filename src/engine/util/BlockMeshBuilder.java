@@ -15,6 +15,11 @@ public class BlockMeshBuilder {
         this.textureCoordinates = new ArrayList<>();;
         this.indices = new ArrayList<>();
     }
+    public BlockMeshBuilder(int initialCapacity){
+        this.positions = new ArrayList<>(initialCapacity);
+        this.textureCoordinates = new ArrayList<>(initialCapacity);
+        this.indices = new ArrayList<>(initialCapacity);
+    }
 
     public void addBlockMesh(BlockMesh mesh, int x, int y, int z){
         int indexOffset = this.positions.size()/3;
