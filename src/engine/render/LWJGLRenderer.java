@@ -12,6 +12,10 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.PriorityQueue;
+import java.util.concurrent.CompletableFuture;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL11.glViewport;
@@ -41,6 +45,8 @@ public class LWJGLRenderer implements Render{
     private final SlottedArrayList<BlockMesh> blockMeshes = new SlottedArrayList<>();
     private final SlottedArrayList<BlockModel> blockModels = new SlottedArrayList<>();
     private final SlottedArrayList<RenderableChunk> chunks = new SlottedArrayList<>();
+
+    private final Deque<RenderableChunk> dirtyChunks = new ArrayDeque<>();
 
     private final VEMFLoader entityLoad = new VEMFLoader();
 
@@ -426,7 +432,9 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public int addChunk(int size, int[][][] blockData, int x, int y, int z) {
-        return chunks.add(new RenderableChunk(size, blockData, x, y, z));
+        RenderableChunk chunk = new RenderableChunk(size, blockData, x, y, z);
+        dirtyChunks.add(chunk);
+        return chunks.add(chunk);
     }
 
     /**
@@ -437,6 +445,7 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public void setChunkData(int chunk, int[][][] blockData) {
+        dirtyChunks.add(chunks.get(chunk));
         chunks.get(chunk).setData(blockData);
     }
 
@@ -448,6 +457,7 @@ public class LWJGLRenderer implements Render{
      */
     @Override
     public void setChunkBlock(int chunk, int block, int x, int y, int z) {
+        dirtyChunks.add(chunks.get(chunk));
         chunks.get(chunk).setBlock(block, x, y, z);
     }
 
@@ -551,6 +561,9 @@ public class LWJGLRenderer implements Render{
     public void render() {
         readyToRender = false;
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        if(dirtyChunks.size() > 0){
+            RenderableChunk dirtyChunk = dirtyChunks.remove();
+        }
 
         if (window.isResized()) {
             window.setResized(false);
@@ -568,14 +581,11 @@ public class LWJGLRenderer implements Render{
             shaderProgram.setViewMatrix(viewMatrix);
             shaderProgram.setTextureSampler(0);
         }
-        // Render each gameItem
         for (RenderableEntity renderableEntity : renderableEntities) {
-            // Render the mesh for this game item
             renderableEntity.render();
         }
         //render each chunk
         for (RenderableChunk chunk: chunks){
-            if(chunk.shouldBuild)chunk.build(blockModels.toArray(new BlockModel[blockModels.size()]));
             chunk.render();
         }
         window.update();
