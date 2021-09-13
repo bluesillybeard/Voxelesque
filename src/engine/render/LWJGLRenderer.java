@@ -1,6 +1,6 @@
 package engine.render;
 
-import engine.VMF.VEMFLoader;
+import engine.VMF.VMFLoader;
 import engine.model.*;
 import engine.util.*;
 
@@ -14,8 +14,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.PriorityQueue;
-import java.util.concurrent.CompletableFuture;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL11.glViewport;
@@ -48,7 +46,7 @@ public class LWJGLRenderer implements Render{
 
     private final Deque<RenderableChunk> dirtyChunks = new ArrayDeque<>();
 
-    private final VEMFLoader entityLoad = new VEMFLoader();
+    private final VMFLoader vmfLoader = new VMFLoader();
 
     /**
      * the first method called by the game. It should initialize any engine components, as well as create and show the window.
@@ -176,7 +174,7 @@ public class LWJGLRenderer implements Render{
     @Override
     public int loadVEMFModel(String modelPath) {
         try {
-            return models.add(new Model(entityLoad.loadVEMF(new File(resourcesPath + modelPath)), true));
+            return models.add(new Model(vmfLoader.loadVEMF(new File(resourcesPath + modelPath)), true));
         } catch(IOException e){
             errorString = getStackTrace(e);
             errorCode = VEMF_LOAD_ERROR;
@@ -333,18 +331,6 @@ public class LWJGLRenderer implements Render{
     /**
      * adds a block mesh
      *
-     * @param mesh an entity mesh, in case a block and entity have the same mesh for some reason
-     * @return the blockMesh ID
-     */
-    @Override
-    public int addBlockMesh(int mesh) {
-        Mesh mesh1 = meshes.get(mesh);
-        return blockMeshes.add(new BlockMesh(mesh1.getPositions(), mesh1.getUVCoords(), mesh1.getIndices()));
-    }
-
-    /**
-     * adds a block mesh
-     *
      * @param positions          the positions of the block mesh
      * @param textureCoordinates the texture coordinates / UV coordinates
      * @param indices            the indices of the mesh
@@ -369,6 +355,17 @@ public class LWJGLRenderer implements Render{
     @Override
     public int addBlockMesh(float[] positions, float[] textureCoordinates, int[] indices, byte[] removableTriangles, byte blockedFaces) {
         return blockMeshes.add(new BlockMesh(positions, textureCoordinates, indices, removableTriangles, blockedFaces));
+    }
+
+    /**
+     * loads a VBMF file into a blockMesh
+     *
+     * @param VBMFPath the path of the .vbmf0 file, within the /resources folder.
+     * @return the BLockMesh ID. use in methods that require a BlockMesh.
+     */
+    @Override
+    public int addBlockMesh(String VBMFPath) throws IOException {
+        return blockMeshes.add(new BlockMesh(vmfLoader.loadVBMF(new File(resourcesPath + VBMFPath))));
     }
 
     /**

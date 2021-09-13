@@ -1,5 +1,7 @@
 package engine.render;
 
+import java.io.IOException;
+
 @SuppressWarnings("unused")
 public interface Render {
     int WINDOW_INIT_ERROR = 1;
@@ -162,12 +164,6 @@ public interface Render {
     int addEntityFromText(String text, int texture, int shader, float XPos, float YPos, float ZPos, float XRotation, float YRotation, float ZRotation, float XScale, float YScale, float ZScale);
 
     //methods related to blocks
-    /**
-     * adds a block mesh
-     * @param mesh an entity mesh, in case a block and entity have the same mesh for some reason
-     * @return the blockMesh ID
-     */
-    int addBlockMesh(int mesh);
 
     /**
      * adds a block mesh
@@ -189,6 +185,14 @@ public interface Render {
      * @return the blockMesh ID
      */
     int addBlockMesh(float[] positions, float[] textureCoordinates, int[] indices, byte[] removableTriangles, byte blockedFaces);
+
+    /**
+     * loads a VBMF file into a blockMesh
+     * @param VBMFPath the path of the .vbmf0 file, within the /resources folder.
+     * @return the BLockMesh ID. use in methods that require a BlockMesh.
+     */
+    int addBlockMesh(String VBMFPath) throws IOException;
+
     /**
      * copies a block meshes data into a new one.
      * @param blockMesh the block mesh to be copied

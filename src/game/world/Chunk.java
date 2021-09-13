@@ -45,6 +45,37 @@ public class Chunk {
         this.blockMappings = blockMappings;
         this.idMappings = idMappings;
     }
+    public Chunk(Map<Integer, Block> blockMappings, int size){
+        this.size = size;
+        this.blocks = new int[size][size][size];
+        this.nbt = new NBTElement[size][size][size];
+        this.blockMappings = blockMappings;
+        //generate idMappings from blockMappings
+        this.idMappings = new HashMap<>();
+        for(Map.Entry<Integer, Block> map: blockMappings.entrySet()){
+            this.idMappings.put(map.getValue(), map.getKey());
+        }
+    }
+
+    public Chunk(int size, Map<Block, Integer> idMappings){
+        this.size = size;
+        this.blocks = new int[size][size][size];
+        this.nbt = new NBTElement[size][size][size];
+        this.idMappings = idMappings;
+        //generate blockMappings from idMappings
+        this.blockMappings = new HashMap<>();
+        for(Map.Entry<Block, Integer> map: idMappings.entrySet()){
+            this.blockMappings.put(map.getValue(), map.getKey());
+        }
+    }
+
+    public Chunk(int size, Map<Integer, Block> blockMappings, Map<Block, Integer> idMappings){
+        this.size = size;
+        this.blocks = new int[size][size][size];
+        this.nbt = new NBTElement[size][size][size];
+        this.blockMappings = blockMappings;
+        this.idMappings = idMappings;
+    }
 
     /**
      * creates an empty chunk.

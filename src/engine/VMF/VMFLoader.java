@@ -6,16 +6,28 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.zip.ZipFile;
 
-public class VEMFLoader {
-    private byte[] i, t, v, tex;
+public class VMFLoader {
+    private byte[] i, t, v, tex, r;
+    private byte b;
 
 
-    public VEMFLoader loadVEMF(File zipFile) throws IOException {
+    public VMFLoader loadVEMF(File zipFile) throws IOException {
         ZipFile zipIn = new ZipFile(zipFile);
         i = zipIn.getInputStream(zipIn.getEntry("i")).readAllBytes();
         t = zipIn.getInputStream(zipIn.getEntry("t")).readAllBytes();
         v = zipIn.getInputStream(zipIn.getEntry("v")).readAllBytes();
         tex = zipIn.getInputStream(zipIn.getEntry("tex")).readAllBytes();
+        return this; //this is to make chaining methods easier.
+    }
+
+    public VMFLoader loadVBMF(File zipFile) throws IOException {
+        ZipFile zipIn = new ZipFile(zipFile);
+        i = zipIn.getInputStream(zipIn.getEntry("i")).readAllBytes();
+        t = zipIn.getInputStream(zipIn.getEntry("t")).readAllBytes();
+        v = zipIn.getInputStream(zipIn.getEntry("v")).readAllBytes();
+        tex = zipIn.getInputStream(zipIn.getEntry("tex")).readAllBytes();
+        r = zipIn.getInputStream(zipIn.getEntry("r")).readAllBytes();
+        b = (byte) zipIn.getInputStream(zipIn.getEntry("b")).read();
         return this; //this is to make chaining methods easier.
     }
     public int[] getIndices(){
@@ -43,15 +55,27 @@ public class VEMFLoader {
         InputStream inStream = new ByteArrayInputStream(tex);
         return new Texture(inStream);
     }
-    public static int getIntFromFourBytes(byte b0, byte b1, byte b2, byte b3){
+
+    public byte[] getRemovableTriangles(){
+        byte[] removableTriangles = new byte[getIntFromFourBytes(r[0], r[1], r[2], r[3])];
+        System.arraycopy(r, 4, removableTriangles, 0, removableTriangles.length);
+        return removableTriangles;
+    }
+
+    public byte getBlockedFaces(){
+        return b;
+    }
+
+
+    private static int getIntFromFourBytes(byte b0, byte b1, byte b2, byte b3){
         return Byte.toUnsignedInt(b0) + (Byte.toUnsignedInt(b1) * 256) + (Byte.toUnsignedInt(b2) * 65536) + (Byte.toUnsignedInt(b3) * 16777216);
     }
-    public static float getFloatFromFourBytes(byte b0, byte b1, byte b2, byte b3){
+    private static float getFloatFromFourBytes(byte b0, byte b1, byte b2, byte b3){
         return Float.intBitsToFloat(getIntFromFourBytes(b0, b1, b2, b3));
     }
 
     public static void main(String[] args) throws IOException {
-        VEMFLoader load = new VEMFLoader();
+        VMFLoader load = new VMFLoader();
         load.loadVEMF(new File("src/test2.vemf0"));
         System.out.println(Arrays.toString(load.getVertices()));
         System.out.println(Arrays.toString(load.getTextureCoordinates()));

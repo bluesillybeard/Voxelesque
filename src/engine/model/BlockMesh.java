@@ -1,5 +1,7 @@
 package engine.model;
 
+import engine.VMF.VMFLoader;
+
 import java.util.Arrays;
 
 public class BlockMesh{
@@ -24,6 +26,14 @@ public class BlockMesh{
         this.indices = indices;
         this.removableTriangles = removableTriangles;
         this.blockedFaces = blockedFaces;
+    }
+
+    public BlockMesh(VMFLoader loader){
+        this.positions = loader.getVertices();
+        this.UVCoords = loader.getTextureCoordinates();
+        this.indices = loader.getIndices();
+        this.removableTriangles = loader.getRemovableTriangles();
+        this.blockedFaces = loader.getBlockedFaces();
     }
 
     public BlockMesh clone(){

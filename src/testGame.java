@@ -2,6 +2,7 @@ import engine.render.LWJGLRenderer;
 import engine.render.Render;
 import org.joml.Vector3f;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -22,7 +23,7 @@ public class testGame {
      * @param args the arguments.
      *             First argument: the absolute path to the resources folder. example: "/home/bluesillybeard/IdeaProjects/Voxelesque/resources/
      */
-    public static void main(String[] args){
+    public static void main(String[] args) throws IOException {
         Render render = new LWJGLRenderer();
         if(!render.init("A test of Voxelesque engine", args[0])){
             System.err.println(render.getErrors());
@@ -34,68 +35,7 @@ public class testGame {
         int crazyShader = render.loadShader("silly");
         int guiShader = render.loadShader("gui");
 
-        int blockMesh = render.addBlockMesh(new float[]{
-                //(0.57735026919,-0.5),(-0.57735026919, -0.5),(0.0, 0.5)
-                0.57735026919f, 1.0f, -0.5f, //top face positions for side faces (texture coordinates)
-                -0.57735026919f, 1.0f, -0.5f,
-                0.0f, 1.0f, 0.5f,
-
-                0.57735026919f, 0.0f, -0.5f, //bottom face positions for side faces (texture coordinates)
-                -0.57735026919f, 0.0f, -0.5f,
-                0.0f, 0.0f, 0.5f,
-
-                0.57735026919f, 1.0f, -0.5f, //top face
-                -0.57735026919f, 1.0f, -0.5f,
-                0.0f, 1.0f, 0.5f,
-
-                0.57735026919f, 0.0f, -0.5f, //bottom face
-                -0.57735026919f, 0.0f, -0.5f,
-                0.0f, 0.0f, 0.5f,
-        }, new float[]{
-                0.0f, 0.3f,
-                1.0f, 0.3f,
-                0.5f, 0.3f,
-
-                0.0f, 0.7f,
-                1.0f, 0.7f,
-                0.5f, 0.7f,
-
-                0.0f, 0.0f,
-                1.0f, 0.0f,
-                0.5f, 0.5f,
-
-                0.0f, 0.6f,
-                1.0f, 0.6f,
-                0.5f, 1.0f,
-        }, new int[]{
-                6, 7, 8, //top face
-                9, 10, 11, //bottom face
-
-                //side faces:
-                0, 1, 3,
-                1, 3, 4,
-
-                1, 2, 4,
-                2, 4, 5,
-
-                2, 0, 3,
-                2, 5, 3,
-        }, new byte[]{
-                //|16s| 8s| 4s| 2s| 1s| (place value) - Yes, java binary is big endian
-                //|+x | -x|  z| -y| +y| (importance)
-                0b00001, //one for each set of three indices (each triangle)
-                0b00010,
-                0b00100,
-                0b00100,
-                0b01000,
-                0b01000,
-                0b10000,
-                0b10000,
-        },
-                //|1s| 2s| 4s| 8s| 16s| (place value)
-                //|+y| -y|  z| -x|  +x| (importance)
-                (byte) 0b11111
-        );
+        int blockMesh = render.addBlockMesh("VMFModels/grassBlock.vbmf0");
 
         int stoneBlockMesh = render.copyBlockMesh(blockMesh);
 

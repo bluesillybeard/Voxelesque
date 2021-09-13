@@ -1,5 +1,6 @@
 package game.world;
 
+import game.data.nbt.NBTFolder;
 import game.data.vector.IntegerVector3f;
 import game.misc.StaticUtils;
 import game.world.block.Block;
@@ -7,6 +8,7 @@ import org.joml.Vector3f;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 public class World {
@@ -50,5 +52,34 @@ public class World {
 
     public void updateChunks(){
 
+    }
+
+
+    /**
+     * loads a chunk by either loading it from the world save, or generating it if it wasn't found in the save.
+     * note: uses xyz chunk coordinates
+     */
+    public void loadChunk(int x, int y, int z){
+        //todo: actual world generation and world saves
+        Chunk chunk;
+        if(y > 0){
+            chunk = new Chunk(64);
+        } else {
+            chunk = randomChunk(null);
+        }
+    }
+
+    private Chunk randomChunk(List<Block> blocks){
+        Chunk newChunk = new Chunk(64);
+        for(int x = 0; x < 64; x++){
+            for(int y = 0; y < 64; y++){
+                for(int z = 0; z < 64; z++){
+                    int random = (int) (Math.random()*blocks.size());
+                    newChunk.setBlock(x, y, z, blocks.get(random));
+                    newChunk.setBlockNBT(x, y, z, new NBTFolder("block"));
+                }
+            }
+        }
+        return newChunk;
     }
 }

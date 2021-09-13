@@ -24,7 +24,7 @@ public class VMFSaver {
         byte[] verticesBytes =           new byte[          vertices.length*4+4]; //create new array for bytes to be saved into file
         byte[] textureCoordinatesBytes = new byte[textureCoordinates.length*4+4];
         byte[] indicesBytes =            new byte[           indices.length*4+4];
-        byte[] removableTrianglesBytes = new byte[removableTriangles.length*4+4];
+        byte[] removableTrianglesBytes = new byte[removableTriangles.length+4];
 
         byte[] fourLengthBytes = getFourBytes(vertices.length/3); //save length into bytes
         verticesBytes[0] = fourLengthBytes[0];
@@ -66,18 +66,12 @@ public class VMFSaver {
             indicesBytes[i*4+7] = fourBytes[3];
         }
 
-        fourLengthBytes = getFourBytes(removableTriangles.length/2);
+        fourLengthBytes = getFourBytes(removableTriangles.length);
         removableTrianglesBytes[0] = fourLengthBytes[0];
         removableTrianglesBytes[1] = fourLengthBytes[1];
         removableTrianglesBytes[2] = fourLengthBytes[2];
         removableTrianglesBytes[3] = fourLengthBytes[3];
-        for(int i=0; i<removableTriangles.length; i++){
-            byte[] fourBytes = getFourBytes(removableTriangles[i]);
-            removableTrianglesBytes[i*4+4] = fourBytes[0];
-            removableTrianglesBytes[i*4+5] = fourBytes[1];
-            removableTrianglesBytes[i*4+6] = fourBytes[2];
-            removableTrianglesBytes[i*4+7] = fourBytes[3];
-        }
+        System.arraycopy(removableTriangles, 0, removableTrianglesBytes, 4, removableTriangles.length);
 
         saveZipFile(path, indicesBytes, textureCoordinatesBytes, verticesBytes, removableTrianglesBytes, blockedFaces, pathToTexture);
     }
@@ -187,90 +181,69 @@ public class VMFSaver {
     }
 
     public static void main(String[] args) throws IOException {
-        saveVEMF("src/test2.vemf0",
-                new float[]{
-                        // V0
-                        -0.5f, 0.5f, 0.5f,
-                        // V1
-                        -0.5f, -0.5f, 0.5f,
-                        // V2
-                        0.5f, -0.5f, 0.5f,
-                        // V3
-                        0.5f, 0.5f, 0.5f,
-                        // V4
-                        -0.5f, 0.5f, -0.5f,
-                        // V5
-                        0.5f, 0.5f, -0.5f,
-                        // V6
-                        -0.5f, -0.5f, -0.5f,
-                        // V7
-                        0.5f, -0.5f, -0.5f,
-                        // For text coords in top face
-                        // V8: V4 repeated
-                        -0.5f, 0.5f, -0.5f,
-                        // V9: V5 repeated
-                        0.5f, 0.5f, -0.5f,
-                        // V10: V0 repeated
-                        -0.5f, 0.5f, 0.5f,
-                        // V11: V3 repeated
-                        0.5f, 0.5f, 0.5f,
-                        // For text coords in right face
-                        // V12: V3 repeated
-                        0.5f, 0.5f, 0.5f,
-                        // V13: V2 repeated
-                        0.5f, -0.5f, 0.5f,
-                        // For text coords in left face
-                        // V14: V0 repeated
-                        -0.5f, 0.5f, 0.5f,
-                        // V15: V1 repeated
-                        -0.5f, -0.5f, 0.5f,
-                        // For text coords in bottom face
-                        // V16: V6 repeated
-                        -0.5f, -0.5f, -0.5f,
-                        // V17: V7 repeated
-                        0.5f, -0.5f, -0.5f,
-                        // V18: V1 repeated
-                        -0.5f, -0.5f, 0.5f,
-                        // V19: V2 repeated
-                        0.5f, -0.5f, 0.5f,},
-                new float[]{
+        saveVBMF("resources/VMFModels/grassBlock.vbmf0",
+        new float[]{
+                        //(0.57735026919,-0.5),(-0.57735026919, -0.5),(0.0, 0.5)
+                        0.57735026919f, 1.0f, -0.5f, //top face positions for side faces (texture coordinates)
+                        -0.57735026919f, 1.0f, -0.5f,
+                        0.0f, 1.0f, 0.5f,
+
+                        0.57735026919f, 0.0f, -0.5f, //bottom face positions for side faces (texture coordinates)
+                        -0.57735026919f, 0.0f, -0.5f,
+                        0.0f, 0.0f, 0.5f,
+
+                        0.57735026919f, 1.0f, -0.5f, //top face
+                        -0.57735026919f, 1.0f, -0.5f,
+                        0.0f, 1.0f, 0.5f,
+
+                        0.57735026919f, 0.0f, -0.5f, //bottom face
+                        -0.57735026919f, 0.0f, -0.5f,
+                        0.0f, 0.0f, 0.5f,
+                }, new float[]{
+                        0.0f, 0.3f,
+                        1.0f, 0.3f,
+                        0.5f, 0.3f,
+
+                        0.0f, 0.7f,
+                        1.0f, 0.7f,
+                        0.5f, 0.7f,
+
                         0.0f, 0.0f,
-                        0.0f, 0.5f,
-                        0.5f, 0.5f,
-                        0.5f, 0.0f,
-                        0.0f, 0.0f,
-                        0.5f, 0.0f,
-                        0.0f, 0.5f,
-                        0.5f, 0.5f,
-                        // For text coords in top face
-                        0.0f, 0.5f,
-                        0.5f, 0.5f,
-                        0.0f, 1.0f,
-                        0.5f, 1.0f,
-                        // For text coords in right face
-                        0.0f, 0.0f,
-                        0.0f, 0.5f,
-                        // For text coords in left face
-                        0.5f, 0.0f,
-                        0.5f, 0.5f,
-                        // For text coords in bottom face
-                        0.5f, 0.0f,
                         1.0f, 0.0f,
                         0.5f, 0.5f,
-                        1.0f, 0.5f,},
-                new int[]{
-                        // Front face
-                        0, 1, 3, 3, 1, 2,
-                        // Top Face
-                        8, 10, 11, 9, 8, 11,
-                        // Right face
-                        12, 13, 7, 5, 12, 7,
-                        // Left face
-                        14, 15, 6, 4, 14, 6,
-                        // Bottom face
-                        16, 18, 19, 17, 16, 19,
-                        // Back face
-                        4, 6, 7, 5, 4, 7,},
-                "/home/bluesillybeard/Pictures/grassblock.png");
+
+                        0.0f, 0.6f,
+                        1.0f, 0.6f,
+                        0.5f, 1.0f,
+                }, new int[]{
+                        6, 7, 8, //top face
+                        9, 10, 11, //bottom face
+
+                        //side faces:
+                        0, 1, 3,
+                        1, 3, 4,
+
+                        1, 2, 4,
+                        2, 4, 5,
+
+                        2, 0, 3,
+                        2, 5, 3,
+                }, "resources/Textures/grass.png",
+                new byte[]{
+                        //|16s| 8s| 4s| 2s| 1s| (place value) - Yes, java binary is big endian
+                        //|+x | -x|  z| -y| +y| (importance)
+                        0b00001, //one for each set of three indices (each triangle)
+                        0b00010,
+                        0b00100,
+                        0b00100,
+                        0b01000,
+                        0b01000,
+                        0b10000,
+                        0b10000,
+                },
+                //|1s| 2s| 4s| 8s| 16s| (place value)
+                //|+y| -y|  z| -x|  +x| (importance)
+                (byte) 0b11111
+        );
     }
 }
