@@ -16,5 +16,5 @@ public interface Block {
     void onDestroy(int x, int y, int z, World world);
 
     String getID();
-    BlockModel getModel();
+    int getMesh();
 }

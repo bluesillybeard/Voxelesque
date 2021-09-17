@@ -7,7 +7,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-//TODO: deserialization (Folder not done yet), and testing of those features
 public class NBTFolder implements NBTElement{
     private final ArrayList<NBTElement> elements;
     private String name;
@@ -18,8 +17,8 @@ public class NBTFolder implements NBTElement{
     }
 
     public NBTFolder(byte[] serializedData) throws InstantiationException {
-        //if(serializedData[4] != NBT_ELEMENT_TYPE_FOLDER)
-        //    throw new InstantiationException("Cannot use data for type " + serializedData[4] + " to create type " + NBT_ELEMENT_TYPE_FOLDER + ".");
+        if(serializedData[4] != NBT_ELEMENT_TYPE_FOLDER)
+            throw new InstantiationException("Cannot use data for type " + serializedData[4] + " to create type " + NBT_ELEMENT_TYPE_FOLDER + ".");
         int size = StaticUtils.getIntFromFourBytes(serializedData[3], serializedData[2], serializedData[1], serializedData[0]);
         //get the name of the folder
         StringBuilder buffer = new StringBuilder();

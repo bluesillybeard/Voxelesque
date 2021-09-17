@@ -1,7 +1,5 @@
 package game.world.block;
 
-import engine.model.BlockModel;
-import game.data.nbt.NBTElement;
 import game.world.World;
 
 public class VoidBlock implements Block{
@@ -13,11 +11,11 @@ public class VoidBlock implements Block{
 
     @Override
     public String getID() {
-        return "voxelesque.void";
+        return "voxelesque.voidBlock";
     }
 
     @Override
-    public BlockModel getModel() {
-        return null;
+    public int getMesh() {
+        return 0;
     }
 }

@@ -1,0 +1,8 @@
+---
+id: grassBlock
+name: grass block
+model: VMFModels/grassBlock.vbmf0
+---
+id: stoneBlock
+name: stone block
+model: VMFModels/stoneBlock.vbmf0
