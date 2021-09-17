@@ -4,6 +4,7 @@ import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlMapping;
 import com.amihaiemil.eoyaml.YamlNode;
 import com.amihaiemil.eoyaml.YamlStream;
+import engine.util.StringOutputStream;
 import game.GlobalBits;
 import game.world.World;
 
@@ -48,7 +49,10 @@ public class SimpleBlock implements Block {
                 String id = blockMaps.string("id");
                 //String name = blockMaps.string("name");
                 String modelPath = blockMaps.string("model");
-                int mesh = GlobalBits.render.addBlockMesh(pathToResources + modelPath);
+                int mesh = -1;
+                if(!modelPath.equals("voido")) {
+                    mesh = GlobalBits.render.addBlockMesh(modelPath);
+                }
                 blocks.add(new SimpleBlock(id, modID, mesh));
             }
         } catch(FileNotFoundException e){
@@ -60,5 +64,13 @@ public class SimpleBlock implements Block {
             return null;
         }
         return blocks;
+    }
+
+    public String toString(){
+        return modID + ":" + id;
+    }
+
+    public static void main(String[] args) {
+        //test generateBlocks
     }
 }

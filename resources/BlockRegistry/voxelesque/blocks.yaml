@@ -6,3 +6,7 @@ model: VMFModels/grassBlock.vbmf0
 id: stoneBlock
 name: stone block
 model: VMFModels/stoneBlock.vbmf0
+---
+id: void
+name: a block with a distinct lack of block
+model: voido

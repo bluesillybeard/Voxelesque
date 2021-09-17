@@ -1,7 +1,6 @@
 package game.data.nbt;
 
 import game.misc.StaticUtils;
-import org.lwjgl.system.CallbackI;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -29,7 +28,7 @@ public class NBTFolder implements NBTElement{
 
         //deserialize elements
         elements = new ArrayList<>();
-        int index = 6+name.length();
+        int index = 6+name.length(); //1 byte of type, 4 bytes of size, x bytes of the name, then one more byte for the null terminator
         while(index < size) {
             int elementSize = StaticUtils.getIntFromFourBytes(serializedData[index+3], serializedData[index+2], serializedData[index+1], serializedData[index]);
             int elementType = serializedData[index+4];
