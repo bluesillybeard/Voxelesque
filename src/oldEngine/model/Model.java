@@ -1,6 +1,6 @@
 package oldEngine.model;
 
-import oldEngine.VMF.VMFLoader;
+import VMF.VMFLoader;
 
 /**
  * this literally just holds a Mesh and Texture - This is to hold a VEMF model after it has been loaded, so it cam be used in multiple entities.

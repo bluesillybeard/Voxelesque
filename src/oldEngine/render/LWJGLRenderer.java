@@ -1,6 +1,6 @@
 package oldEngine.render;
 
-import oldEngine.VMF.VMFLoader;
+import VMF.VMFLoader;
 import oldEngine.model.*;
 import oldEngine.util.*;
 

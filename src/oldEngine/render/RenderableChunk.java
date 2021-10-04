@@ -78,8 +78,8 @@ public class RenderableChunk {
      * @param models the list of models
      * @return true if it finished, false if it paused
      */
-    public boolean build(BlockModel[] models){
-        if(this.shouldBuild) {
+    public boolean build(BlockModel[] models) {
+        if (this.shouldBuild) {
             if (canRender) clearFromGPU(); //clear the previous model to avoid memory leaks.
         /*
         an overview of how chunk building works:
@@ -96,24 +96,23 @@ public class RenderableChunk {
          */
             ArrayList<BlockMeshBuilder> chunkModels = new ArrayList<>();
             ArrayList<ShaderProgram> shaderPrograms = new ArrayList<>();
-            if(renderingX == data.length){
-                renderingX = 0;
-            }
-            //the X loop is done by releatedly calling build()
-            for (int y = 0; y < data[renderingX].length; y++) {
-                for (int z = 0; z < data[renderingX][y].length; z++) {
-                    int block = data[renderingX][y][z];
-                    if (block == -1) continue; //skip rendering this block if it is -1. (void)
-                    BlockModel model = models[block];
-                    ShaderProgram program = model.getShader();
-                    int shaderIndex = shaderPrograms.indexOf(program);
-                    if (shaderIndex == -1) {
-                        shaderPrograms.add(program);
-                        chunkModels.add(new BlockMeshBuilder());
-                        shaderIndex = chunkModels.size() - 1;
+
+            for (int x = 0; x < data.length; x++) {
+                for (int y = 0; y < data[x].length; y++) {
+                    for (int z = 0; z < data[x][y].length; z++) {
+                        int block = data[x][y][z];
+                        if (block == -1) continue; //skip rendering this block if it is -1. (void)
+                        BlockModel model = models[block];
+                        ShaderProgram program = model.getShader();
+                        int shaderIndex = shaderPrograms.indexOf(program);
+                        if (shaderIndex == -1) {
+                            shaderPrograms.add(program);
+                            chunkModels.add(new BlockMeshBuilder());
+                            shaderIndex = chunkModels.size() - 1;
+                        }
+                        //cloning, index removal, and vertex position modification done within the BlockMeshBuilder
+                        chunkModels.get(shaderIndex).addBlockMesh(model.getMesh(), x, y, z, this.getBlockedFaces(models, x, y, z));
                     }
-                    //cloning, index removal, and vertex position modification done within the BlockMeshBuilder
-                    chunkModels.get(shaderIndex).addBlockMesh(model.getMesh(), renderingX, y, z, this.getBlockedFaces(models, renderingX, y, z));
                 }
             }
             //finally, take the buffers and convert them into a renderable form.

@@ -1,4 +1,4 @@
-package oldEngine.VMF;
+package VMF;
 
 import oldEngine.model.Texture;
 
@@ -30,11 +30,15 @@ public class VMFLoader {
         b = (byte) zipIn.getInputStream(zipIn.getEntry("b")).read();
         return this; //this is to make chaining methods easier.
     }
+
+    //NOTE: when you get information about mesh, it will delete the source bytes to save memory and performance.
+    // Basically, once you get that information you have to reload the loader to call it again.
     public int[] getIndices(){
         int[] indices = new int[getIntFromFourBytes(i[0], i[1], i[2], i[3])];
         for(int j=0; j<indices.length; j++){
             indices[j] = getIntFromFourBytes(i[j*4+4], i[j*4+5], i[j*4+6], i[j*4+7]);
         }
+        i = null;
         return indices;
     }
     public float[] getVertices(){
@@ -42,6 +46,7 @@ public class VMFLoader {
         for(int i=0; i<vertices.length; i++){
             vertices[i] = getFloatFromFourBytes(v[i*4+4], v[i*4+5], v[i*4+6], v[i*4+7]);
         }
+        v = null;
         return vertices;
     }
     public float[] getTextureCoordinates(){
@@ -49,16 +54,21 @@ public class VMFLoader {
         for(int i=0; i<texCords.length; i++){
             texCords[i] = getFloatFromFourBytes(t[i*4+4], t[i*4+5], t[i*4+6], t[i*4+7]);
         }
+        t = null;
         return texCords;
     }
     public Texture getTexture(){
         InputStream inStream = new ByteArrayInputStream(tex);
+        //can't delete tex because it is used in the InputStream.
         return new Texture(inStream);
     }
 
     public byte[] getRemovableTriangles(){
+        //Removable triangles are an optimization system that is used during chunk building and only applies to voxels.
+        // Each
         byte[] removableTriangles = new byte[getIntFromFourBytes(r[0], r[1], r[2], r[3])];
         System.arraycopy(r, 4, removableTriangles, 0, removableTriangles.length);
+         r = null;
         return removableTriangles;
     }
 
@@ -68,7 +78,7 @@ public class VMFLoader {
 
 
     private static int getIntFromFourBytes(byte b0, byte b1, byte b2, byte b3){
-        return Byte.toUnsignedInt(b0) + (Byte.toUnsignedInt(b1) * 256) + (Byte.toUnsignedInt(b2) * 65536) + (Byte.toUnsignedInt(b3) * 16777216);
+        return Byte.toUnsignedInt(b0) + (Byte.toUnsignedInt(b1) << 8) + (Byte.toUnsignedInt(b2) << 16) + (Byte.toUnsignedInt(b3) << 24);
     }
     private static float getFloatFromFourBytes(byte b0, byte b1, byte b2, byte b3){
         return Float.intBitsToFloat(getIntFromFourBytes(b0, b1, b2, b3));

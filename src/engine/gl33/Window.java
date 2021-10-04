@@ -21,7 +21,6 @@ public class Window {
     private final int[] keys;
     private final int[] mouseButtons;
     private double scrolls;
-    private int intScrolls;
     private double cursorXPos, cursorYPos;
 
     private static final int numKeys = 348; //there are 348 keys supported by GLFW
@@ -85,10 +84,6 @@ public class Window {
         });
         glfwSetScrollCallback(windowHandle, (window, xOffset, yOffset) ->{
             scrolls += yOffset; // set scroll amount
-            if(scrolls >= 1){
-                intScrolls = (int)scrolls;
-                scrolls = scrolls%1; //set integer scroll amount, and set scrolls to the non-integer portion that's left over
-            }
         });
         glfwSetCursorPosCallback(windowHandle, (window, xPos, yPos) -> {
             cursorXPos = (xPos/width)*2-1; //GLFW gives pixel coordinates, but I want a nice value between -1 and 1, which maps the same way as OpenGL maps it.
@@ -142,20 +137,16 @@ public class Window {
         return buttonValue;
     }
 
+    public double getScrolls(){
+        return scrolls;
+    }
+
     public void setTitle(String title){
         glfwSetWindowTitle(windowHandle, title);
     }
 
     public long getWindowHandle(){
         return windowHandle;
-    }
-
-    public void setClearColor(float r, float g, float b, float alpha) {
-        glClearColor(r, g, b, alpha);
-    }
-
-    public boolean isKeyPressed(int keyCode) {
-        return glfwGetKey(windowHandle, keyCode) == GLFW_PRESS;
     }
 
     public boolean windowShouldClose() {

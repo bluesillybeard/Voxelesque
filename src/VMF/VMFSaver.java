@@ -1,4 +1,4 @@
-package oldEngine.VMF;
+package VMF;
 
 import java.io.*;
 import java.util.zip.ZipEntry;
