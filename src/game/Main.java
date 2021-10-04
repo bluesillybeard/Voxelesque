@@ -1,7 +1,7 @@
 package game;
 
-import engine.render.LWJGLRenderer;
-import engine.render.Render;
+import oldEngine.render.LWJGLRenderer;
+import oldEngine.render.Render;
 import game.world.block.Block;
 import game.world.block.SimpleBlock;
 import org.joml.Vector3f;

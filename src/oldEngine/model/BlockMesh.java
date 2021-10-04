@@ -1,6 +1,6 @@
-package engine.model;
+package oldEngine.model;
 
-import engine.VMF.VMFLoader;
+import oldEngine.VMF.VMFLoader;
 
 import java.util.Arrays;
 

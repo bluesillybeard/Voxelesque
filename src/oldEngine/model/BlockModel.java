@@ -1,6 +1,6 @@
-package engine.model;
+package oldEngine.model;
 
-import engine.render.ShaderProgram;
+import oldEngine.render.ShaderProgram;
 
 public class BlockModel{
     private final BlockMesh mesh;

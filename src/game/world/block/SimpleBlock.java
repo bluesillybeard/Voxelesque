@@ -4,7 +4,6 @@ import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlMapping;
 import com.amihaiemil.eoyaml.YamlNode;
 import com.amihaiemil.eoyaml.YamlStream;
-import engine.util.StringOutputStream;
 import game.GlobalBits;
 import game.world.World;
 

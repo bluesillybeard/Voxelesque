@@ -1,7 +1,5 @@
 package game.world.block;
 
-import engine.model.BlockModel;
-import game.data.nbt.NBTElement;
 import game.world.World;
 
 public interface Block {

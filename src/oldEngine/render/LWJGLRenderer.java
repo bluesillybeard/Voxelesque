@@ -1,8 +1,8 @@
-package engine.render;
+package oldEngine.render;
 
-import engine.VMF.VMFLoader;
-import engine.model.*;
-import engine.util.*;
+import oldEngine.VMF.VMFLoader;
+import oldEngine.model.*;
+import oldEngine.util.*;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -551,25 +551,7 @@ public class LWJGLRenderer implements Render{
     @Override
     public boolean shouldRender() {return readyToRender;}
 
-    /**
-     * renders a frame.
-     */
-    @Override
-    public void render() {
-        readyToRender = false;
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        if(dirtyChunks.size() > 0){
-            RenderableChunk dirtyChunk = dirtyChunks.remove();
-            dirtyChunk.build(blockModels.toArray(new BlockModel[blockModels.size()]));
-        }
-
-        if (window.isResized()) {
-            window.setResized(false);
-            glViewport(0, 0, window.getWidth(), window.getHeight());
-            // Update projection Matrix
-            projectionMatrix.setPerspective(FOV, (float) window.getWidth() / window.getHeight(), 1/256f, 8192f);
-        }
-
+    private void renderFrame(){
         //update shader uniforms
         for(ShaderProgram shaderProgram: shaderPrograms) {
             shaderProgram.bind();
@@ -586,6 +568,26 @@ public class LWJGLRenderer implements Render{
         for (RenderableChunk chunk: chunks){
             chunk.render();
         }
+    }
+    /**
+     * renders a frame.
+     */
+    @Override
+    public void render() {
+        readyToRender = false;
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        if(dirtyChunks.size() > 0){
+            RenderableChunk dirtyChunk = dirtyChunks.getFirst();
+            dirtyChunk.build(blockModels.toArray(new BlockModel[blockModels.size()]));
+        }
+
+        if (window.isResized()) {
+            window.setResized(false);
+            glViewport(0, 0, window.getWidth(), window.getHeight());
+            // Update projection Matrix
+            projectionMatrix.setPerspective(FOV, (float) window.getWidth() / window.getHeight(), 1/256f, 8192f);
+        }
+
         window.update();
         readyToRender = true;
     }

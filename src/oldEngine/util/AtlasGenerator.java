@@ -1,8 +1,8 @@
-package engine.util;
+package oldEngine.util;
 //The code below is a heavily edited version of https://github.com/lukaszdk/texture-atlas-generator
-import engine.model.BlockMesh;
-import engine.model.BlockModel;
-import engine.render.ShaderProgram;
+import oldEngine.model.BlockMesh;
+import oldEngine.model.BlockModel;
+import oldEngine.render.ShaderProgram;
 
 import java.awt.*;
 import java.util.*;
@@ -190,7 +190,7 @@ public class AtlasGenerator{
 
         public BlockModel[] Write(int width, int height, BlockMesh[] meshes, ShaderProgram shader)
         {
-            engine.model.Texture glTexture = new engine.model.Texture(this.image);
+            oldEngine.model.Texture glTexture = new oldEngine.model.Texture(this.image);
             BlockModel[] out = new BlockModel[meshes.length];
             for(Map.Entry<Integer, Rectangle> UVMapping : rectangleMap.entrySet())
             {
