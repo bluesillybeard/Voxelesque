@@ -2,9 +2,7 @@ package engine.gl33.model;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.ByteBuffer;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -14,30 +12,16 @@ import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 public class GPUTexture {
     private final int textureID;
 
-    public GPUTexture(String filePath){
-        int textureID1;
-        try {
-            textureID1 = loadTexture(ImageIO.read(new File(filePath)));
-        } catch (IOException e){
-            //TODO: use reNder PrintStream
-            e.printStackTrace();
-            int width = 2;
-            int height = 2;
-            //use the default error texture
-            ByteBuffer imgDataBuffer = ByteBuffer.allocateDirect(4 * width * height) //get the ByteBuffer ready for data
-                    .put(new byte[]{-1, 0, -1, -1,    0, 0,  0, -1, //magenta, black,
-                                   0, 0,  0, -1,   -1, 0, -1, -1}); //black, magenta
-            textureID1 = loadTexture(imgDataBuffer, width, height);
-        }
-        this.textureID = textureID1;
+    public GPUTexture(String filePath, PrintStream print) throws IOException {
+        this(new FileInputStream(filePath), print);
     }
-    public GPUTexture(InputStream stream){
+
+    public GPUTexture(InputStream stream, PrintStream print){
         int textureID1;
         try {
             textureID1 = loadTexture(ImageIO.read(stream));
         } catch (IOException e){
-            //TODO: use REnder PrintStream
-            e.printStackTrace();
+            e.printStackTrace(print);
             int width = 2;
             int height = 2;
             //use the default error texture
@@ -59,7 +43,6 @@ public class GPUTexture {
     }
 
     private int loadTexture(ByteBuffer rawImgDataBuffer, int width, int height){
-        System.out.println("loading a texture");
         int textureID = glGenTextures();
         glBindTexture(GL_TEXTURE_2D, textureID);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 0);

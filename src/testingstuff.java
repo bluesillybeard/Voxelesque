@@ -5,12 +5,12 @@ import java.io.IOException;
 
 public class testingstuff {
     public static void main(String[] args) throws IOException {
-        YamlStream stream = Yaml.createYamlInput(new File("/home/bluesillybeard/IdeaProjects/Voxelesque/resources/BlockRegistry/voxelesque/blocks.yaml")).readYamlStream();
-        for(YamlNode node: stream.toList()){
-            YamlMapping blockMaps = node.asMapping();
-            System.out.println("the ID is" + blockMaps.string("id"));
-            System.out.println("the name is" + blockMaps.string("name"));
-            System.out.println("the model is" + blockMaps.string("model"));
-        }
+
+        System.out.println(Double.longBitsToDouble(4523227044276562163L));
+        System.out.println(Double.longBitsToDouble(-4671934770969572232L));
+        System.out.println(Double.longBitsToDouble(4575957211482072852L));
+        System.out.println(Double.longBitsToDouble(-4628199223918090387L));
+        System.out.println(Double.longBitsToDouble(4607182418589157889L));
+
     }
 }

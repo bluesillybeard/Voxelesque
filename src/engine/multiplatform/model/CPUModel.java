@@ -1,5 +1,8 @@
 package engine.multiplatform.model;
 
+import oldEngine.model.Texture;
+import oldEngine.render.ShaderProgram;
+
 import java.awt.image.BufferedImage;
 
 public class CPUModel {
