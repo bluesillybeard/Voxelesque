@@ -21,7 +21,7 @@ public class CPUMeshBuilder {
         this.indices = new ArrayList<>(initialCapacity);
     }
 
-    public void addBlockMesh(CPUMesh mesh, int x, int y, int z){
+    public void addBlockMeshToChunk(CPUMesh mesh, int x, int y, int z){
         int indexOffset = this.positions.size()/3;
 
         //STEP ONE: translate and mirror the block mesh and add those to the position buffer
@@ -42,7 +42,7 @@ public class CPUMeshBuilder {
         }
     }
 
-    public void addBlockMesh(CPUMesh mesh, int x, int y, int z, byte blockedFaces){
+    public void addBlockMeshToChunk(CPUMesh mesh, int x, int y, int z, byte blockedFaces){
         if((~blockedFaces & 0b11111) == 0){
             return; //if all the faces are blocked, just skip the voxel completely.
         }

@@ -3,7 +3,6 @@ package engine.gl33.render;
 import engine.gl33.model.GPUMesh;
 import engine.gl33.model.GPUModel;
 import engine.gl33.model.GPUTexture;
-import engine.gl33.model.ShaderProgram;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 

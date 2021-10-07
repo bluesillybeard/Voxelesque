@@ -1,4 +1,4 @@
-package engine.gl33.model;
+package engine.gl33.render;
 
 import org.joml.Matrix4f;
 import static org.lwjgl.opengl.GL20.*;
