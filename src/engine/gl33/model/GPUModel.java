@@ -25,4 +25,5 @@ public class GPUModel {
         texture.bind();
         mesh.render();
     }
+
 }
