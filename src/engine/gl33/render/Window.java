@@ -1,4 +1,4 @@
-package engine.gl33;
+package engine.gl33.render;
 
 import static org.lwjgl.glfw.GLFW.*;
 import org.lwjgl.glfw.GLFWErrorCallback;

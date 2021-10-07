@@ -81,6 +81,14 @@ public class SlottedArrayList<T> implements Iterable<T> {
         return this.list;
     }
 
+    public T[] toArray(T[] arr){
+        if(arr.length < this.totalItems) throw new IllegalStateException("the input array is too short");
+        for(int i=0; i < this.totalItems; i++){
+            arr[i] = (T)this.list[i];
+        }
+        return arr;
+    }
+
     @Override
     public Iterator<T> iterator() {
         return new SlottedArrayListIterator<> (this.list, this.totalItems);
@@ -120,12 +128,5 @@ public class SlottedArrayList<T> implements Iterable<T> {
                 }
             }while(this.list[this.index]==null);
         }
-    }
-    public T[] toArray(T[] arr){
-        if(arr.length < this.totalItems) throw new IllegalStateException("the input array is too short");
-        for(int i=0; i < this.totalItems; i++){
-            arr[i] = (T)this.list[i];
-        }
-        return arr;
     }
 }

@@ -20,4 +20,9 @@ public class GPUModel {
     public GPUModel(CPUModel model){
         this(model.mesh, model.texture);
     }
+
+    public void render(){
+        texture.bind();
+        mesh.render();
+    }
 }
