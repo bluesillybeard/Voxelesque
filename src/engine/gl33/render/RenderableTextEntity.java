@@ -12,6 +12,7 @@ public class RenderableTextEntity extends RenderableEntity{
         super(new GPUMesh(Utils.generateTextMesh(text, centerX, centerY)), shader, tex);
         this.text = text;
     }
+
     public void setText(String text, boolean centerX, boolean centerY){
         if(!this.text.equals(text)){
             this.text = text;
