@@ -2,6 +2,7 @@ package engine.multiplatform;
 
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
+import org.joml.Matrix4f;
 
 import java.awt.image.BufferedImage;
 import java.io.PrintStream;
@@ -11,13 +12,15 @@ public interface Render {
 
     /**
      * Initializes the Render and anything contained within it.
-     * @param width the width of the window (800 if given an invalid width)
-     * @param height the height of the window (600 if given an invalid height)
+     *
+     * @param width         the width of the window (800 if given an invalid width)
+     * @param height        the height of the window (600 if given an invalid height)
      * @param resourcesPath The path to the resources folder. This path is added at the front of any path to be loaded by the Render.
-     * @param VSync Vsync
-     * @param warning the warning PrintStream, Any warning will be sent through it.
-     * @param error the error PrintStream. Any errors will be sent through it.
-     * @param debug the debug PrintStream. Any debug messages will be sent through it.
+     * @param VSync         Vsync
+     * @param warning       the warning PrintStream, Any warning will be sent through it.
+     * @param error         the error PrintStream. Any errors will be sent through it.
+     * @param debug         the debug PrintStream. Any debug messages will be sent through it.
+     * @param fov           the field of view in radians
      * @return false if something went wrong, true if all is good.
      */
     boolean init(int width, int height, String resourcesPath, boolean VSync, PrintStream warning, PrintStream error, PrintStream debug, float fov);
@@ -206,6 +209,8 @@ public interface Render {
 
     void setEntityShader(int entity, int shader);
 
+    Matrix4f getEntityTransform(int entity);
+
     void deleteEntity(int entity);
 
     //chunks
@@ -245,9 +250,78 @@ public interface Render {
     //camera
     void setCameraPos(float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation);
 
-    //input
+    Matrix4f getCameraViewMatrix();
 
-    //
+    Matrix4f getCameraProjectionMatrix();
 
+
+    //input & sensing
+
+    /**
+     * Tells weather a mesh would appear on a part of the screen if it were to be rendered.
+     *
+     * @param mesh the mesh to transform - will not be modified as this method creates its own copy.
+     * @param meshTransform the transform that moves the mesh in worldspace - input null to skip this transform
+     * @param viewMatrix the transform that moves the mesh around the camera - input null to skip this transform
+     * @param projectionMatrix the transform that deforms the mesh to the camera projection - input null to skip this transform
+     * @param x the x position on the screen to test collision
+     * @param y the y position on the screen to test collision
+     * @return weather the transformed mesh would appear on the x and y coordinates.
+     */
+    boolean meshOnScreen(CPUMesh mesh, Matrix4f meshTransform, Matrix4f viewMatrix, Matrix4f projectionMatrix, float x, float y);
+
+
+
+    /**
+     * This takes a bit of explanation...
+     * When a key is pressed it calls a callback.
+     * That callback changes the value of that key to 2.
+     * there is another one for when a key is released, which sets it to 0
+     * When this function is called, the key's value is returned, then the key's value is changed based on these rules:
+     *        2, 3->3
+     *        0, 1->1
+     * essentially, 0 means just released, 1 means released, 2 means just pushed, 3 means pushed.
+     * @param key the key that you are asking information about. uses the same key codes as in GLFW, whatever those are.
+     * @return they key's value - returns 0, 1, 2, or 3.
+     */
+    int getKey(int key);
+
+    /**
+     * similar to getKey, except for mouse buttons.
+     * @param button the button to be checked
+     * @return the value of the button; see getKey for more info.
+     */
+    int getMouseButton(int button);
+
+    /**
+     * @return the X position of the cursor on screen, [-1, 1], -1=bottom, 1=top
+     */
+    double getMouseXPos();
+
+    /**
+     * @return the X position of the cursor on screen, [-1, 1], -1 = left, 1=right
+     */
+    double getMouseYPos();
+
+    /**
+     * @return a timestamp, in seconds. Simply counts upwards indefinitely, not to be used to get the actual system time.
+     */
+    double getTime();
+
+    //other bits
+
+    /**
+     * @return true if the render method should / can be called, false otherwise.
+     */
+    boolean shouldRender();
+
+    /**
+     * renders a frame and collects inputs
+     * @return the time it took to render the frame in seconds.
+     */
     double render();
+
+
+
+
 }

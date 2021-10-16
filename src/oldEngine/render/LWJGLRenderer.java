@@ -588,6 +588,8 @@ public class LWJGLRenderer implements Render{
             projectionMatrix.setPerspective(FOV, (float) window.getWidth() / window.getHeight(), 1/256f, 8192f);
         }
 
+        renderFrame();
+
         window.update();
         readyToRender = true;
     }
