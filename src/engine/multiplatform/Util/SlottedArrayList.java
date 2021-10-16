@@ -1,6 +1,5 @@
 package engine.multiplatform.Util;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Stack;
@@ -43,7 +42,7 @@ public class SlottedArrayList<T> implements Iterable<T> {
         } else {
             int index = this.removedIndices.pop();
 
-            if(this.list[index] != null) throw new IllegalStateException("Cannot add item: removed index already contains data, which should* be impossible.");
+            assert this.list[index] != null;
 
             this.list[index] = item;
             return index;

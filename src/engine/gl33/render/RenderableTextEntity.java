@@ -19,4 +19,6 @@ public class RenderableTextEntity extends RenderableEntity{
             super.setModel(new GPUModel(new GPUMesh(Utils.generateTextMesh(text, centerX, centerY)), super.getModel().texture));
         }
     }
+
+
 }
