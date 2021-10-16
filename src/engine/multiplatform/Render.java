@@ -1,12 +1,12 @@
 package engine.multiplatform;
 
-import engine.gl33.model.GPUModel;
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
 
 import java.awt.image.BufferedImage;
 import java.io.PrintStream;
 
+@SuppressWarnings("unused")
 public interface Render {
 
     /**
@@ -20,7 +20,7 @@ public interface Render {
      * @param debug the debug PrintStream. Any debug messages will be sent through it.
      * @return false if something went wrong, true if all is good.
      */
-    boolean init(int width, int height, String resourcesPath, boolean VSync, PrintStream warning, PrintStream error, PrintStream debug);
+    boolean init(int width, int height, String resourcesPath, boolean VSync, PrintStream warning, PrintStream error, PrintStream debug, float fov);
 
     //settings
 
@@ -33,6 +33,8 @@ public interface Render {
     void setError(PrintStream error);
 
     void setDebug(PrintStream debug);
+
+    void setFov(float fov);
 
     int getWindowHeight();
 
@@ -170,7 +172,78 @@ public interface Render {
      */
     void deleteGPUModel(int model);
 
+    //shaders
+
+    /**
+     * loads a shader program and returns its ID.
+     * The shader file system is a bit complicated, as this engine is designed with multiple APIs in mind.
+     * possible shader folders:
+     * gl33: OpenGL 3.3 shaders (GLSL)
+     * gl4? OpenGL 4.? shaders (GLSL) (not implemented)
+     * vc?: Vulcan ? shaders (not implemented)
+     * dx?: DirectX ? (not implemented)
+     * @param path the path to the shaders. The final path is: [resources]/[path]/[shader folder(gl33, dx9)]/[shader].[API shader language name(GLSL, HLSL)]
+     * @param shader the shader name.
+     * @return the reference to the shader.
+     */
+    int loadShaderProgram(String path, String shader);
+
+    void deleteShaderProgram(int shaderProgram);
+
     //entities
+
+    int createEntity(int model, int shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
+
+    int createEntity(int texture, int mesh, int shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
+
+    void setEntityPos(int entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
+
+    void setEntityPos(int entity, float xPos, float yPos, float zPos);
+
+    void setEntityRotation(int entity, float xRotation, float yRotation, float zRotation);
+
+    void setEntityScale(int entity, float xScale, float yScale, float zScale);
+
+    void setEntityShader(int entity, int shader);
+
+    void deleteEntity(int entity);
+
+    //chunks
+
+    /**
+     * creates a chunk at the chunk position [x, y, z]
+     * @param size how big the chunk is in each dimension
+     * @param blocks a 3D array of CPUMeshes that represent that chunk's block data.
+     * @return the ID of the new chunk.
+     */
+    int spawnChunk(int size, CPUMesh[][][] blocks, int x, int y, int z);
+
+    /**
+     * sets the block data of a chunk.
+     * @param blocks a 3D array of blockModel IDs that represent that chunk's block data.
+     * @param chunk the chunk whose data will be set.
+     */
+    void setChunkData(int chunk, CPUMesh[][][] blocks);
+
+    /**
+     * sets a specific block [z, y, x] of a chunk.
+     * @param chunk the chunk whose block will be modified
+     * @param block the blockModel to be used
+     */
+    void setChunkBlock(int chunk, CPUMesh block, int x, int y, int z);
+
+    /**
+     * deletes a chunk so it is no longer rendered.
+     * @param chunk the ID of the chunk to remove
+     */
+    void deleteChunk(int chunk);
+
+    int getNumChunks();
+
+    int getNumChunkSlots();
+
+    //camera
+    void setCameraPos(float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation);
 
     //input
 
