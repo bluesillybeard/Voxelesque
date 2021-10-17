@@ -64,6 +64,7 @@ public class Window {
         glfwSetFramebufferSizeCallback(windowHandle, (window, width, height) -> {
             this.width = width;
             this.height = height;
+            System.out.println("resized");
             this.setResized(true);
         });
 
@@ -163,6 +164,10 @@ public class Window {
 
     public int getHeight() {
         return height;
+    }
+
+    public void setSize(int width, int height){
+        glfwSetWindowSize(this.windowHandle, width, height);
     }
 
     public boolean isResized() {

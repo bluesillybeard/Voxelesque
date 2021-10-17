@@ -2,6 +2,8 @@ package VMF;
 
 import oldEngine.model.Texture;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.Arrays;
 import java.util.zip.ZipFile;
@@ -61,6 +63,12 @@ public class VMFLoader {
         InputStream inStream = new ByteArrayInputStream(tex);
         //can't delete tex because it is used in the InputStream.
         return new Texture(inStream);
+    }
+
+    public BufferedImage getImage() throws IOException {
+        InputStream inStream = new ByteArrayInputStream(tex);
+        //can't delete tex because it is used in the InputStream.
+        return ImageIO.read(inStream);
     }
 
     public byte[] getRemovableTriangles(){

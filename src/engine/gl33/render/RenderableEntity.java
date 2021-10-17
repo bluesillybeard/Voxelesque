@@ -43,6 +43,10 @@ public class RenderableEntity {
         hidden = false;
         updateViewMatrix();
     }
+
+    public Matrix4f getModelViewMatrix(){
+        return modelViewMatrix;
+    }
     private void updateViewMatrix(){
         this.modelViewMatrix.identity().translate(this.position).
                 rotateX(-this.rotation.x).

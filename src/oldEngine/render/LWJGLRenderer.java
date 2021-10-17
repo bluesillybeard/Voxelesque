@@ -76,7 +76,7 @@ public class LWJGLRenderer implements Render{
     }
 
     /**
-     * loads a shader pair within shaders. each shader pair is in the GLSLShaders directory within the resources directory, and it is two files:
+     * loads a shader pair within shaders. each shader pair is within the resources directory, and it is two files:
      * [shader]Vertex.glsl and [shader]Fragment.glsl
      * each entity has its own shader.
      *
@@ -87,8 +87,8 @@ public class LWJGLRenderer implements Render{
     public int loadShader(String shader) {
         try {
             shaderPrograms.add(new ShaderProgram(
-                    Utils.loadResource(resourcesPath + "GLSLShaders/" + shader + "Vertex.glsl"),
-                    Utils.loadResource(resourcesPath + "GLSLShaders/" + shader + "Fragment.glsl")
+                    Utils.loadResource(resourcesPath + shader + "Vertex.glsl"),
+                    Utils.loadResource(resourcesPath + shader + "Fragment.glsl")
             ));
             return shaderPrograms.size()-1;
         } catch (Exception e) {
@@ -577,7 +577,7 @@ public class LWJGLRenderer implements Render{
         readyToRender = false;
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         if(dirtyChunks.size() > 0){
-            RenderableChunk dirtyChunk = dirtyChunks.getFirst();
+            RenderableChunk dirtyChunk = dirtyChunks.pop();
             dirtyChunk.build(blockModels.toArray(new BlockModel[blockModels.size()]));
         }
 

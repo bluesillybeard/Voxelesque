@@ -116,15 +116,6 @@ public interface Render {
      */
     int loadGPUMesh(CPUMesh mesh);
 
-    /**
-     * returns the GPU mesh of a GPU model
-     * Not recommended.
-     * @param GPUModel the model to get the mesh from
-     * @return the index of the mesh
-     */
-    int getMesh(int GPUModel);
-
-
     //models
     //IMPORTANT: similar to models, only methods not provided by the CPUModel constructor are provided.
 
@@ -217,8 +208,12 @@ public interface Render {
 
     /**
      * creates a chunk at the chunk position [x, y, z]
-     * @param size how big the chunk is in each dimension
+     *
+     * @param size   how big the chunk is in each dimension
      * @param blocks a 3D array of CPUMeshes that represent that chunk's block data.
+     * @param x the X position of the chunk
+     * @param y the Y position of the chunk
+     * @param z the Z position of the chunk
      * @return the ID of the new chunk.
      */
     int spawnChunk(int size, CPUMesh[][][] blocks, int x, int y, int z);

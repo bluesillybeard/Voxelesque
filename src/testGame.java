@@ -31,9 +31,9 @@ public class testGame {
         }
         render.setFov((float)Math.toRadians(90));
         //shaders
-        int normalShader = render.loadShader(""); //default shaders
-        int crazyShader = render.loadShader("silly");
-        int guiShader = render.loadShader("gui");
+        int normalShader = render.loadShader("Shaders/gl33/"); //default shaders
+        int crazyShader = render.loadShader("Shaders/gl33/silly");
+        int guiShader = render.loadShader("Shaders/gl33/gui");
 
         int blockMesh = render.addBlockMesh("VMFModels/grassBlock.vbmf0");
 

@@ -1,9 +1,9 @@
 package engine.multiplatform.model;
 
-import oldEngine.model.Texture;
-import oldEngine.render.ShaderProgram;
+import VMF.VMFLoader;
 
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 
 public class CPUModel {
     public final CPUMesh mesh;
@@ -14,4 +14,10 @@ public class CPUModel {
         this.texture = texture;
 
     }
+
+    public CPUModel(VMFLoader load) throws IOException {
+        this.mesh = new CPUMesh(load);
+        this.texture = load.getImage();
+    }
+
 }
