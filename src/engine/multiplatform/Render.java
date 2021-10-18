@@ -303,6 +303,8 @@ public interface Render {
      */
     double getTime();
 
+    boolean shouldClose();
+
     //other bits
 
     /**

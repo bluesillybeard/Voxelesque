@@ -75,6 +75,8 @@ public class GL33Render implements Render {
             this.err = error;
             this.debug = debug;
             this.readyToRender = true;
+            updateCameraProjectionMatrix();
+            updateCameraViewMatrix();
 
             errorImage.setRGB(0, 0, 0xff00ff);
             errorImage.setRGB(1, 0, 0x000000);
@@ -344,8 +346,8 @@ public class GL33Render implements Render {
     @Override
     public int loadShaderProgram(String path, String shader) {
         try {
-            String fullPath = resourcesPath + path + "gl33" + shader;
-            return shaderPrograms.add(new ShaderProgram(Utils.loadResource(fullPath + "vertex.glsl"), Utils.loadResource(fullPath + "fragment.glsl")));
+            String fullPath = resourcesPath + "/" + path + "gl33" + shader + "/";
+            return shaderPrograms.add(new ShaderProgram(Utils.loadResource(fullPath + "Vertex.glsl"), Utils.loadResource(fullPath + "Fragment.glsl")));
         } catch(Exception e){
             e.printStackTrace(err);
             return -1;
@@ -477,8 +479,8 @@ public class GL33Render implements Render {
     }
 
     private void updateCameraViewMatrix(){
-        viewMatrix.identity().rotate((float) Math.toRadians(cameraRotation.x), new Vector3f(1, 0, 0))
-                .rotate((float) Math.toRadians(cameraRotation.y), new Vector3f(0, 1, 0))
+        viewMatrix.identity().rotate(cameraRotation.x, new Vector3f(1, 0, 0))
+                .rotate(cameraRotation.y, new Vector3f(0, 1, 0))
                 .translate(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z);
     }
 
@@ -572,6 +574,11 @@ public class GL33Render implements Render {
         return System.nanoTime() / 1_000_000_000.;
     }
 
+    @Override
+    public boolean shouldClose(){
+        return window.windowShouldClose();
+    }
+
     /**
      * @return true if the render method should / can be called, false otherwise.
      */
@@ -598,6 +605,8 @@ public class GL33Render implements Render {
         }
 
         renderFrame();
+        window.update();
+
         double time = getTime() - startTime;
         readyToRender = true;
         return time;
@@ -608,7 +617,6 @@ public class GL33Render implements Render {
         //update shader uniforms
         for(ShaderProgram shaderProgram: shaderPrograms) {
             shaderProgram.bind();
-
             shaderProgram.setGameTime();
             shaderProgram.setProjectionMatrix(projectionMatrix);
             shaderProgram.setViewMatrix(viewMatrix);
