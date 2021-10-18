@@ -3,6 +3,8 @@ import engine.multiplatform.Render;
 import engine.multiplatform.model.CPUModel;
 import org.joml.Vector3f;
 
+import java.util.ArrayList;
+
 import static org.lwjgl.glfw.GLFW.*;
 
 public class TestGame2 {
@@ -12,6 +14,10 @@ public class TestGame2 {
     private static final Vector3f cameraPosition = new Vector3f();
     private static final Vector3f cameraRotation = new Vector3f();
 
+    private static final Runtime jre = Runtime.getRuntime();
+
+    private static final ArrayList<Integer> spawnedEntities = new ArrayList<>();
+
     public static void main(String[] args) {
         Render render = new GL33Render();
         if(!render.init(800, 600, args[0], true, System.err, System.err, System.out, (float)Math.toRadians(80))){
@@ -19,17 +25,28 @@ public class TestGame2 {
             System.exit(-1);
         }
 
-        CPUModel grassBlock = render.loadBlockModel("VMFModels/grassBlock.vbmf0");
-        CPUModel stoneBlock = render.loadBlockModel("VMFModels/stoneBlock.vbmf0");
+        CPUModel grassVoxel = render.loadBlockModel("VMFModels/grassBlock.vbmf0");
+        CPUModel stoneVoxel = render.loadBlockModel("VMFModels/stoneBlock.vbmf0");
+        CPUModel grassBlock = render.loadEntityModel("VMFModels/test2.vemf0");
+        int gpuGrassVoxel = render.loadGPUModel(grassVoxel);
+        int gpuStoneVoxel = render.loadGPUModel(stoneVoxel);
         int gpuGrassBlock = render.loadGPUModel(grassBlock);
-        int gpuStoneBlock = render.loadGPUModel(stoneBlock);
+
         int defaultShader = render.loadShaderProgram("Shaders/", "");
-        render.createEntity(gpuGrassBlock, defaultShader, 0, 0, 0, 0, 0, 0, 1, 1, 1);
-        render.createEntity(gpuStoneBlock, defaultShader, 0, 2, 0, 0, 0, 0, 1, 1, 1);
+        int sillyShader = render.loadShaderProgram("Shaders/", "silly");
+
+        int entity1 = render.createEntity(gpuGrassBlock, defaultShader, 0f, 10f,  0f, 0f,  1f, 0.5f, 0.5f, 1.0f, 0.5f);
+        int entity2 = render.createEntity(gpuGrassBlock, defaultShader, 0f, 10f, -2f, 1f,  1f, 0f,   1.0f, 0.5f, 0.5f);
+        int entity3 = render.createEntity(gpuGrassBlock, defaultShader, 0f, 10f, -4f, 0f,  0f, 1f,   0.5f, 0.5f, 1.0f);
+        int entity4 = render.createEntity(gpuGrassBlock, sillyShader,  0f, 10f, -6f, 0f,  2f, 0f,   0.5f, 0.5f, 0.5f);
+        int entity5 = render.createEntity(gpuGrassBlock, defaultShader, 0, 0, 64, 0, 0, 0, 10, 10, 10);
+
 
         double lastStepTime = 0.0;
+        double lastFramerateDebugTime = 0.0;
         double lastMouseYPos = render.getMouseYPos();
         double lastMouseXPos = render.getMouseXPos();
+        int frames = 0;
         render.setCameraPos(cameraPosition.x, cameraPosition.y, cameraPosition.z, cameraRotation.x, cameraRotation.y, cameraRotation.z);
         do{
 
@@ -84,8 +101,43 @@ public class TestGame2 {
                 if(cameraUpdated){
                     render.setCameraPos(cameraPosition.x, cameraPosition.y, cameraPosition.z, cameraRotation.x, cameraRotation.y, cameraRotation.z);
                 }
+
+
+                render.setEntityPos(entity1, 0f, 10f, -0f, (float)(render.getTime()/10),  (float)(render.getTime()*5), (float)render.getTime(), 0.5f, 1.0f, 0.5f);
+                render.setEntityPos(entity2, 0f, 10f, -2f, (float)(render.getTime()*9),  (float)(render.getTime()/7), (float)render.getTime()*1.5f,   1.0f, 0.5f, 0.5f);
+                render.setEntityPos(entity3, 0f, 10f, -4f, (float)(render.getTime()/3),  (float)(render.getTime()*2), (float)render.getTime()/0.5f,   0.5f, 0.5f, 1.0f);
+
+
+                if(render.getKey(GLFW_KEY_F) >= 2){
+                    spawnedEntities.add(render.createEntity(gpuGrassBlock, defaultShader, cameraPosition.x, cameraPosition.y-1, cameraPosition.z, 0, 0, 0, 1.0f, 1.0f, 1.0f));
+                }
+                for(int i=0; i<spawnedEntities.size(); i++){
+                    if(spawnedEntities.get(i) != -1 && render.meshOnScreen(grassBlock.mesh, render.getEntityTransform(spawnedEntities.get(i)), render.getCameraViewMatrix(), render.getCameraProjectionMatrix(), (float)render.getMouseXPos(), (float)render.getMouseYPos()) && render.getMouseButton(GLFW_MOUSE_BUTTON_LEFT) >= 2) {
+                        render.deleteEntity(spawnedEntities.get(i)); //remove each entity
+                        spawnedEntities.set(i, -1);
+                    }
+
+                }
             }
+            if(render.getTime() - lastFramerateDebugTime > 1.0){
+                lastFramerateDebugTime = render.getTime();
+                System.out.print("Entities: " + render.getNumEntities());
+                System.out.print(" | Chunks: " + render.getNumChunks());
+                System.out.print(" | framerate:" + frames);
+                System.out.print(" | memory: " + (jre.totalMemory()/1048576) + " / " + (jre.maxMemory()/1048576) + " mb used");
+
+                System.out.print("\n");
+                frames = 0;
+            }
+            try {
+                Thread.sleep(1); //this is to keep this thread from eating up 100% after I implement multithreading
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            if(render.shouldRender()){
                 render.render();
+                frames++;
+            }
 
         }while(!render.shouldClose());
     }

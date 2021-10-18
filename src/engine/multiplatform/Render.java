@@ -79,15 +79,26 @@ public interface Render {
 
     /**
      * combines textures into an atlas and transforms the texture coordinates of the meshes to use the atlas,
-     * then generates a correspinding list of CPUModels, each having a transformed mesh and texture atlas.
+     * then generates a corresponding list of CPUModels, each having a transformed mesh and texture atlas.
      * The indices of each list correspond to the others:
      * index n of the images and index n of the meshes will end up in index n of the output list.
+     *
+     * This is highly advised to use on models for blocks, as chunks need an entire draw call per texture they use.
      * @param images the input images
      * @param meshes the input meshes - they won't be modified, instead copies will be made and the copies modified.
      * @return the output list of models that all use the same texture.
      */
     CPUModel[] generateImageAtlas(BufferedImage[] images, CPUMesh[] meshes);
 
+
+    /**
+     * This is highly advised to use on models for blocks, as chunks need an entire draw call per texture they use.
+     * combines all the textures of the models into a single atlas, and modifies the texture coordinates of each model to use that atlas.
+     * The original models are not modified, as they are copied and the copies are modified.
+     * @param models the models to create the atlas.
+     * @return the output list of models that all use the same texture.
+     */
+    CPUModel[] generateImageAtlas(CPUModel[] models);
     //meshes
     //IMPORTANT: there are no generate CPU mesh methods - that is because CPUMesh has those in constructor form.
 
@@ -203,6 +214,10 @@ public interface Render {
     Matrix4f getEntityTransform(int entity);
 
     void deleteEntity(int entity);
+
+    int getNumEntities();
+
+    int getNumEntitySlots();
 
     //chunks
 

@@ -73,11 +73,14 @@ public class VMFLoader {
 
     public byte[] getRemovableTriangles(){
         //Removable triangles are an optimization system that is used during chunk building and only applies to voxels.
-        // Each
-        byte[] removableTriangles = new byte[getIntFromFourBytes(r[0], r[1], r[2], r[3])];
-        System.arraycopy(r, 4, removableTriangles, 0, removableTriangles.length);
-         r = null;
-        return removableTriangles;
+        if(r != null) {
+            byte[] removableTriangles = new byte[getIntFromFourBytes(r[0], r[1], r[2], r[3])];
+            System.arraycopy(r, 4, removableTriangles, 0, removableTriangles.length);
+            r = null;
+            return removableTriangles;
+        } else {
+            return null;
+        }
     }
 
     public byte getBlockedFaces(){

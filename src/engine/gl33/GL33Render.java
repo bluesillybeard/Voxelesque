@@ -15,6 +15,7 @@ import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -24,6 +25,11 @@ import java.io.PrintStream;
 import static org.lwjgl.opengl.GL11.*;
 
 public class GL33Render implements Render {
+
+    Matrix4f tempMat = new Matrix4f();
+    Vector4f tempv4f1 = new Vector4f();
+    Vector4f tempv4f2 = new Vector4f();
+    Vector4f tempv4f3 = new Vector4f();
 
     private Window window;
     private boolean readyToRender;
@@ -204,6 +210,19 @@ public class GL33Render implements Render {
     }
 
     /**
+     * This is highly advised to use on models for blocks, as chunks need an entire draw call per texture they use.
+     * combines all the textures of the models into a single atlas, and modifies the texture coordinates of each model to use that atlas.
+     * The original models are not modified, as they are copied and the copies are modified.
+     *
+     * @param models the models to create the atlas.
+     * @return the output list of models that all use the same texture.
+     */
+    @Override
+    public CPUModel[] generateImageAtlas(CPUModel[] models) {
+        return new CPUModel[0];
+    }
+
+    /**
      * loads a CPUMesh from a .VEMF0 file.
      * Note that this can also load a VBMF file, but the block-specific data won't be loaded into the mesh.
      * Useful for when a block and entity share the same model, which I doubt will ever happen.
@@ -346,7 +365,7 @@ public class GL33Render implements Render {
     @Override
     public int loadShaderProgram(String path, String shader) {
         try {
-            String fullPath = resourcesPath + "/" + path + "gl33" + shader + "/";
+            String fullPath = resourcesPath + "/" + path + "gl33/" + shader;
             return shaderPrograms.add(new ShaderProgram(Utils.loadResource(fullPath + "Vertex.glsl"), Utils.loadResource(fullPath + "Fragment.glsl")));
         } catch(Exception e){
             e.printStackTrace(err);
@@ -416,6 +435,16 @@ public class GL33Render implements Render {
     @Override
     public void deleteEntity(int entity) {
         renderableEntities.remove(entity);
+    }
+
+    @Override
+    public int getNumEntities() {
+        return renderableEntities.size();
+    }
+
+    @Override
+    public int getNumEntitySlots() {
+        return renderableEntities.capacity();
     }
 
     /**
@@ -518,7 +547,65 @@ public class GL33Render implements Render {
      */
     @Override
     public boolean meshOnScreen(CPUMesh mesh, Matrix4f meshTransform, Matrix4f viewMatrix, Matrix4f projectionMatrix, float x, float y) {
-        return false; //TODO: do this method here
+        y = -y; //The screen coordinates are mirrored for some reason
+
+        Matrix4f MVP;
+        //todo: allow for any combination of the matrices to be null
+        MVP = projectionMatrix.mul(viewMatrix, tempMat).mul(meshTransform);
+
+
+        int[] indices = mesh.indices;
+        float[] positions = mesh.positions;
+        // Go through each triangle
+        // translate it to 2D coordinates
+        //see if it collides with the position:
+        //  if it does, return true
+        //  if it doesn't, continue.
+        //if none of the triangles collide, return false.
+        for(int i=0; i<indices.length/3; i++){ //each triangle in the mesh
+            //get that triangle
+            tempv4f1.set(
+                    positions[3*indices[3*i  ]],
+                    positions[3*indices[3*i  ]+1],
+                    positions[3*indices[3*i  ]+2], 1);
+            tempv4f2.set(
+                    positions[3*indices[3*i+1]],
+                    positions[3*indices[3*i+1]+1],
+                    positions[3*indices[3*i+1]+2], 1);
+            tempv4f3.set(
+                    positions[3*indices[3*i+2]],
+                    positions[3*indices[3*i+2]+1],
+                    positions[3*indices[3*i+2]+2], 1);
+
+            //transform that triangle to the screen coordinates
+            tempv4f1.mulProject(MVP);
+            tempv4f2.mulProject(MVP); //transform the points
+            tempv4f3.mulProject(MVP);
+            //if the triangle isn't behind the camera and it touches the point, return true.
+            if(tempv4f1.z < 1.0f && tempv4f2.z < 1.0f && tempv4f3.z < 1.0f && isInside(tempv4f1.x, tempv4f1.y, tempv4f2.x, tempv4f2.y, tempv4f3.x, tempv4f3.y, x, y)) {
+                return true;
+            }
+        }
+        //if the point touches none of the triangles, return false.
+        return false;
+    }
+
+
+    //thanks to https://www.tutorialspoint.com/Check-whether-a-given-point-lies-inside-a-Triangle for the following code:
+    //I adapted it slightly to fit my code better, and to fix a bug related to float precision
+
+    private static double triangleArea(float p1x, float p1y, float p2x, float p2y, float p3x, float p3y) {
+        return Math.abs((p1x * (p2y - p3y) + p2x * (p3y - p1y) + p3x * (p1y - p2y)) / 2.0);
+    }
+
+    private static boolean isInside(float p1x, float p1y, float p2x, float p2y, float p3x, float p3y, float x, float y) {
+        double area = triangleArea (p1x, p1y, p2x, p2y, p3x, p3y) + .0000177;          ///area of triangle ABC //with a tiny bit of extra to avoid issues related to float precision errors
+        double area1 = triangleArea (x, y, p2x, p2y, p3x, p3y);         ///area of PBC
+        double area2 = triangleArea (p1x, p1y, x, y, p3x, p3y);         ///area of APC
+        double area3 = triangleArea (p1x, p1y, p2x, p2y, x, y);        ///area of ABP
+
+        return (area >= area1 + area2 + area3);        ///when three triangles are forming the whole triangle
+        //I changed it to >= because floats cannot be trusted to hold perfectly accurate data,
     }
 
     /**
