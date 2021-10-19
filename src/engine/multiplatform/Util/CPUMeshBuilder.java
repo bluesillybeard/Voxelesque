@@ -51,9 +51,9 @@ public class CPUMeshBuilder {
         float mirror = ((x + z) & 1) - 0.5f; //it's upside down or not (-1 if it needs to be mirrored on the Z axis)
 
         for(int i=0; i<mesh.positions.length/3; i++){
-            this.positions.add(mesh.positions[3 * i    ] / 2f + x/3.465f); //X position
-            this.positions.add(mesh.positions[3 * i + 1] / 2f + y/2f); //Y position
-            this.positions.add(mesh.positions[3 * i + 2] * mirror + z/2f); //z position
+            this.positions.add(mesh.positions[3 * i    ] * 0.5f + x*0.288675134595f); //X position
+            this.positions.add(mesh.positions[3 * i + 1] * 0.5f + y*0.5f); //Y position
+            this.positions.add(mesh.positions[3 * i + 2] * mirror + z*0.5f); //z position
         }
         //STEP TWO: add texture coordinates (these don't change)
         for(float coord: mesh.UVCoords){
