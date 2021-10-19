@@ -117,7 +117,7 @@ public class RenderableChunk {
                     }
                 }
             }
-            //finally, take the buffers and convert them into a renderable form.
+            //finally, take the buffers and convert them into a renderable form. This is the part that will be separated into another place for multithreading
             RenderableEntity[] model = new RenderableEntity[shaderTextures.size()];
             for (int i = 0; i < model.length; i++) {
                 RenderableEntity entity = new RenderableEntity(new GPUMesh(chunkModels.get(i).getMesh()), shaderTextures.get(i).shader, shaderTextures.get(i).texture);
