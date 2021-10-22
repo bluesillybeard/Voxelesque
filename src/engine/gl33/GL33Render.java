@@ -9,6 +9,7 @@ import engine.gl33.render.RenderableEntity;
 import engine.gl33.render.ShaderProgram;
 import engine.gl33.render.Window;
 import engine.multiplatform.Render;
+import engine.multiplatform.Util.AtlasGenerator;
 import engine.multiplatform.Util.SlottedArrayList;
 import engine.multiplatform.Util.Utils;
 import engine.multiplatform.model.CPUMesh;
@@ -37,6 +38,25 @@ public class GL33Render implements Render {
     private String resourcesPath;
     private boolean VSync;
     private final BufferedImage errorImage = new BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB);
+    private final CPUMesh errorMesh = new CPUMesh(new float[]{
+            -1, -1, 0,
+            1, -1, 0,
+            -1, 1, 0,
+            1, 1, 0,
+    },
+            new float[]{
+                    0, 1,
+                    1, 1,
+                    0, 0,
+                    1, 0,
+            },
+            new int[]{
+                    0, 1, 2,
+                    1, 2, 3,
+            },
+            new byte[]{
+
+            },(byte)0);
 
     private final Matrix4f projectionMatrix = new Matrix4f();
     private final Matrix4f viewMatrix = new Matrix4f();
@@ -205,8 +225,7 @@ public class GL33Render implements Render {
      */
     @Override
     public CPUModel[] generateImageAtlas(BufferedImage[] images, CPUMesh[] meshes) {
-        //TODO: implement this one
-        return new CPUModel[0];
+        return AtlasGenerator.generateCPUModels(images, meshes, err);
     }
 
     /**
@@ -219,7 +238,7 @@ public class GL33Render implements Render {
      */
     @Override
     public CPUModel[] generateImageAtlas(CPUModel[] models) {
-        return new CPUModel[0];
+        return AtlasGenerator.generateCPUModels(models, err);
     }
 
     /**
@@ -282,7 +301,7 @@ public class GL33Render implements Render {
             return new CPUModel(vmfLoader.loadVEMF(new File(resourcesPath + "/" + VEMFPath)));
         } catch(Exception e){
             e.printStackTrace(err);
-            return new CPUModel(new CPUMesh(new float[0], new float[0], new int[0]), errorImage);
+            return new CPUModel(errorMesh, errorImage);
         }
     }
 
@@ -299,7 +318,7 @@ public class GL33Render implements Render {
             return new CPUModel(vmfLoader.loadVBMF(new File(resourcesPath + "/" + VBMFPath)));
         } catch(Exception e){
             e.printStackTrace(err);
-            return new CPUModel(new CPUMesh(new float[0], new float[0], new int[0]), errorImage);
+            return new CPUModel(errorMesh, errorImage);
         }
     }
 
@@ -549,10 +568,16 @@ public class GL33Render implements Render {
     public boolean meshOnScreen(CPUMesh mesh, Matrix4f meshTransform, Matrix4f viewMatrix, Matrix4f projectionMatrix, float x, float y) {
         y = -y; //The screen coordinates are mirrored for some reason
 
-        Matrix4f MVP;
-        //todo: allow for any combination of the matrices to be null
-        MVP = projectionMatrix.mul(viewMatrix, tempMat).mul(meshTransform);
-
+        Matrix4f MVP = tempMat;
+        if(projectionMatrix != null){
+            MVP.set(projectionMatrix);
+        }
+        if(viewMatrix != null){
+            MVP.mul(viewMatrix);
+        }
+        if(meshTransform != null){
+            MVP.mul(meshTransform);
+        }
 
         int[] indices = mesh.indices;
         float[] positions = mesh.positions;

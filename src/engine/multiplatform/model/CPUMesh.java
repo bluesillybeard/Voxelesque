@@ -35,8 +35,11 @@ public class CPUMesh {
         this.removableTriangles = loader.getRemovableTriangles();
         this.blockedFaces = loader.getBlockedFaces();
     }
-
     public CPUMesh clone() {
+        try {
+            super.clone();
+            System.err.println("CPUMesh super.clone() didn't throw an exception, meaning it extends a cloneable class");
+        } catch (CloneNotSupportedException ignored) {}
         return new CPUMesh(Arrays.copyOf(positions, positions.length), Arrays.copyOf(UVCoords, UVCoords.length), Arrays.copyOf(indices, indices.length), Arrays.copyOf(removableTriangles, removableTriangles.length), blockedFaces);
     }
 }

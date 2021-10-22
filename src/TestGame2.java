@@ -1,8 +1,10 @@
 import engine.gl33.GL33Render;
 import engine.multiplatform.Render;
+import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
 import org.joml.Vector3f;
 
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -27,13 +29,30 @@ public class TestGame2 {
 
         CPUModel grassVoxel = render.loadBlockModel("VMFModels/grassBlock.vbmf0");
         CPUModel stoneVoxel = render.loadBlockModel("VMFModels/stoneBlock.vbmf0");
-        CPUModel grassBlock = render.loadEntityModel("VMFModels/test2.vemf0");
+
+        CPUModel[] voxels = render.generateImageAtlas(new CPUModel[]{grassVoxel, stoneVoxel});
+        //CPUModel[] voxels = render.generateImageAtlas(new BufferedImage[]{grassVoxel.texture, stoneVoxel.texture}, new CPUMesh[]{grassVoxel.mesh, stoneVoxel.mesh});
+        //the two above lines give exactly identical results AND don't affect the previous models.
+        //If any part of the above comment are false, then the code in GL33Render has failed and needs to be fixed.
+
         int gpuGrassVoxel = render.loadGPUModel(grassVoxel);
         int gpuStoneVoxel = render.loadGPUModel(stoneVoxel);
+        int gpuGrassVoxelAtlas = render.loadGPUModel(voxels[0]);
+        int gpuStoneVoxelAtlas = render.loadGPUModel(voxels[1]);
+
+        CPUModel grassBlock = render.loadEntityModel("VMFModels/test2.vemf0");
         int gpuGrassBlock = render.loadGPUModel(grassBlock);
+
+
 
         int defaultShader = render.loadShaderProgram("Shaders/", "");
         int sillyShader = render.loadShaderProgram("Shaders/", "silly");
+
+        int grassEntity = render.createEntity(gpuGrassVoxel, defaultShader, -5f, 0f,  0f, 0f,  0f, 0f, 1f, 1f, 1f);
+        int stoneEntity = render.createEntity(gpuStoneVoxel, defaultShader, -5f, 1f,  0f, 0f,  0f, 0f, 1f, 1f, 1f);
+        int grassEntityAtlas = render.createEntity(gpuGrassVoxelAtlas, defaultShader, -5f, 2f,  0f, 0f,  0f, 0f, 1f, 1f, 1f);
+        int stoneEntityAtlas = render.createEntity(gpuStoneVoxelAtlas, defaultShader, -5f, 3f,  0f, 0f,  0f, 0f, 1f, 1f, 1f);
+
 
         int entity1 = render.createEntity(gpuGrassBlock, defaultShader, 0f, 10f,  0f, 0f,  1f, 0.5f, 0.5f, 1.0f, 0.5f);
         int entity2 = render.createEntity(gpuGrassBlock, defaultShader, 0f, 10f, -2f, 1f,  1f, 0f,   1.0f, 0.5f, 0.5f);

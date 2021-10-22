@@ -2,7 +2,6 @@ package engine.multiplatform.Util;
 //The code below is a heavily edited version of https://github.com/lukaszdk/texture-atlas-generator
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
-import oldEngine.render.ShaderProgram;
 
 import java.awt.*;
 import java.io.PrintStream;
@@ -17,11 +16,18 @@ public class AtlasGenerator{
      * and uploads all the data to the GPU.
      * the same index of texture and mesh are linked together into a model
      *
+     *
      * @param textures the textures to use.
      * @param meshes the meshes to use.
      * @return the output array of CPUModel.
      */
     public static CPUModel[] generateCPUModels(BufferedImage[] textures, CPUMesh[] meshes, PrintStream print){
+        if(meshes.length != textures.length){
+            throw new IllegalStateException("meshes and textures differ in length.");
+        }
+        for(int i=0; i< meshes.length; i++){
+            meshes[i] = meshes[i].clone();
+        }
         int totalWidth = 0;
         int totalHeight = 0;
         for(BufferedImage tex: textures){
@@ -29,6 +35,30 @@ public class AtlasGenerator{
             totalHeight += tex.getHeight();
         }
         return Run(totalWidth*2, totalHeight*2, 0, true, textures, meshes, print);
+    }
+
+
+    /**
+     * places the textures into an atlas,
+     * creates copies of the meshes and edits their UV coordinates to use the newly generated atlas,
+     * and uploads all the data to the GPU.
+     * the same index of texture and mesh are linked together into a model
+     *
+     * @param models the list of models to be atlassed.
+     * @return the output array of CPUModel.
+     */
+    public static CPUModel[] generateCPUModels(CPUModel[] models, PrintStream print){
+        for(int i=0; i< models.length; i++){
+            models[i] = models[i].clone();
+        }
+        int totalWidth = 0;
+        int totalHeight = 0;
+        for(CPUModel mod: models){
+            BufferedImage tex = mod.texture;
+            totalWidth += tex.getWidth();
+            totalHeight += tex.getHeight();
+        }
+        return Run(totalWidth*2, totalHeight*2, 0, true, models, print);
     }
 
     public static CPUModel[] Run(int width, int height, int padding, boolean ignoreErrors, BufferedImage[] images, CPUMesh[] meshes, PrintStream print)
@@ -56,6 +86,31 @@ public class AtlasGenerator{
         return atlas.Write(width, height, meshes);
     }
 
+
+    public static CPUModel[] Run(int width, int height, int padding, boolean ignoreErrors, CPUModel[] models, PrintStream print)
+    {
+        Set<ImageName> imageNameSet = new TreeSet<>(new ImageNameComparator());
+
+        for(int i=0; i<models.length; i++)
+        {
+            BufferedImage image = models[i].texture;
+            imageNameSet.add(new ImageName(image, i));
+        }
+
+        Texture atlas = new Texture(width, height);
+
+        for(ImageName imageName : imageNameSet)
+        {
+            if(!atlas.AddImage(imageName.image, imageName.index, padding))
+            {
+                if(!ignoreErrors)
+                    throw new RuntimeException("unable to add image " + imageName.index + " to the atlas!");
+                else
+                    print.println("unable to add image " + imageName.index + " to the atlas!");
+            }
+        }
+        return atlas.Write(width, height, models);
+    }
 
     private static class ImageName
     {
@@ -205,6 +260,25 @@ public class AtlasGenerator{
                     meshes[keyVal].UVCoords[2*i+1] = meshes[keyVal].UVCoords[2*i+1]*rh+ry;
                 }
                 out[keyVal] = new CPUModel(meshes[keyVal], this.image);
+            }
+            return out;
+        }
+        public CPUModel[] Write(int width, int height, CPUModel[] models)
+        {
+            CPUModel[] out = new CPUModel[models.length];
+            for(Map.Entry<Integer, Rectangle> UVMapping : rectangleMap.entrySet())
+            {
+                Rectangle rect = UVMapping.getValue();
+                float rx = (float)rect.x/width;
+                float ry = (float)rect.y/height;
+                float rw = (float)rect.width/width;
+                float rh = (float)rect.height/height;
+                int keyVal = UVMapping.getKey();
+                for(int i=0; i<models[keyVal].mesh.UVCoords.length/2; i++){
+                    models[keyVal].mesh.UVCoords[2*i  ] = models[keyVal].mesh.UVCoords[2*i  ]*rw+rx;
+                    models[keyVal].mesh.UVCoords[2*i+1] = models[keyVal].mesh.UVCoords[2*i+1]*rh+ry;
+                }
+                out[keyVal] = new CPUModel(models[keyVal].mesh, this.image);
             }
             return out;
         }
