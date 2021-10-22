@@ -36,7 +36,6 @@ public class GL33Render implements Render {
     private boolean readyToRender;
     private float FOV;
     private String resourcesPath;
-    private boolean VSync;
     private final BufferedImage errorImage = new BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB);
     private final CPUMesh errorMesh = new CPUMesh(new float[]{
             -1, -1, 0,
@@ -64,6 +63,7 @@ public class GL33Render implements Render {
     private final Vector3f cameraPosition = new Vector3f();
     private final Vector3f cameraRotation = new Vector3f();
 
+    //todo: smarter resource management that uses hashes to make sure a GPUTexture, GPUMesh, etc is only created once.
     private final SlottedArrayList<RenderableEntity> renderableEntities = new SlottedArrayList<>();
     private final SlottedArrayList<ShaderProgram> shaderPrograms = new SlottedArrayList<>();
     private final SlottedArrayList<GPUTexture>textures = new SlottedArrayList<>();
@@ -95,7 +95,6 @@ public class GL33Render implements Render {
         try {
             this.window = new Window("Voxelesque engine", width, height, VSync);
             this.resourcesPath = resourcesPath;
-            this.VSync = VSync;
             this.FOV = fov;
             this.warn = warning;
             this.err = error;
@@ -125,7 +124,6 @@ public class GL33Render implements Render {
 
     @Override
     public void setVSync(boolean sync) {
-        this.VSync = sync;
         window.setVSync(sync);
     }
 
@@ -255,7 +253,7 @@ public class GL33Render implements Render {
             return new CPUMesh(vmfLoader.loadVEMF(new File(resourcesPath + "/" + VEMFPath)));
         } catch(Exception e){
             e.printStackTrace(err);
-            return new CPUMesh(new float[0], new float[0], new int[0]);
+            return errorMesh;
         }
     }
 
@@ -272,7 +270,7 @@ public class GL33Render implements Render {
             return new CPUMesh(vmfLoader.loadVBMF(new File(resourcesPath + "/" + VBMFPath)));
         } catch(Exception e){
             e.printStackTrace(err);
-            return new CPUMesh(new float[0], new float[0], new int[0]);
+            return errorMesh;
         }
     }
 
@@ -365,7 +363,8 @@ public class GL33Render implements Render {
      */
     @Override
     public void deleteGPUModel(int model) {
-
+        models.get(model).mesh.cleanUp();
+        models.get(model).texture.cleanUp();
     }
 
     /**
@@ -477,8 +476,22 @@ public class GL33Render implements Render {
      * @return the ID of the new chunk.
      */
     @Override
-    public int spawnChunk(int size, CPUMesh[][][] blocks, int x, int y, int z) {
-        return -1;
+    public int spawnChunk(int size, CPUMesh[][][] blocks, int[][][] textures, int[][][] shaders, int x, int y, int z) {
+        //oh boy, this translation layer between the general GPU texture index
+        // and the GPU texture object is starting to become a nuisance
+        GPUTexture[][][] gpuTextures = new GPUTexture[textures.length][textures[0].length][textures[0][0].length];
+        ShaderProgram[][][] gpuShaders = new ShaderProgram[shaders.length][shaders[0].length][shaders[0][0].length];
+        for(int xp=0; xp<textures.length; xp++){
+            for(int yp=0; yp < textures[xp].length; yp++){
+                for(int zp=0; zp<textures[xp][yp].length; zp++){
+                    gpuTextures[xp][yp][zp] = this.textures.get(textures[xp][yp][zp]);
+                    gpuShaders[xp][yp][zp] = this.shaderPrograms.get(shaders[xp][yp][zp]);
+                }
+            }
+        }
+        RenderableChunk chunk = new RenderableChunk(size, blocks, gpuTextures, gpuShaders, x, y, z);
+        chunk.build(); //todo: multithreaded build priority system
+        return chunks.add(chunk);
     }
 
     /**
@@ -488,22 +501,33 @@ public class GL33Render implements Render {
      * @param blocks a 3D array of blockModel IDs that represent that chunk's block data.
      */
     @Override
-    public void setChunkData(int chunk, CPUMesh[][][] blocks) {
-
+    public void setChunkData(int chunk, CPUMesh[][][] blocks, int[][][] textures, int[][][] shaders) {
+        //oh boy, this translation layer between the general GPU texture index
+        // and the GPU texture object is starting to become a nuisance
+        GPUTexture[][][] gpuTextures = new GPUTexture[textures.length][textures[0].length][textures[0][0].length];
+        ShaderProgram[][][] gpuShaders = new ShaderProgram[shaders.length][shaders[0].length][shaders[0][0].length];
+        for(int xp=0; xp<textures.length; xp++){
+            for(int yp=0; yp < textures[xp].length; yp++){
+                for(int zp=0; zp<textures[xp][yp].length; zp++){
+                    gpuTextures[xp][yp][zp] = this.textures.get(textures[xp][yp][zp]);
+                    gpuShaders[xp][yp][zp] = this.shaderPrograms.get(shaders[xp][yp][zp]);
+                }
+            }
+        }
+        chunks.get(chunk).setData(blocks, gpuTextures, gpuShaders);
+        chunks.get(chunk).build(); //todo: multithreaded build priority system
     }
 
     /**
-     * sets a specific block [z, y, x] of a chunk.
+     * sets a specific block [x, y, z] of a chunk.
      *
      * @param chunk the chunk whose block will be modified
      * @param block the blockModel to be used
-     * @param x
-     * @param y
-     * @param z
      */
     @Override
-    public void setChunkBlock(int chunk, CPUMesh block, int x, int y, int z) {
-
+    public void setChunkBlock(int chunk, CPUMesh block, int texture, int shader, int x, int y, int z) {
+        chunks.get(chunk).setBlock(block, textures.get(texture), shaderPrograms.get(shader), x, y, z);
+        chunks.get(chunk).build(); //todo: multithreaded build priority system
     }
 
     /**
@@ -513,17 +537,18 @@ public class GL33Render implements Render {
      */
     @Override
     public void deleteChunk(int chunk) {
-        //todo: implement chunks properly
+        chunks.get(chunk).clearFromGPU();
+        chunks.remove(chunk);
     }
 
     @Override
     public int getNumChunks() {
-        return 0;
+        return chunks.size();
     }
 
     @Override
     public int getNumChunkSlots() {
-        return 0;
+        return chunks.capacity();
     }
 
     private void updateCameraViewMatrix(){
@@ -738,8 +763,8 @@ public class GL33Render implements Render {
             renderableEntity.render();
         }
         //render each chunk
-        //for (RenderableChunk chunk: chunks){
-        //    chunk.render();
-        //}
+        for (RenderableChunk chunk: chunks){
+            chunk.render();
+        }
     }
 }

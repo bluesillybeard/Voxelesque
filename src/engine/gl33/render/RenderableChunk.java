@@ -29,12 +29,14 @@ public class RenderableChunk {
         this.zPos = zPos;
     }
 
-    public RenderableChunk(int size, CPUMesh[][][] data, int xPos, int yPos, int zPos){
+    public RenderableChunk(int size, CPUMesh[][][] data, GPUTexture[][][] textures, ShaderProgram[][][] shaders, int xPos, int yPos, int zPos){
         if(data.length != size || data[0].length != size || data[0][0].length != size){
             throw new IllegalStateException("a chunk's data cannot be any other size than " + size + "," +
                     "\n but the data given to the constructor has dimensions (" + data.length + ", " + data[0].length + ", " + data[0][0].length + ")");
         }
         this.data = data;
+        this.textures = textures;
+        this.shaders = shaders;
         this.shouldBuild = true;
         this.canRender = false;
         this.size = size;
@@ -43,20 +45,28 @@ public class RenderableChunk {
         this.zPos = zPos;
     }
 
-    public void setData(CPUMesh[][][] data){
-        if(data == null){
-            this.data = null;
-            return;
-        }
-        if(data.length != this.size || data[0].length != this.size || data[0][0].length != this.size){
+    public void setData(CPUMesh[][][] data, GPUTexture[][][] textures, ShaderProgram[][][] shaders){
+        if(data != null && (data.length != this.size || data[0].length != this.size || data[0][0].length != this.size)){
             throw new IllegalStateException("a chunk's data cannot be any other size than " + this.size + "," +
                     " but the data given to the constructor has dimensions (" + data.length + ", " + data[0].length + ", " + data[0][0].length + ")");
         }
+        if(textures != null && (textures.length != this.size || textures[0].length != this.size || textures[0][0].length != this.size)){
+            throw new IllegalStateException("a chunk's data cannot be any other size than " + this.size + "," +
+                    " but the data given to the constructor has dimensions (" + textures.length + ", " + textures[0].length + ", " + textures[0][0].length + ")");
+        }
+        if(shaders != null && (shaders.length != this.size || shaders[0].length != this.size || shaders[0][0].length != this.size)){
+            throw new IllegalStateException("a chunk's data cannot be any other size than " + this.size + "," +
+                    " but the data given to the constructor has dimensions (" + shaders.length + ", " + shaders[0].length + ", " + shaders[0][0].length + ")");
+        }
         this.data = data;
+        this.textures = textures;
+        this.shaders = shaders;
         this.shouldBuild = true;
     }
-    public void setBlock(CPUMesh block, int x, int y, int z){
+    public void setBlock(CPUMesh block, GPUTexture texture, ShaderProgram shader, int x, int y, int z){
         data[x][y][z] = block;
+        textures[x][y][z] = texture;
+        shaders[x][y][z] = shader;
     }
     public void render(){
         if(!canRender) return; //don't render if it can't

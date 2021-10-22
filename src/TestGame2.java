@@ -31,10 +31,8 @@ public class TestGame2 {
         CPUModel stoneVoxel = render.loadBlockModel("VMFModels/stoneBlock.vbmf0");
 
         CPUModel[] voxels = render.generateImageAtlas(new CPUModel[]{grassVoxel, stoneVoxel});
-        //CPUModel[] voxels = render.generateImageAtlas(new BufferedImage[]{grassVoxel.texture, stoneVoxel.texture}, new CPUMesh[]{grassVoxel.mesh, stoneVoxel.mesh});
-        //the two above lines give exactly identical results AND don't affect the previous models.
-        //If any part of the above comment are false, then the code in GL33Render has failed and needs to be fixed.
 
+        int gpuChunkTexture = render.readTexture(voxels[0].texture);
         int gpuGrassVoxel = render.loadGPUModel(grassVoxel);
         int gpuStoneVoxel = render.loadGPUModel(stoneVoxel);
         int gpuGrassVoxelAtlas = render.loadGPUModel(voxels[0]);
@@ -59,6 +57,30 @@ public class TestGame2 {
         int entity3 = render.createEntity(gpuGrassBlock, defaultShader, 0f, 10f, -4f, 0f,  0f, 1f,   0.5f, 0.5f, 1.0f);
         int entity4 = render.createEntity(gpuGrassBlock, sillyShader,  0f, 10f, -6f, 0f,  2f, 0f,   0.5f, 0.5f, 0.5f);
         int entity5 = render.createEntity(gpuGrassBlock, defaultShader, 0, 0, 64, 0, 0, 0, 10, 10, 10);
+
+
+        CPUMesh[][][] randomChunkModels = new CPUMesh[64][64][64];
+        int[][][] randomChunkTextures = new int[64][64][64];
+        int[][][] randomChunkShaders = new int[64][64][64];
+        for(int x = 0; x < randomChunkModels.length; x++){
+            for(int y=0; y<randomChunkModels[x].length; y++){
+                for(int z=0; z<randomChunkModels[x][y].length; z++){
+                    int index = (int)(Math.random()*3-1);
+                    randomChunkModels[x][y][z] = voxels[index].mesh;
+                    randomChunkTextures[x][y][z] = gpuChunkTexture;
+                    randomChunkShaders[x][y][z] = defaultShader;
+
+                }
+            }
+        }
+        for(int x=0; x<8; x++){
+            for(int y=0;y<8;y++){
+                for(int z=0;z<8;z++){
+                    render.spawnChunk(64, randomChunkModels, randomChunkTextures, randomChunkShaders, x, y, z);
+                    System.out.println("created chunk " + x + ", " + y + ", " + z + ";" + render.getNumChunks());
+                }
+            }
+        }
 
 
         double lastStepTime = 0.0;
