@@ -73,9 +73,10 @@ public class TestGame2 {
                 }
             }
         }
-        for(int x=0; x<8; x++){
-            for(int y=0;y<8;y++){
-                for(int z=0;z<8;z++){
+        int renderDistance = 3;
+        for(int x=0; x<renderDistance; x++){
+            for(int y=0;y<renderDistance/2;y++){
+                for(int z=0;z<renderDistance/2;z++){
                     render.spawnChunk(64, randomChunkModels, randomChunkTextures, randomChunkShaders, x, y, z);
                     System.out.println("created chunk " + x + ", " + y + ", " + z + ";" + render.getNumChunks());
                 }

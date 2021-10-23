@@ -490,7 +490,6 @@ public class GL33Render implements Render {
             }
         }
         RenderableChunk chunk = new RenderableChunk(size, blocks, gpuTextures, gpuShaders, x, y, z);
-        chunk.build(); //todo: multithreaded build priority system
         return chunks.add(chunk);
     }
 
@@ -515,7 +514,6 @@ public class GL33Render implements Render {
             }
         }
         chunks.get(chunk).setData(blocks, gpuTextures, gpuShaders);
-        chunks.get(chunk).build(); //todo: multithreaded build priority system
     }
 
     /**
@@ -527,7 +525,6 @@ public class GL33Render implements Render {
     @Override
     public void setChunkBlock(int chunk, CPUMesh block, int texture, int shader, int x, int y, int z) {
         chunks.get(chunk).setBlock(block, textures.get(texture), shaderPrograms.get(shader), x, y, z);
-        chunks.get(chunk).build(); //todo: multithreaded build priority system
     }
 
     /**
@@ -593,15 +590,15 @@ public class GL33Render implements Render {
     public boolean meshOnScreen(CPUMesh mesh, Matrix4f meshTransform, Matrix4f viewMatrix, Matrix4f projectionMatrix, float x, float y) {
         y = -y; //The screen coordinates are mirrored for some reason
 
-        Matrix4f MVP = tempMat;
+        tempMat.identity();
         if(projectionMatrix != null){
-            MVP.set(projectionMatrix);
+            tempMat.set(projectionMatrix);
         }
         if(viewMatrix != null){
-            MVP.mul(viewMatrix);
+            tempMat.mul(viewMatrix);
         }
         if(meshTransform != null){
-            MVP.mul(meshTransform);
+            tempMat.mul(meshTransform);
         }
 
         int[] indices = mesh.indices;
@@ -628,9 +625,9 @@ public class GL33Render implements Render {
                     positions[3*indices[3*i+2]+2], 1);
 
             //transform that triangle to the screen coordinates
-            tempv4f1.mulProject(MVP);
-            tempv4f2.mulProject(MVP); //transform the points
-            tempv4f3.mulProject(MVP);
+            tempv4f1.mulProject(tempMat);
+            tempv4f2.mulProject(tempMat); //transform the points
+            tempv4f3.mulProject(tempMat);
             //if the triangle isn't behind the camera and it touches the point, return true.
             if(tempv4f1.z < 1.0f && tempv4f2.z < 1.0f && tempv4f3.z < 1.0f && isInside(tempv4f1.x, tempv4f1.y, tempv4f2.x, tempv4f2.y, tempv4f3.x, tempv4f3.y, x, y)) {
                 return true;
@@ -740,7 +737,9 @@ public class GL33Render implements Render {
             glViewport(0, 0, window.getWidth(), window.getHeight());
             updateCameraProjectionMatrix();
         }
-
+        for(RenderableChunk c: chunks){
+            c.build();
+        }
         renderFrame();
         window.update();
 

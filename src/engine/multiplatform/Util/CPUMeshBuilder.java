@@ -3,22 +3,36 @@ package engine.multiplatform.Util;
 import engine.multiplatform.model.CPUMesh;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class CPUMeshBuilder {
-    private final ArrayList<Float> positions;
-    private final ArrayList<Float> textureCoordinates;
-    private final ArrayList<Integer> indices;
+    private final List<Float> positions;
+    private final List<Float> textureCoordinates;
+    private final List<Integer> indices;
 
-    public CPUMeshBuilder(){
-        this.positions = new ArrayList<>();
-        this.textureCoordinates = new ArrayList<>();
-        this.indices = new ArrayList<>();
+    public CPUMeshBuilder(boolean sync){
+        if(!sync) {
+            this.positions = new ArrayList<>();
+            this.textureCoordinates = new ArrayList<>();
+            this.indices = new ArrayList<>();
+        } else {
+            this.positions = Collections.synchronizedList(new ArrayList<>(2000));
+            this.textureCoordinates = Collections.synchronizedList(new ArrayList<>(2000));
+            this.indices = Collections.synchronizedList(new ArrayList<>(2000));
+        }
     }
 
-    public CPUMeshBuilder(int initialCapacity){
-        this.positions = new ArrayList<>(initialCapacity);
-        this.textureCoordinates = new ArrayList<>(initialCapacity);
-        this.indices = new ArrayList<>(initialCapacity);
+    public CPUMeshBuilder(int initialCapacity, boolean sync){
+        if(!sync) {
+            this.positions = new ArrayList<>(initialCapacity);
+            this.textureCoordinates = new ArrayList<>(initialCapacity);
+            this.indices = new ArrayList<>(initialCapacity);
+        } else {
+            this.positions = Collections.synchronizedList(new ArrayList<>(initialCapacity));
+            this.textureCoordinates = Collections.synchronizedList(new ArrayList<>(initialCapacity));
+            this.indices = Collections.synchronizedList(new ArrayList<>(initialCapacity));
+        }
     }
 
     public void addBlockMeshToChunk(CPUMesh mesh, int x, int y, int z){
