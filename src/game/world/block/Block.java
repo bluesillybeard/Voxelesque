@@ -1,5 +1,6 @@
 package game.world.block;
 
+import engine.multiplatform.model.CPUModel;
 import game.world.World;
 
 public interface Block {
@@ -14,5 +15,5 @@ public interface Block {
     void onDestroy(int x, int y, int z, World world);
 
     String getID();
-    int getMesh();
+    CPUModel getModel();
 }

@@ -21,7 +21,6 @@ public class RenderableChunk {
     private List<CPUMeshBuilder> chunkModels = Collections.synchronizedList(new ArrayList<>());
     private List<ShaderTexture> shaderTextures = Collections.synchronizedList(new ArrayList<>()); //this is why I love (and hate) java
     private CompletableFuture<Void> future;
-    private double lastResend;
 
     boolean shouldBuild;
     boolean canRender;
@@ -79,11 +78,7 @@ public class RenderableChunk {
     public void render(){
 
         //if the build thread finished building
-        if(future != null){
-            System.out.println(future);
-        }
         if(future != null && future.isDone()) {
-            System.out.println("sending (" + xPos + ", " + yPos + ", " + zPos +  ") to GPU");
             future = null;
 
             if (canRender) clearFromGPU(); //clear the previous model to avoid memory leaks.

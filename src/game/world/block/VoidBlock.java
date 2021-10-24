@@ -1,5 +1,6 @@
 package game.world.block;
 
+import engine.multiplatform.model.CPUModel;
 import game.world.World;
 
 public class VoidBlock implements Block{
@@ -15,7 +16,7 @@ public class VoidBlock implements Block{
     }
 
     @Override
-    public int getMesh() {
-        return 0;
+    public CPUModel getModel() {
+        return null;
     }
 }

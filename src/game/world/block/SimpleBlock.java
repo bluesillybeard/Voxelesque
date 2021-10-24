@@ -4,6 +4,8 @@ import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlMapping;
 import com.amihaiemil.eoyaml.YamlNode;
 import com.amihaiemil.eoyaml.YamlStream;
+import engine.multiplatform.model.CPUMesh;
+import engine.multiplatform.model.CPUModel;
 import game.GlobalBits;
 import game.world.World;
 
@@ -16,12 +18,12 @@ import java.util.List;
 public class SimpleBlock implements Block {
     String id;
     String modID;
-    int mesh;
+    CPUModel model;
 
-    public SimpleBlock(String id, String modID, int mesh){
+    public SimpleBlock(String id, String modID, CPUModel model){
         this.id = id;
         this.modID = modID;
-        this.mesh = mesh;
+        this.model = model;
     }
 
     @Override
@@ -35,8 +37,8 @@ public class SimpleBlock implements Block {
     }
 
     @Override
-    public int getMesh() {
-        return mesh;
+    public CPUModel getModel() {
+        return model;
     }
 
     public static List<Block> generateBlocks(String pathToResources, String pathToBlockRegistry, String modID) {
@@ -48,9 +50,9 @@ public class SimpleBlock implements Block {
                 String id = blockMaps.string("id");
                 //String name = blockMaps.string("name");
                 String modelPath = blockMaps.string("model");
-                int mesh = -1;
+                CPUModel mesh = null;
                 if(!modelPath.equals("voido")) {
-                    mesh = GlobalBits.render.addBlockMesh(modelPath);
+                    mesh = GlobalBits.render.loadBlockModel(modelPath);
                 }
                 blocks.add(new SimpleBlock(id, modID, mesh));
             }

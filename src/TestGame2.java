@@ -22,7 +22,7 @@ public class TestGame2 {
 
     public static void main(String[] args) {
         Render render = new GL33Render();
-        if(!render.init(800, 600, args[0], true, System.err, System.err, System.out, (float)Math.toRadians(80))){
+        if(!render.init("Voxelesque Engine Test Game", 800, 600, args[0], true, System.err, System.err, System.out, (float)Math.toRadians(80))){
             System.err.println("Unable to initialize render");
             System.exit(-1);
         }
@@ -73,7 +73,7 @@ public class TestGame2 {
                 }
             }
         }
-        int renderDistance = 4;
+        int renderDistance = 6;
         for(int x=0; x<renderDistance; x++){
             for(int y=0;y<renderDistance/2;y++){
                 for(int z=0;z<renderDistance/2;z++){

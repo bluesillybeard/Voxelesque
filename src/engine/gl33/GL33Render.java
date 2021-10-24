@@ -91,9 +91,9 @@ public class GL33Render implements Render {
      * @return false if something went wrong, true if all is good.
      */
     @Override
-    public boolean init(int width, int height, String resourcesPath, boolean VSync, PrintStream warning, PrintStream error, PrintStream debug, float fov) {
+    public boolean init(String title, int width, int height, String resourcesPath, boolean VSync, PrintStream warning, PrintStream error, PrintStream debug, float fov) {
         try {
-            this.window = new Window("Voxelesque engine", width, height, VSync);
+            this.window = new Window(title, width, height, VSync);
             this.resourcesPath = resourcesPath;
             this.FOV = fov;
             this.warn = warning;

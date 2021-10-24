@@ -1,7 +1,5 @@
 package VMF;
 
-import oldEngine.model.Texture;
-
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -58,11 +56,6 @@ public class VMFLoader {
         }
         t = null;
         return texCords;
-    }
-    public Texture getTexture(){
-        InputStream inStream = new ByteArrayInputStream(tex);
-        //can't delete tex because it is used in the InputStream.
-        return new Texture(inStream);
     }
 
     public BufferedImage getImage() throws IOException {
