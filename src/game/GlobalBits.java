@@ -8,11 +8,16 @@ import org.joml.Vector3f;
 import java.util.ArrayList;
 
 public class GlobalBits {
-    public static Render render;
-    public static Vector3f playerPosition;
+    //technical bits
     public static int renderDistance;
-    public static ArrayList<Block> blocks;
     public static String resourcesPath;
-    public static final Block voidBlock = new VoidBlock();
+    public static Render render;
+    public static Vector3f tempV3f;
+    //player bits
+    public static Vector3f playerPosition;
+    public static Vector3f playerRotation;
+    public static double sensitivity;
+    //blocks
+    public static ArrayList<Block> blocks;
 
 }
