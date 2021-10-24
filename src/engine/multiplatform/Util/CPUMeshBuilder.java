@@ -87,6 +87,8 @@ public class CPUMeshBuilder {
     }
 
     public CPUMesh getMesh(){
+
+
         float[] positions = new float[this.positions.size()];
         float[] textureCoordinates = new float[this.textureCoordinates.size()];
         int[] indices = new int[this.indices.size()];

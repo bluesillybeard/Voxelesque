@@ -73,7 +73,7 @@ public class TestGame2 {
                 }
             }
         }
-        int renderDistance = 3;
+        int renderDistance = 4;
         for(int x=0; x<renderDistance; x++){
             for(int y=0;y<renderDistance/2;y++){
                 for(int z=0;z<renderDistance/2;z++){

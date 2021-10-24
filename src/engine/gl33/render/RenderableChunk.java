@@ -20,8 +20,9 @@ public class RenderableChunk {
     //building multithreading
     private List<CPUMeshBuilder> chunkModels = Collections.synchronizedList(new ArrayList<>());
     private List<ShaderTexture> shaderTextures = Collections.synchronizedList(new ArrayList<>()); //this is why I love (and hate) java
+    private CompletableFuture<Void> future;
+    private double lastResend;
 
-    boolean doneBuilding = false;
     boolean shouldBuild;
     boolean canRender;
 
@@ -76,15 +77,20 @@ public class RenderableChunk {
         shaders[x][y][z] = shader;
     }
     public void render(){
+
         //if the build thread finished building
-        if(doneBuilding && !chunkModels.isEmpty()) {
+        if(future != null){
+            System.out.println(future);
+        }
+        if(future != null && future.isDone()) {
             System.out.println("sending (" + xPos + ", " + yPos + ", " + zPos +  ") to GPU");
-            System.out.println(/*chunkModels + ", " + shaderTextures + ", " + */doneBuilding + ", " + !chunkModels.isEmpty());
+            future = null;
 
             if (canRender) clearFromGPU(); //clear the previous model to avoid memory leaks.
             RenderableEntity[] model = new RenderableEntity[shaderTextures.size()];
             for (int i = 0; i < model.length; i++) {
-                RenderableEntity entity = new RenderableEntity(new GPUMesh(chunkModels.get(i).getMesh()), shaderTextures.get(i).shader, shaderTextures.get(i).texture);
+                GPUMesh gpuMesh = new GPUMesh(chunkModels.get(i).getMesh());
+                RenderableEntity entity = new RenderableEntity(gpuMesh, shaderTextures.get(i).shader, shaderTextures.get(i).texture);
                 entity.setPosition(this.xPos * this.size * 0.288675134595f, this.yPos * this.size * 0.5f, this.zPos * this.size * 0.5f);
                 entity.setScale(1, 1, 1);
                 model[i] = entity;
@@ -111,11 +117,9 @@ public class RenderableChunk {
     }
 
     public void build() {
-        //todo: multithreading
         if (this.shouldBuild) {
-            doneBuilding = false;
-            CompletableFuture.runAsync(() -> {
-                this.shouldBuild = false;
+            this.shouldBuild = false;
+            this.future = CompletableFuture.runAsync(() -> {
                 chunkModels.clear();
                 shaderTextures.clear();
                 ShaderTexture TSP = new ShaderTexture();
@@ -136,11 +140,12 @@ public class RenderableChunk {
                             }
                             //cloning, index removal, and vertex position modification done within the BlockMeshBuilder
                             chunkModels.get(shaderTextureIndex).addBlockMeshToChunk(block, x, y, z, this.getBlockedFaces(x, y, z));
+
                         }
                     }
                 }
-                doneBuilding = true;
             });
+
         /*
         an overview of how chunk building works:
         initialize a list of shaders and models
@@ -196,6 +201,10 @@ public class RenderableChunk {
         return blockedFaces;
     }
 
+    //private static class BuildReturner{
+    //    public List<CPUMeshBuilder> meshBuilders;
+    //    public List<ShaderTexture> shaderTextures;
+    //}
 
     private static class ShaderTexture{
         public ShaderProgram shader;
