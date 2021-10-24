@@ -1,5 +1,6 @@
 package game.world;
 
+import game.GlobalBits;
 import game.data.nbt.NBTFolder;
 import game.data.vector.IntegerVector3f;
 import game.misc.StaticUtils;
@@ -45,13 +46,28 @@ public class World {
         chunks.remove(new IntegerVector3f(x, y, z));
     }
 
-    public void unloadChunks(Vector3f pos, float distance){
-        chunks.entrySet().removeIf(entry -> StaticUtils.getDistance(pos, new Vector3f(entry.getKey().x, entry.getKey().y, entry.getKey().z)) > distance);
-        //remove all the chunks that are further from the point than specified in the distance.
+    private boolean chunkShouldUnload(int cx, int cy, int cz, int px, int py, int pz){
+        return false; //todo: do something about this
     }
 
     public void updateChunks(){
+        //chunks.entrySet().removeIf(entry ->
+        //        chunkShouldUnload(entry.getKey().x, entry.getKey().y, entry.getKey().z,
+        //                (int)GlobalBits.playerPosition.x, (int)GlobalBits.playerPosition.y, (int)GlobalBits.playerPosition.z));
+        for(int x=0; x<GlobalBits.renderDistance; x++){
+            for(int y=0;y<GlobalBits.renderDistance/2;y++){
+                for(int z=0;z<GlobalBits.renderDistance/2;z++){
+                    updateChunk(x, y, z);
+                }
+            }
+        }
 
+    }
+
+    private void updateChunk(int x, int y, int z){
+        if(!chunks.containsKey(new IntegerVector3f(x, y, z))){
+            loadChunk(x, y, z);
+        }
     }
 
 
@@ -60,13 +76,17 @@ public class World {
      * note: uses xyz chunk coordinates
      */
     public void loadChunk(int x, int y, int z){
+        if(chunks.containsKey(new IntegerVector3f(x, y, z))){
+            return;
+        }
         //todo: actual world generation and world saves
         Chunk chunk;
         if(y > 0){
             chunk = new Chunk(64);
         } else {
-            chunk = randomChunk(null);
+            chunk = randomChunk(GlobalBits.blocks);
         }
+        chunks.put(new IntegerVector3f(x, y, z), chunk);
     }
 
     private Chunk randomChunk(List<Block> blocks){

@@ -11,15 +11,17 @@ import java.util.List;
 public class Main {
     public static void main(String[] args) {
         Render render = new GL33Render();
-        if (!render.init("Voxelesque Engine Test Game", 800, 600, args[0], true, System.err, System.err, System.out, (float) Math.toRadians(80))) {
+        if (render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(80))) {
             GlobalBits.resourcesPath = System.getProperty("user.dir") + "/resources";
             render.setResourcesPath(GlobalBits.resourcesPath);
             GlobalBits.render = render;
             GlobalBits.playerPosition = new Vector3f();
-            GlobalBits.renderDistance = 6f;
+            GlobalBits.renderDistance = 6;
 
-            List<Block> blocks = SimpleBlock.generateBlocks("/home/bluesillybeard/IdeaProjects/Voxelesque/resources", "/home/bluesillybeard/IdeaProjects/Voxelesque/resources/BlockRegistry/voxelesque/blocks.yaml", "voxelesque");
-            System.out.println(blocks);
+            GlobalBits.blocks = SimpleBlock.generateBlocks(GlobalBits.resourcesPath, "BlockRegistry/voxelesque/blocks.yaml", "voxelesque");
+            System.out.println(GlobalBits.blocks);
+        } else {
+            System.err.println("Unable to initialize Voxelesque engine");
         }
     }
 }

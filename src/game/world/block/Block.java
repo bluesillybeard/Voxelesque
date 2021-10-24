@@ -12,8 +12,9 @@ public interface Block {
     The reason for this is to allow for data-oriented systems, so a class can be instantiated into different kinds of blocks.
 
      */
-    void onDestroy(int x, int y, int z, World world);
-
+    void destroy(int x, int y, int z, World world);
+    void place(int x, int y, int z, World world);
     String getID();
     CPUModel getModel();
+
 }

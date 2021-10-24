@@ -5,7 +5,6 @@ import game.world.block.Block;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.WeakHashMap;
 
 public class Chunk {
     private final int size;
