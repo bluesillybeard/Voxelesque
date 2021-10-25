@@ -82,21 +82,21 @@ public class World {
         //todo: actual world generation and world saves
         Chunk chunk;
         if(y > 0){
-            chunk = new Chunk(64);
+            chunk = new Chunk(64, x, y, z);
         } else {
-            chunk = randomChunk(GlobalBits.blocks);
+            chunk = randomChunk(GlobalBits.blocks, x, y, z);
         }
         chunks.put(new IntegerVector3f(x, y, z), chunk);
     }
 
-    private Chunk randomChunk(List<Block> blocks){
-        Chunk newChunk = new Chunk(64);
-        for(int x = 0; x < 64; x++){
-            for(int y = 0; y < 64; y++){
-                for(int z = 0; z < 64; z++){
+    private Chunk randomChunk(List<Block> blocks, int x, int y, int z){
+        Chunk newChunk = new Chunk(64, x, y, z);
+        for(int xp = 0; xp < 64; xp++){
+            for(int yp = 0; yp < 64; yp++){
+                for(int zp = 0; zp < 64; zp++){
                     int random = (int) (Math.random()*blocks.size());
-                    newChunk.setBlock(x, y, z, blocks.get(random));
-                    newChunk.setBlockNBT(x, y, z, new NBTFolder("block"));
+                    newChunk.setBlock(xp, yp, zp, blocks.get(random));
+                    newChunk.setBlockNBT(xp, yp, zp, new NBTFolder("block"));
                 }
             }
         }

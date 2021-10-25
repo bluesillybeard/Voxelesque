@@ -7,6 +7,7 @@ import java.awt.*;
 import java.io.PrintStream;
 import java.util.*;
 import java.awt.image.*;
+import java.util.List;
 
 public class AtlasGenerator{
 
@@ -59,6 +60,59 @@ public class AtlasGenerator{
             totalHeight += tex.getHeight();
         }
         return Run(totalWidth*2, totalHeight*2, 0, true, models, print);
+    }
+    /**
+     * places the textures into an atlas,
+     * creates copies of the meshes and edits their UV coordinates to use the newly generated atlas,
+     * and uploads all the data to the GPU.
+     * the same index of texture and mesh are linked together into a model
+     *
+     *
+     * @param textures the textures to use.
+     * @param meshes the meshes to use.
+     * @return the output array of CPUModel.
+     */
+    public static List<CPUModel> generateCPUModels(List<BufferedImage> textures, List<CPUMesh> meshes, PrintStream print){
+        if(meshes.size() != textures.size()){
+            throw new IllegalStateException("meshes and textures differ in length.");
+        }
+        CPUMesh[] newMeshes = new CPUMesh[meshes.size()];
+        for(int i=0; i< meshes.size(); i++){
+            newMeshes[i] = meshes.get(i).clone();
+        }
+        int totalWidth = 0;
+        int totalHeight = 0;
+        for(BufferedImage mod: textures){
+            totalWidth += mod.getWidth();
+            totalHeight += mod.getHeight();
+        }
+        return Arrays.asList(Run(totalWidth*2, totalHeight*2, 0, true, textures.toArray(new BufferedImage[0]), newMeshes, print));
+    }
+
+
+    /**
+     * places the textures into an atlas,
+     * creates copies of the meshes and edits their UV coordinates to use the newly generated atlas,
+     * and uploads all the data to the GPU.
+     * the same index of texture and mesh are linked together into a model
+     *
+     * @param models the list of models to be atlassed.
+     * @return the output array of CPUModel.
+     */
+    public static List<CPUModel> generateCPUModels(List<CPUModel> models, PrintStream print){
+        CPUModel[] newModels = new CPUModel[models.size()];
+        for(int i=0; i< models.size(); i++){
+            newModels[i] = models.get(i).clone();
+        }
+        int totalWidth = 0;
+        int totalHeight = 0;
+        for(CPUModel mod: models){
+            BufferedImage tex = mod.texture;
+            totalWidth += tex.getWidth();
+            totalHeight += tex.getHeight();
+        }
+        return Arrays.asList(Run(totalWidth*2, totalHeight*2, 0, true, newModels, print));
+
     }
 
     public static CPUModel[] Run(int width, int height, int padding, boolean ignoreErrors, BufferedImage[] images, CPUMesh[] meshes, PrintStream print)

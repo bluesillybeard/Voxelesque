@@ -1,13 +1,14 @@
 package game;
 
 import engine.gl33.GL33Render;
+import game.world.World;
 import game.world.block.SimpleBlock;
 import org.joml.Vector3f;
 
 
 import static game.GlobalBits.*;
 import static org.lwjgl.glfw.GLFW.*;
-
+//todo: Main class is awful, fix this atrocity.
 public class Main {
     private static double lastMouseYPos = 0;
     private static double lastMouseXPos = 0;
@@ -22,10 +23,12 @@ public class Main {
             playerPosition = new Vector3f();
             playerRotation = new Vector3f();
             sensitivity = 1;
-
+            GlobalBits.defaultShader = render.loadShaderProgram("Shaders/", "");
             GlobalBits.blocks = SimpleBlock.generateBlocks(GlobalBits.resourcesPath, "BlockRegistry/voxelesque/blocks.yaml", "voxelesque");
             System.out.println(GlobalBits.blocks);
+            World world = new World();
             do{
+                updateWorld(world);
                 updateCameraPos();
                 render.render();
             }while(!render.shouldClose());
@@ -34,6 +37,10 @@ public class Main {
         }
         System.out.println("EXIT");
 
+    }
+
+    private static void updateWorld(World world){
+        world.updateChunks();
     }
 
     private static void updateCameraPos(){

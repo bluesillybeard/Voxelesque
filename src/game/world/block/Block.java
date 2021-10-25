@@ -1,5 +1,6 @@
 package game.world.block;
 
+import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
 import game.world.World;
 
@@ -15,6 +16,8 @@ public interface Block {
     void destroy(int x, int y, int z, World world);
     void place(int x, int y, int z, World world);
     String getID();
-    CPUModel getModel();
+    CPUMesh getMesh();
+    int getTexture();
+    int getShader();
 
 }

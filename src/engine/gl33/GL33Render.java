@@ -22,6 +22,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.PrintStream;
+import java.util.List;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -239,6 +240,34 @@ public class GL33Render implements Render {
         return AtlasGenerator.generateCPUModels(models, err);
     }
 
+
+    /**
+     * combines textures into an atlas and transforms the texture coordinates of the meshes to use the atlas,
+     * then generates a correspinding list of CPUModels, each having a transformed mesh and texture atlas.
+     * The indices of each list correspond to the others:
+     * index n of the images and index n of the meshes will end up in index n of the output list.
+     *
+     * @param images the input images
+     * @param meshes the input meshes - they won't be modified, instead copies will be made and the copies modified.
+     * @return the output list of models that all use the same texture.
+     */
+    @Override
+    public List<CPUModel> generateImageAtlas(List<BufferedImage> images, List<CPUMesh> meshes) {
+        return AtlasGenerator.generateCPUModels(images, meshes, err);
+    }
+
+    /**
+     * This is highly advised to use on models for blocks, as chunks need an entire draw call per texture they use.
+     * combines all the textures of the models into a single atlas, and modifies the texture coordinates of each model to use that atlas.
+     * The original models are not modified, as they are copied and the copies are modified.
+     *
+     * @param models the models to create the atlas.
+     * @return the output list of models that all use the same texture.
+     */
+    @Override
+    public List<CPUModel> generateImageAtlas(List<CPUModel> models) {
+        return AtlasGenerator.generateCPUModels(models, err);
+    }
     /**
      * loads a CPUMesh from a .VEMF0 file.
      * Note that this can also load a VBMF file, but the block-specific data won't be loaded into the mesh.
