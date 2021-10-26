@@ -19,8 +19,8 @@ public class RenderableChunk {
     private RenderableEntity[] chunkModel;
 
     //building multithreading
-    private List<CPUMeshBuilder> chunkModels = Collections.synchronizedList(new ArrayList<>());
-    private List<ShaderTexture> shaderTextures = Collections.synchronizedList(new ArrayList<>()); //this is why I love (and hate) java
+    private List<CPUMeshBuilder> chunkModels = new ArrayList<>();
+    private List<ShaderTexture> shaderTextures = new ArrayList<>();
     private CompletableFuture<Void> future;
 
     boolean shouldBuild;
@@ -76,10 +76,14 @@ public class RenderableChunk {
         textures[x][y][z] = texture;
         shaders[x][y][z] = shader;
     }
-    public void render(){
+
+    public boolean attemptGPUUpload(){
+        if(future == null){
+            return false;
+        }
 
         //if the build thread finished building
-        if(future != null && future.isDone()) {
+        if(future.isDone()) {
             future = null;
             System.out.println("chunk (" + xPos + ", " + yPos + ", " + zPos + ")");
             if (canRender) clearFromGPU(); //clear the previous model to avoid memory leaks.
@@ -96,7 +100,12 @@ public class RenderableChunk {
             chunkModels = Collections.synchronizedList(new ArrayList<>());
             shaderTextures = Collections.synchronizedList(new ArrayList<>());
             this.canRender = true;
+            return true;
         }
+        return false;
+    }
+
+    public void render(){
         if(!canRender) return; //don't render if it can't
         for(RenderableEntity entity: chunkModel){
             entity.render(); //the entities positions are already set to the right place in the build method
@@ -115,9 +124,7 @@ public class RenderableChunk {
             if(future != null){
                 try {
                     future.get();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
+                } catch (ExecutionException | InterruptedException e) {
                     e.printStackTrace();
                 }
             }
@@ -208,11 +215,6 @@ public class RenderableChunk {
         }
         return blockedFaces;
     }
-
-    //private static class BuildReturner{
-    //    public List<CPUMeshBuilder> meshBuilders;
-    //    public List<ShaderTexture> shaderTextures;
-    //}
 
     private static class ShaderTexture{
         public ShaderProgram shader;
