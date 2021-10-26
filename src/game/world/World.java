@@ -83,7 +83,6 @@ public class World {
     }
 
     public void unloadChunk(Vector3i chunk){
-        System.out.println("unloading chunk " + chunk);
         chunks.get(chunk).unload();
         chunks.remove(chunk);
         //todo: world saves
@@ -97,7 +96,6 @@ public class World {
         if(chunks.containsKey(new Vector3i(x, y, z))){
             return;
         }
-        System.out.println("loading chunk (" + x + ", " + y + ", " + z + ")");
         //todo: actual world generation and world saves
         Chunk chunk;
         if(y > -1){

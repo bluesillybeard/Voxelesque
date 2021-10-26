@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 public class RenderableChunk {
     private final int xPos, yPos, zPos;
@@ -80,7 +81,7 @@ public class RenderableChunk {
         //if the build thread finished building
         if(future != null && future.isDone()) {
             future = null;
-            System.out.println("place chunk at (" + xPos + ", " + yPos + ", " + zPos + ")");
+            System.out.println("chunk (" + xPos + ", " + yPos + ", " + zPos + ")");
             if (canRender) clearFromGPU(); //clear the previous model to avoid memory leaks.
             RenderableEntity[] model = new RenderableEntity[shaderTextures.size()];
             for (int i = 0; i < model.length; i++) {
@@ -106,9 +107,19 @@ public class RenderableChunk {
      * clears the vertex data from the GPU.
      */
     public void clearFromGPU(){
-        if(future == null) { //if it isn't actively building
+        if(this.chunkModel != null) { //if it isn't actively building
             for (RenderableEntity entity : this.chunkModel) {
                 entity.getModel().mesh.cleanUp();//DON'T clear the texture.
+            }
+        } else {
+            if(future != null){
+                try {
+                    future.get();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

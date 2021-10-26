@@ -22,7 +22,10 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.PrintStream;
+import java.util.ArrayDeque;
 import java.util.List;
+import java.util.Queue;
+import java.util.Stack;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -71,6 +74,7 @@ public class GL33Render implements Render {
     private final SlottedArrayList<GPUMesh> meshes = new SlottedArrayList<>();
     private final SlottedArrayList<GPUModel> models = new SlottedArrayList<>();
     private final SlottedArrayList<RenderableChunk> chunks = new SlottedArrayList<>();
+    private final Stack<RenderableChunk> chunkBuildQueue = new Stack<>();
 
     private final VMFLoader vmfLoader = new VMFLoader();
 
@@ -519,6 +523,7 @@ public class GL33Render implements Render {
             }
         }
         RenderableChunk chunk = new RenderableChunk(size, blocks, gpuTextures, gpuShaders, x, y, z);
+        chunkBuildQueue.push(chunk);
         return chunks.add(chunk);
     }
 
@@ -542,6 +547,7 @@ public class GL33Render implements Render {
                 }
             }
         }
+        chunkBuildQueue.push(chunks.get(chunk));
         chunks.get(chunk).setData(blocks, gpuTextures, gpuShaders);
     }
 
@@ -553,6 +559,7 @@ public class GL33Render implements Render {
      */
     @Override
     public void setChunkBlock(int chunk, CPUMesh block, int texture, int shader, int x, int y, int z) {
+        chunkBuildQueue.push(chunks.get(chunk));
         chunks.get(chunk).setBlock(block, textures.get(texture), shaderPrograms.get(shader), x, y, z);
     }
 
@@ -565,6 +572,7 @@ public class GL33Render implements Render {
     public void deleteChunk(int chunk) {
         chunks.get(chunk).clearFromGPU();
         chunks.remove(chunk);
+        chunkBuildQueue.remove(chunks.get(chunk));
     }
 
     @Override
@@ -766,9 +774,9 @@ public class GL33Render implements Render {
             glViewport(0, 0, window.getWidth(), window.getHeight());
             updateCameraProjectionMatrix();
         }
-        for(RenderableChunk c: chunks){
-            c.build();
-        }
+        //if(!chunkBuildQueue.isEmpty()){
+            chunkBuildQueue.pop().build();
+        //}
         renderFrame();
         window.update();
 
