@@ -5,10 +5,6 @@ import engine.gl33.model.GPUTexture;
 import engine.multiplatform.Util.CPUMeshBuilder;
 import engine.multiplatform.model.CPUMesh;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 public class RenderableChunk {
     private final int xPos, yPos, zPos;
@@ -17,25 +13,12 @@ public class RenderableChunk {
     private ShaderProgram[][][] shaders;
     private final int size;
     private RenderableEntity[] chunkModel;
+    private boolean canRender;
 
-    //building multithreading
-    private List<CPUMeshBuilder> chunkModels = new ArrayList<>();
-    private List<ShaderTexture> shaderTextures = new ArrayList<>();
-    private CompletableFuture<Void> future;
+    private final ArrayList<CPUMeshBuilder> chunkModels = new ArrayList<>();
+    private final ArrayList<ShaderTexture> shaderTextures = new ArrayList<>();
 
-    boolean shouldBuild;
-    boolean canRender;
-
-    public RenderableChunk(int size, int xPos, int yPos, int zPos){
-        this.data = new CPUMesh[size][size][size];
-        this.shaders = new ShaderProgram[size][size][size];
-        this.shouldBuild = false;
-        this.canRender = false;
-        this.size = size;
-        this.xPos = xPos;
-        this.yPos = yPos;
-        this.zPos = zPos;
-    }
+    public boolean taskRunning;
 
     public RenderableChunk(int size, CPUMesh[][][] data, GPUTexture[][][] textures, ShaderProgram[][][] shaders, int xPos, int yPos, int zPos){
         if(data.length != size || data[0].length != size || data[0][0].length != size){
@@ -45,8 +28,8 @@ public class RenderableChunk {
         this.data = data;
         this.textures = textures;
         this.shaders = shaders;
-        this.shouldBuild = true;
         this.canRender = false;
+        taskRunning = false;
         this.size = size;
         this.xPos = xPos;
         this.yPos = yPos;
@@ -69,42 +52,12 @@ public class RenderableChunk {
         this.data = data;
         this.textures = textures;
         this.shaders = shaders;
-        this.shouldBuild = true;
     }
     public void setBlock(CPUMesh block, GPUTexture texture, ShaderProgram shader, int x, int y, int z){
         data[x][y][z] = block;
         textures[x][y][z] = texture;
         shaders[x][y][z] = shader;
     }
-
-    public boolean attemptGPUUpload(){
-        if(future == null){
-            return false;
-        }
-
-        //if the build thread finished building
-        if(future.isDone()) {
-            future = null;
-            System.out.println("chunk (" + xPos + ", " + yPos + ", " + zPos + ")");
-            if (canRender) clearFromGPU(); //clear the previous model to avoid memory leaks.
-            RenderableEntity[] model = new RenderableEntity[shaderTextures.size()];
-            for (int i = 0; i < model.length; i++) {
-                GPUMesh gpuMesh = new GPUMesh(chunkModels.get(i).getMesh());
-                RenderableEntity entity = new RenderableEntity(gpuMesh, shaderTextures.get(i).shader, shaderTextures.get(i).texture);
-                entity.setPosition(this.xPos * this.size * 0.288675134595f, this.yPos * this.size * 0.5f, this.zPos * this.size * 0.5f);
-                entity.setScale(1, 1, 1);
-                model[i] = entity;
-            }
-
-            this.chunkModel = model;
-            chunkModels = Collections.synchronizedList(new ArrayList<>());
-            shaderTextures = Collections.synchronizedList(new ArrayList<>());
-            this.canRender = true;
-            return true;
-        }
-        return false;
-    }
-
     public void render(){
         if(!canRender) return; //don't render if it can't
         for(RenderableEntity entity: chunkModel){
@@ -116,51 +69,36 @@ public class RenderableChunk {
      * clears the vertex data from the GPU.
      */
     public void clearFromGPU(){
-        if(this.chunkModel != null) { //if it isn't actively building
+        if(this.chunkModel != null) {
             for (RenderableEntity entity : this.chunkModel) {
                 entity.getModel().mesh.cleanUp();//DON'T clear the texture.
-            }
-        } else {
-            if(future != null){
-                try {
-                    future.get();
-                } catch (ExecutionException | InterruptedException e) {
-                    e.printStackTrace();
-                }
             }
         }
     }
 
+    public boolean sendToGPU(){
+        if(taskRunning){
+            return false;
+        } else if(chunkModels.size() > 0){
+            System.out.println("sending " + xPos + ", " + yPos + ", " + zPos);
+            if(canRender)clearFromGPU();
+            RenderableEntity[] model = new RenderableEntity[shaderTextures.size()];
+            for (int i = 0; i < model.length; i++) {
+                RenderableEntity entity = new RenderableEntity(new GPUMesh(chunkModels.get(i).getMesh()), shaderTextures.get(i).shader, shaderTextures.get(i).texture);
+                entity.setPosition(this.xPos * this.size * 0.288675134595f, this.yPos * this.size * 0.5f, this.zPos * this.size * 0.5f);
+                entity.setScale(1, 1, 1);
+                model[i] = entity;
+            }
+            chunkModels.clear();
+            shaderTextures.clear();
+            this.chunkModel = model;
+            this.canRender = true;
+            return true;
+        }
+        return false;
+    }
+
     public void build() {
-        if (this.shouldBuild) {
-            this.shouldBuild = false;
-            this.future = CompletableFuture.runAsync(() -> {
-                chunkModels.clear();
-                shaderTextures.clear();
-                ShaderTexture TSP = new ShaderTexture();
-
-                for (int x = 0; x < data.length; x++) {
-                    for (int y = 0; y < data[x].length; y++) {
-                        for (int z = 0; z < data[x][y].length; z++) {
-                            CPUMesh block = data[x][y][z];
-                            if (block == null) continue; //skip rendering this block if it is null (void)
-                            ShaderProgram program = shaders[x][y][z];
-                            GPUTexture texture = textures[x][y][z];
-                            int shaderTextureIndex = shaderTextures.indexOf(TSP.s(program).t(texture));
-                            if (shaderTextureIndex == -1) {
-                                shaderTextureIndex = chunkModels.size();
-                                shaderTextures.add(new ShaderTexture(program, texture));
-                                chunkModels.add(new CPUMeshBuilder(this.size * this.size * this.size * 10, true) );//todo: test optimal factor (currently 10)
-
-                            }
-                            //cloning, index removal, and vertex position modification done within the BlockMeshBuilder
-                            chunkModels.get(shaderTextureIndex).addBlockMeshToChunk(block, x, y, z, this.getBlockedFaces(x, y, z));
-
-                        }
-                    }
-                }
-            });
-
         /*
         an overview of how chunk building works:
         initialize a list of shaders and models
@@ -174,7 +112,27 @@ public class RenderableChunk {
            add that block model to the chunk model
 
          */
+        ShaderTexture TSP = new ShaderTexture();
+
+        for (int x = 0; x < data.length; x++) {
+            for (int y = 0; y < data[x].length; y++) {
+                for (int z = 0; z < data[x][y].length; z++) {
+                    CPUMesh block = data[x][y][z];
+                    if (block == null) continue; //skip rendering this block if it is null (void)
+                    ShaderProgram program = shaders[x][y][z];
+                    GPUTexture texture = textures[x][y][z];
+                    int shaderTextureIndex = shaderTextures.indexOf(TSP.s(program).t(texture));
+                    if (shaderTextureIndex == -1) {
+                        shaderTextureIndex = chunkModels.size();
+                        shaderTextures.add(new ShaderTexture(program, texture));
+                        chunkModels.add(new CPUMeshBuilder(this.size * this.size * this.size * 10, true));//todo: test optimal factor (currently 10)
+                    }
+                    //cloning, index removal, and vertex position modification done within the BlockMeshBuilder
+                    chunkModels.get(shaderTextureIndex).addBlockMeshToChunk(block, x, y, z, this.getBlockedFaces(x, y, z));
+                }
+            }
         }
+        this.taskRunning = false;
     }
 
 
@@ -216,6 +174,7 @@ public class RenderableChunk {
         return blockedFaces;
     }
 
+
     private static class ShaderTexture{
         public ShaderProgram shader;
         public GPUTexture texture;
@@ -243,5 +202,8 @@ public class RenderableChunk {
                 return false;
             }
         }
+    }
+    public String toString(){
+        return "chunk:(" + xPos + "," + yPos + "," + zPos + ") s:" + taskRunning + " r:" + canRender;
     }
 }

@@ -3,12 +3,15 @@ package game.world;
 import game.GlobalBits;
 import game.data.nbt.NBTFolder;
 import game.world.block.Block;
+import org.joml.Vector2dc;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
 import java.util.*;
 
 import static game.GlobalBits.renderDistance;
+import static game.misc.StaticUtils.getChunkPos;
+import static game.misc.StaticUtils.getWorldPos;
 
 public class World {
     private final Map<Vector3i, Chunk> chunks;
@@ -46,23 +49,13 @@ public class World {
         chunks.remove(new Vector3i(x, y, z));
     }
 
-    public Vector3i getChunkPos(Vector3f worldPos){
-        return new Vector3i((int)(worldPos.x/18.4752086141), (int)(worldPos.y/32.), (int)(worldPos.z/32.));
-    }
 
-    public Vector3f getWorldPos(Vector3i chunkPos){
-        return new Vector3f(chunkPos.x*18.4752086141f, chunkPos.y*32f, chunkPos.z*32f);
-    }
-
-    private boolean chunkShouldUnload(int cx, int cy, int cz, int px, int py, int pz){
-        return false; //todo: do something about this
-    }
 
     public void updateChunks(){
         Vector3i playerChunk = getChunkPos(GlobalBits.playerPosition);
-        for(int x=playerChunk.x-(int)(renderDistance/17); x<playerChunk.x+(int)(renderDistance/17); x++){
-            for(int y=playerChunk.y-(int)(renderDistance/31); y<playerChunk.y+(int)(renderDistance/31); y++){
-                for(int z=playerChunk.z-(int)(renderDistance/31); z<playerChunk.z+(int)(renderDistance/31); z++){
+        for(int x=playerChunk.x-(int)(renderDistance/17)-1; x<playerChunk.x+(int)(renderDistance/17)+1; x++){
+            for(int y=playerChunk.y-(int)(renderDistance/31)-1; y<playerChunk.y+(int)(renderDistance/31)+1; y++){
+                for(int z=playerChunk.z-(int)(renderDistance/31)-1; z<playerChunk.z+(int)(renderDistance/31)+1; z++){
                     //System.out.println(x + ", " + y + ", " + z);
                     if(!chunks.containsKey(new Vector3i(x, y, z)) && getWorldPos(new Vector3i(x, y, z)).distance(GlobalBits.playerPosition) < renderDistance) {
                         loadChunk(x, y, z);
@@ -108,15 +101,15 @@ public class World {
 
     private Chunk randomChunk(List<Block> blocks, int x, int y, int z){
         Chunk newChunk = new Chunk(64, x, y, z);
+        Block[][][] blocksg = new Block[64][64][64];
         for(int xp = 0; xp < 64; xp++){
             for(int yp = 0; yp < 64; yp++){
                 for(int zp = 0; zp < 64; zp++){
                     int random = (int) (Math.random()*blocks.size());
-                    newChunk.setBlock(xp, yp, zp, blocks.get(random));
-                    newChunk.setBlockNBT(xp, yp, zp, new NBTFolder("block"));
+                    blocksg[xp][yp][zp] = blocks.get(random);
                 }
             }
         }
-        return newChunk;
+        return new Chunk(64, );
     }
 }

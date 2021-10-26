@@ -33,6 +33,17 @@ public class Chunk {
         this.handle = GlobalBits.render.spawnChunk(size, MTSD.modelData, MTSD.textureData, MTSD.shaderData, x, y, z);
     }
 
+    public Chunk(int size, Block[][][] blocks, NBTElement[][][] nbt, int x, int y, int z){
+        this.size = size;
+        this.nbt = nbt;
+        this.blocks = new int[size][size][size];
+        blockMappings = new HashMap<>();
+        idMappings = new HashMap<>();
+        //TODO: finish this constructor
+        ModelTextureShaderData MTSD = new ModelTextureShaderData(this);
+        this.handle = GlobalBits.render.spawnChunk(size, MTSD.modelData, MTSD.textureData, MTSD.shaderData, x, y, z);
+    }
+
     public Chunk(int size, int[][][] blocks, Map<Block, Integer> idMappings, NBTElement[][][] nbt, int x, int y, int z){
         this.size = size;
         this.blocks = blocks;

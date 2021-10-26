@@ -26,6 +26,7 @@ public interface Render {
      */
     boolean init(String title, int width, int height, String resourcesPath, boolean VSync, PrintStream warning, PrintStream error, PrintStream debug, float fov);
 
+    void close();
     //settings
 
     void setResourcesPath(String path);

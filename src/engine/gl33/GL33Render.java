@@ -23,7 +23,11 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_DOWN;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_UP;
 import static org.lwjgl.opengl.GL11.*;
 
 public class GL33Render implements Render {
@@ -71,8 +75,9 @@ public class GL33Render implements Render {
     private final SlottedArrayList<GPUMesh> meshes = new SlottedArrayList<>();
     private final SlottedArrayList<GPUModel> models = new SlottedArrayList<>();
     private final SlottedArrayList<RenderableChunk> chunks = new SlottedArrayList<>();
-    private final Deque<RenderableChunk> chunkBuildQueue = new ArrayDeque<>();
 
+    private final ExecutorService chunkBuildExecutor = Executors.newSingleThreadExecutor(); //todo: make ideal number of threads.
+    private final ArrayList<RenderableChunk> deletedChunks = new ArrayList<>();
     private final VMFLoader vmfLoader = new VMFLoader();
 
     private PrintStream warn;
@@ -117,6 +122,11 @@ public class GL33Render implements Render {
             e.printStackTrace(err);
             return false;
         }
+    }
+
+    @Override
+    public void close() {
+        chunkBuildExecutor.shutdown();
     }
 
     @Override
@@ -520,7 +530,8 @@ public class GL33Render implements Render {
             }
         }
         RenderableChunk chunk = new RenderableChunk(size, blocks, gpuTextures, gpuShaders, x, y, z);
-        chunkBuildQueue.add(chunk);
+        chunk.taskRunning = true;
+        chunkBuildExecutor.submit(chunk::build);
         return chunks.add(chunk);
     }
 
@@ -544,8 +555,12 @@ public class GL33Render implements Render {
                 }
             }
         }
-        if(!chunkBuildQueue.contains(chunks.get(chunk)))chunkBuildQueue.add(chunks.get(chunk));
-        chunks.get(chunk).setData(blocks, gpuTextures, gpuShaders);
+        RenderableChunk chunk1 = chunks.get(chunk);
+        chunk1.setData(blocks, gpuTextures, gpuShaders);
+        if(!chunk1.taskRunning){
+            chunk1.taskRunning = true;
+            chunkBuildExecutor.submit(chunk1::build);
+        }
     }
 
     /**
@@ -556,8 +571,12 @@ public class GL33Render implements Render {
      */
     @Override
     public void setChunkBlock(int chunk, CPUMesh block, int texture, int shader, int x, int y, int z) {
-        if(!chunkBuildQueue.contains(chunks.get(chunk)))chunkBuildQueue.add(chunks.get(chunk));
-        chunks.get(chunk).setBlock(block, textures.get(texture), shaderPrograms.get(shader), x, y, z);
+        RenderableChunk chunk1 = chunks.get(chunk);
+        chunk1.setBlock(block, textures.get(texture), shaderPrograms.get(shader), x, y, z);
+        if(!chunk1.taskRunning){
+            chunk1.taskRunning = true;
+            chunkBuildExecutor.submit(chunk1::build);
+        }
     }
 
     /**
@@ -567,9 +586,8 @@ public class GL33Render implements Render {
      */
     @Override
     public void deleteChunk(int chunk) {
-        chunks.get(chunk).clearFromGPU();
+        deletedChunks.add(chunks.get(chunk));
         chunks.remove(chunk);
-        chunkBuildQueue.remove(chunks.get(chunk));
     }
 
     @Override
@@ -763,16 +781,28 @@ public class GL33Render implements Render {
     @Override
     public double render() {
         readyToRender = false;
+        if(window.getKey(GLFW_KEY_UP) == 2){
+            System.out.println(chunks);
+            System.out.println(deletedChunks);
+        }
+        if(window.getKey(GLFW_KEY_DOWN) == 2){
+            System.out.println("stop");
+        }
         double startTime = getTime();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        if(chunkBuildQueue.size() > 0){
-            chunkBuildQueue.poll().build();
+        Iterator<RenderableChunk> iter = deletedChunks.iterator();
+        while(iter.hasNext()){
+            RenderableChunk c = iter.next();
+            if(!c.taskRunning){
+                iter.remove();
+                c.clearFromGPU();
+            }
         }
         if (window.isResized()) {
             window.setResized(false);
             glViewport(0, 0, window.getWidth(), window.getHeight());
             updateCameraProjectionMatrix();
         }
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         renderFrame();
         window.update();
 
@@ -795,12 +825,9 @@ public class GL33Render implements Render {
             renderableEntity.render();
         }
         //render each chunk
-        boolean hasUploadedChunk = false;
         for (RenderableChunk chunk: chunks){
             chunk.render();
-            if(!hasUploadedChunk){
-                hasUploadedChunk = chunk.attemptGPUUpload();
-            }
+            chunk.sendToGPU();
         }
     }
 }

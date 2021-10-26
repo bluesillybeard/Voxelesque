@@ -128,4 +128,7 @@ public class SlottedArrayList<T> implements Iterable<T> {
             }while(this.list[this.index]==null);
         }
     }
+    public String toString(){
+        return Arrays.deepToString(list);
+    }
 }

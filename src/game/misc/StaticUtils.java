@@ -2,11 +2,20 @@ package game.misc;
 
 import game.data.nbt.NBTElement;
 import org.joml.Vector3f;
+import org.joml.Vector3i;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 public class StaticUtils {
+    public static Vector3i getChunkPos(Vector3f worldPos){
+        return new Vector3i((int)(worldPos.x/18.4752086141), (int)(worldPos.y/32.), (int)(worldPos.z/32.));
+    }
+
+    public static Vector3f getWorldPos(Vector3i chunkPos){
+        return new Vector3f(chunkPos.x*18.4752086141f, chunkPos.y*32f, chunkPos.z*32f);
+    }
+
     public static byte[] getFourBytes(int i){
         return new byte[]{(byte)i, (byte)(i>>8), (byte)(i>>16), (byte)(i>>24)};
     }

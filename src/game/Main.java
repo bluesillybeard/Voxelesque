@@ -1,6 +1,7 @@
 package game;
 
 import engine.gl33.GL33Render;
+import game.misc.StaticUtils;
 import game.world.World;
 import game.world.block.SimpleBlock;
 import org.joml.Vector3f;
@@ -33,6 +34,7 @@ public class Main {
                 updateCameraPos();
                 render.render();
             }while(!render.shouldClose());
+            render.close();
         } else {
             System.err.println("Unable to initialize Voxelesque engine");
         }
@@ -96,7 +98,7 @@ public class Main {
         }
         if(render.getTime() - lastDebug > 1){
             lastDebug = render.getTime();
-            System.out.println("Entities: " + render.getNumEntities() + " | Chunks: " + render.getNumChunks() + " | pos:" + playerPosition);
+            System.out.println("Entities: " + render.getNumEntities() + " | Chunks: " + render.getNumChunks() + " | pos:" + StaticUtils.getChunkPos(playerPosition));
         }
     }
 }
