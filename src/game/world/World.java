@@ -2,22 +2,22 @@ package game.world;
 
 import game.GlobalBits;
 import game.data.nbt.NBTFolder;
-import game.data.vector.IntegerVector3f;
-import game.misc.StaticUtils;
 import game.world.block.Block;
 import org.joml.Vector3f;
+import org.joml.Vector3i;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static game.GlobalBits.renderDistance;
 
 public class World {
-    private final Map<IntegerVector3f, Chunk> chunks;
+    private final Map<Vector3i, Chunk> chunks;
+    private final LinkedList<Vector3i> chunksToUnload;
     private static final int CHUNK_SIZE = 64;
 
     public World() {
         chunks = new HashMap<>();
+        chunksToUnload = new LinkedList<>();
     }
 
     public Block getBlock(int x, int y, int z){
@@ -35,15 +35,23 @@ public class World {
      * @return the Chunk that contains the block coordinates.
      */
     public Chunk getChunk(int x, int y, int z){
-        return chunks.get(new IntegerVector3f(x/CHUNK_SIZE, y/CHUNK_SIZE, z/CHUNK_SIZE));
+        return chunks.get(new Vector3i(x/CHUNK_SIZE, y/CHUNK_SIZE, z/CHUNK_SIZE));
     }
 
     public void addChunk(int x, int y, int z, Chunk chunk){
-        chunks.put(new IntegerVector3f(x, y, z), chunk);
+        chunks.put(new Vector3i(x, y, z), chunk);
     }
 
     public void removeChunk(int x, int y, int z){
-        chunks.remove(new IntegerVector3f(x, y, z));
+        chunks.remove(new Vector3i(x, y, z));
+    }
+
+    public Vector3i getChunkPos(Vector3f worldPos){
+        return new Vector3i((int)(worldPos.x/18.4752086141), (int)(worldPos.y/32.), (int)(worldPos.z/32.));
+    }
+
+    public Vector3f getWorldPos(Vector3i chunkPos){
+        return new Vector3f(chunkPos.x*18.4752086141f, chunkPos.y*32f, chunkPos.z*32f);
     }
 
     private boolean chunkShouldUnload(int cx, int cy, int cz, int px, int py, int pz){
@@ -51,42 +59,53 @@ public class World {
     }
 
     public void updateChunks(){
-        //chunks.entrySet().removeIf(entry ->
-        //        chunkShouldUnload(entry.getKey().x, entry.getKey().y, entry.getKey().z,
-        //                (int)GlobalBits.playerPosition.x, (int)GlobalBits.playerPosition.y, (int)GlobalBits.playerPosition.z));
-        for(int x=0; x<GlobalBits.renderDistance; x++){
-            for(int y=0;y<GlobalBits.renderDistance/2;y++){
-                for(int z=0;z<GlobalBits.renderDistance/2;z++){
-                    updateChunk(x, y, z);
+        Vector3i playerChunk = getChunkPos(GlobalBits.playerPosition);
+        for(int x=playerChunk.x-(int)(renderDistance/17); x<playerChunk.x+(int)(renderDistance/17); x++){
+            for(int y=playerChunk.y-(int)(renderDistance/31); y<playerChunk.y+(int)(renderDistance/31); y++){
+                for(int z=playerChunk.z-(int)(renderDistance/31); z<playerChunk.z+(int)(renderDistance/31); z++){
+                    //System.out.println(x + ", " + y + ", " + z);
+                    if(!chunks.containsKey(new Vector3i(x, y, z)) && getWorldPos(new Vector3i(x, y, z)).distance(GlobalBits.playerPosition) < renderDistance) {
+                        loadChunk(x, y, z);
+                    }
                 }
             }
         }
-
-    }
-
-    private void updateChunk(int x, int y, int z){
-        if(!chunks.containsKey(new IntegerVector3f(x, y, z))){
-            loadChunk(x, y, z);
+        chunks.forEach((key, value) -> {
+            if (getWorldPos(key).distance(GlobalBits.playerPosition) > renderDistance) {
+                chunksToUnload.add(key);
+            }
+        });
+        Iterator<Vector3i> chunkIterator = chunksToUnload.iterator();
+        while(chunkIterator.hasNext()){
+            unloadChunk(chunkIterator.next());
+            chunkIterator.remove();
         }
     }
 
+    public void unloadChunk(Vector3i chunk){
+        System.out.println("unloading chunk " + chunk);
+        chunks.get(chunk).unload();
+        chunks.remove(chunk);
+        //todo: world saves
+    }
 
     /**
      * loads a chunk by either loading it from the world save, or generating it if it wasn't found in the save.
      * note: uses xyz chunk coordinates
      */
     public void loadChunk(int x, int y, int z){
-        if(chunks.containsKey(new IntegerVector3f(x, y, z))){
+        if(chunks.containsKey(new Vector3i(x, y, z))){
             return;
         }
+        System.out.println("loading chunk (" + x + ", " + y + ", " + z + ")");
         //todo: actual world generation and world saves
         Chunk chunk;
-        if(y > 0){
+        if(y > -1){
             chunk = new Chunk(64, x, y, z);
         } else {
             chunk = randomChunk(GlobalBits.blocks, x, y, z);
         }
-        chunks.put(new IntegerVector3f(x, y, z), chunk);
+        chunks.put(new Vector3i(x, y, z), chunk);
     }
 
     private Chunk randomChunk(List<Block> blocks, int x, int y, int z){

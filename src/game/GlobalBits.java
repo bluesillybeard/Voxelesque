@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 public class GlobalBits {
     //technical bits
-    public static int renderDistance;
+    public static float renderDistance;
     public static String resourcesPath;
     public static Render render;
     public static Vector3f tempV3f;

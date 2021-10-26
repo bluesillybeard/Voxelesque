@@ -12,16 +12,17 @@ import static org.lwjgl.glfw.GLFW.*;
 public class Main {
     private static double lastMouseYPos = 0;
     private static double lastMouseXPos = 0;
+    private static double lastDebug = 0.0;
 
     public static void main(String[] args) {
         render = new GL33Render();
         if (render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(80))) {
             resourcesPath = System.getProperty("user.dir") + "/resources";
             render.setResourcesPath(GlobalBits.resourcesPath);
-            renderDistance = 6;
+            renderDistance = 100f;
             tempV3f = new Vector3f();
-            playerPosition = new Vector3f();
-            playerRotation = new Vector3f();
+            playerPosition = new Vector3f(0, 0, 0);
+            playerRotation = new Vector3f(0, 0, 0);
             sensitivity = 1;
             GlobalBits.defaultShader = render.loadShaderProgram("Shaders/", "");
             GlobalBits.blocks = SimpleBlock.generateBlocks(GlobalBits.resourcesPath, "BlockRegistry/voxelesque/blocks.yaml", "voxelesque");
@@ -92,6 +93,10 @@ public class Main {
         //send the camera position to Render
         if(cameraUpdated){
             render.setCameraPos(playerPosition.x, playerPosition.y, playerPosition.z, playerRotation.x, playerRotation.y, playerRotation.z);
+        }
+        if(render.getTime() - lastDebug > 1){
+            lastDebug = render.getTime();
+            System.out.println("Entities: " + render.getNumEntities() + " | Chunks: " + render.getNumChunks() + " | pos:" + playerPosition);
         }
     }
 }

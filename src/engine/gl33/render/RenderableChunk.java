@@ -80,7 +80,7 @@ public class RenderableChunk {
         //if the build thread finished building
         if(future != null && future.isDone()) {
             future = null;
-
+            System.out.println("place chunk at (" + xPos + ", " + yPos + ", " + zPos + ")");
             if (canRender) clearFromGPU(); //clear the previous model to avoid memory leaks.
             RenderableEntity[] model = new RenderableEntity[shaderTextures.size()];
             for (int i = 0; i < model.length; i++) {
@@ -106,8 +106,10 @@ public class RenderableChunk {
      * clears the vertex data from the GPU.
      */
     public void clearFromGPU(){
-        for(RenderableEntity entity: this.chunkModel){
-            entity.getModel().mesh.cleanUp();//DON'T clear the texture.
+        if(future == null) { //if it isn't actively building
+            for (RenderableEntity entity : this.chunkModel) {
+                entity.getModel().mesh.cleanUp();//DON'T clear the texture.
+            }
         }
     }
 

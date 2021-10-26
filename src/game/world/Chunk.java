@@ -106,9 +106,9 @@ public class Chunk {
         this.blocks = new int[size][size][size];
         this.nbt = new NBTElement[size][size][size];
 
-        for(int xp = 0; x<size; x++){
-            for(int yp=0; y<size; y++){
-                for(int zp=0; z<size; z++){
+        for(int xp = 0; xp<size; xp++){
+            for(int yp=0; yp<size; yp++){
+                for(int zp=0; zp<size; zp++){
                     this.blocks[xp][yp][zp] = -1;
                 }
             }
@@ -144,6 +144,10 @@ public class Chunk {
         this.nbt[x][y][z] = nbtElement;
     }
 
+    public void unload(){
+        GlobalBits.render.deleteChunk(handle);
+    }
+
     private static class ModelTextureShaderData{
         public CPUMesh[][][] modelData;
         public int[][][] textureData;
@@ -157,9 +161,13 @@ public class Chunk {
                 for(int y=0; y<c.size; y++){
                     for(int z=0; z<c.size; z++){
                         Block b = c.getBlock(x, y, z);
-                        modelData[x][y][z] = b.getMesh();
-                        textureData[x][y][z] = b.getTexture();
-                        shaderData[x][y][z] = b.getShader();
+                        if(b != null) {
+                            modelData[x][y][z] = b.getMesh();
+                            textureData[x][y][z] = b.getTexture();
+                            shaderData[x][y][z] = b.getShader();
+                        } else {
+                            //todo: actual empty textures and meshes
+                        }
                     }
                 }
             }
