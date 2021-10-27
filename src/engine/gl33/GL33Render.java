@@ -76,7 +76,7 @@ public class GL33Render implements Render {
     private final SlottedArrayList<GPUModel> models = new SlottedArrayList<>();
     private final SlottedArrayList<RenderableChunk> chunks = new SlottedArrayList<>();
 
-    private final ExecutorService chunkBuildExecutor = Executors.newSingleThreadExecutor(); //todo: make ideal number of threads.
+    private final ExecutorService chunkBuildExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()/2);
     private final ArrayList<RenderableChunk> deletedChunks = new ArrayList<>();
     private final ArrayList<RenderableChunk> newChunks = new ArrayList<>();
     private final VMFLoader vmfLoader = new VMFLoader();
@@ -830,7 +830,7 @@ public class GL33Render implements Render {
         //render each chunk
         for (RenderableChunk chunk: chunks){
             chunk.render();
-            chunk.sendToGPU();
+            chunk.sendToGPU(); //todo: make sure only a few meshes are sent each frame
         }
     }
 }
