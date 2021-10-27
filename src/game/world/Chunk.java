@@ -16,9 +16,12 @@ public class Chunk {
     private final Map<Block, Integer> idMappings;
 
     private int numMappings;
-    private final int handle;
+    private final int handle, xPos, yPos, zPos;
 
     public Chunk(int size, int[][][] blocks, NBTElement[][][] nbt, Map<Integer, Block> blockMappings, int x, int y, int z){
+        this.xPos = x;
+        this.yPos = y;
+        this.zPos = z;
         this.size = size;
         this.blocks = blocks;
         this.nbt = nbt;
@@ -29,11 +32,12 @@ public class Chunk {
             this.idMappings.put(map.getValue(), map.getKey());
             numMappings++;
         }
-        ModelTextureShaderData MTSD = new ModelTextureShaderData(this);
-        this.handle = GlobalBits.render.spawnChunk(size, MTSD.modelData, MTSD.textureData, MTSD.shaderData, x, y, z);
+        this.handle = sendToRender();
     }
-
     public Chunk(int size, Block[][][] blocks, NBTElement[][][] nbt, int x, int y, int z){
+        this.xPos = x;
+        this.yPos = y;
+        this.zPos = z;
         this.size = size;
         this.nbt = nbt;
         this.blocks = new int[size][size][size];
@@ -51,11 +55,13 @@ public class Chunk {
                 }
             }
         }
-        ModelTextureShaderData MTSD = new ModelTextureShaderData(this);
-        this.handle = GlobalBits.render.spawnChunk(size, MTSD.modelData, MTSD.textureData, MTSD.shaderData, x, y, z);
+        this.handle = sendToRender();
     }
 
     public Chunk(int size, int[][][] blocks, Map<Block, Integer> idMappings, NBTElement[][][] nbt, int x, int y, int z){
+        this.xPos = x;
+        this.yPos = y;
+        this.zPos = z;
         this.size = size;
         this.blocks = blocks;
         this.nbt = nbt;
@@ -66,11 +72,13 @@ public class Chunk {
             this.blockMappings.put(map.getValue(), map.getKey());
             numMappings++;
         }
-        ModelTextureShaderData MTSD = new ModelTextureShaderData(this);
-        this.handle = GlobalBits.render.spawnChunk(size, MTSD.modelData, MTSD.textureData, MTSD.shaderData, x, y, z);
+        this.handle = sendToRender();
     }
 
     public Chunk(int size, int[][][] blocks, NBTElement[][][] nbt, Map<Integer, Block> blockMappings, Map<Block, Integer> idMappings, int x, int y, int z){
+        this.xPos = x;
+        this.yPos = y;
+        this.zPos = z;
         this.size = size;
         this.blocks = blocks;
         this.nbt = nbt;
@@ -78,10 +86,12 @@ public class Chunk {
         this.idMappings = idMappings;
         if(blockMappings.size() != idMappings.size()) throw new IllegalStateException("blockMappings and idMappings have the different sizes!");
         this.numMappings = blockMappings.size();
-        ModelTextureShaderData MTSD = new ModelTextureShaderData(this);
-        this.handle = GlobalBits.render.spawnChunk(size, MTSD.modelData, MTSD.textureData, MTSD.shaderData, x, y, z);
+        this.handle = sendToRender();
     }
     public Chunk(Map<Integer, Block> blockMappings, int size, int x, int y, int z){
+        this.xPos = x;
+        this.yPos = y;
+        this.zPos = z;
         this.size = size;
         this.blocks = new int[size][size][size];
         this.nbt = new NBTElement[size][size][size];
@@ -92,11 +102,13 @@ public class Chunk {
             this.idMappings.put(map.getValue(), map.getKey());
 
         }
-        ModelTextureShaderData MTSD = new ModelTextureShaderData(this);
-        this.handle = GlobalBits.render.spawnChunk(size, MTSD.modelData, MTSD.textureData, MTSD.shaderData, x, y, z);
+        this.handle = sendToRender();
     }
 
     public Chunk(int size, Map<Block, Integer> idMappings, int x, int y, int z){
+        this.xPos = x;
+        this.yPos = y;
+        this.zPos = z;
         this.size = size;
         this.blocks = new int[size][size][size];
         this.nbt = new NBTElement[size][size][size];
@@ -106,24 +118,28 @@ public class Chunk {
         for(Map.Entry<Block, Integer> map: idMappings.entrySet()){
             this.blockMappings.put(map.getValue(), map.getKey());
         }
-        ModelTextureShaderData MTSD = new ModelTextureShaderData(this);
-        this.handle = GlobalBits.render.spawnChunk(size, MTSD.modelData, MTSD.textureData, MTSD.shaderData, x, y, z);
+        this.handle = sendToRender();
     }
 
     public Chunk(int size, Map<Integer, Block> blockMappings, Map<Block, Integer> idMappings, int x, int y, int z){
+        this.xPos = x;
+        this.yPos = y;
+        this.zPos = z;
         this.size = size;
         this.blocks = new int[size][size][size];
         this.nbt = new NBTElement[size][size][size];
         this.blockMappings = blockMappings;
         this.idMappings = idMappings;
-        ModelTextureShaderData MTSD = new ModelTextureShaderData(this);
-        this.handle = GlobalBits.render.spawnChunk(size, MTSD.modelData, MTSD.textureData, MTSD.shaderData, x, y, z);
+        this.handle = sendToRender();
     }
 
     /**
      * creates an empty chunk.
      */
     public Chunk(int size, int x, int y, int z){
+        this.xPos = x;
+        this.yPos = y;
+        this.zPos = z;
         this.size = size;
         this.blocks = new int[size][size][size];
         this.nbt = new NBTElement[size][size][size];
@@ -138,10 +154,9 @@ public class Chunk {
 
         this.idMappings = new HashMap<>();
         this.blockMappings = new HashMap<>();
-        idMappings.put(Block.VOID_BLOCK, -1);
-        blockMappings.put(-1, Block.VOID_BLOCK);
-        ModelTextureShaderData MTSD = new ModelTextureShaderData(this);
-        this.handle = GlobalBits.render.spawnChunk(size, MTSD.modelData, MTSD.textureData, MTSD.shaderData, x, y, z);
+        this.idMappings.put(Block.VOID_BLOCK, -1);
+        this.blockMappings.put(-1, Block.VOID_BLOCK);
+        this.handle = sendToRender();
     }
 
     public Block getBlock(int x, int y, int z){
@@ -170,47 +185,22 @@ public class Chunk {
         GlobalBits.render.deleteChunk(handle);
     }
 
-    private static class ModelTextureShaderData{
-        public CPUMesh[][][] modelData;
-        public int[][][] textureData;
-        public int[][][] shaderData;
+    private int sendToRender() {
+        CPUMesh[][][] modelData = new CPUMesh[this.size][this.size][this.size];
+        int[][][] textureData = new int[this.size][this.size][this.size];
+        int[][][] shaderData = new int[this.size][this.size][this.size];
+        for (int x = 0; x < this.size; x++) {
+            for (int y = 0; y < this.size; y++) {
+                for (int z = 0; z < this.size; z++) {
+                    Block b = this.getBlock(x, y, z);
+                    if(b == null) b = Block.VOID_BLOCK;
 
-        public ModelTextureShaderData(Chunk c){
-            modelData = new CPUMesh[c.size][c.size][c.size];
-            textureData = new int[c.size][c.size][c.size];
-            shaderData = new int[c.size][c.size][c.size];
-            for(int x=0; x<c.size; x++){
-                for(int y=0; y<c.size; y++){
-                    for(int z=0; z<c.size; z++){
-                        Block b = c.getBlock(x, y, z);
-                        if(b != null) {
-                            modelData[x][y][z] = b.getMesh();
-                            textureData[x][y][z] = b.getTexture();
-                            shaderData[x][y][z] = b.getShader();
-                        } else {
-                            modelData[x][y][z] = Block.VOID_BLOCK.getMesh();
-                            textureData[x][y][z] = Block.VOID_BLOCK.getTexture();
-                            shaderData[x][y][z] = Block.VOID_BLOCK.getShader();
-                            //todo: actual empty textures and meshes
-                        }
-                    }
+                    modelData[x][y][z] = b.getMesh();
+                    textureData[x][y][z] = b.getTexture();
+                    shaderData[x][y][z] = b.getShader();
                 }
             }
         }
-
-        public ModelTextureShaderData m(CPUMesh[][][] modelData){
-            this.modelData = modelData;
-            return this;
-        }
-
-        public ModelTextureShaderData t(int[][][] textureData){
-            this.textureData = textureData;
-            return this;
-        }
-
-        public ModelTextureShaderData s(int[][][] shaderData){
-            this.shaderData = shaderData;
-            return this;
-        }
+        return GlobalBits.render.spawnChunk(this.size, modelData, textureData, shaderData, this.xPos, this.yPos, this.zPos);
     }
 }

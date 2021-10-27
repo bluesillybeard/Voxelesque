@@ -78,6 +78,7 @@ public class GL33Render implements Render {
 
     private final ExecutorService chunkBuildExecutor = Executors.newSingleThreadExecutor(); //todo: make ideal number of threads.
     private final ArrayList<RenderableChunk> deletedChunks = new ArrayList<>();
+    private final ArrayList<RenderableChunk> newChunks = new ArrayList<>();
     private final VMFLoader vmfLoader = new VMFLoader();
 
     private PrintStream warn;
@@ -530,8 +531,7 @@ public class GL33Render implements Render {
             }
         }
         RenderableChunk chunk = new RenderableChunk(size, blocks, gpuTextures, gpuShaders, x, y, z);
-        chunk.taskRunning = true;
-        chunkBuildExecutor.submit(chunk::build);
+        newChunks.add(chunk);
         return chunks.add(chunk);
     }
 
@@ -557,10 +557,7 @@ public class GL33Render implements Render {
         }
         RenderableChunk chunk1 = chunks.get(chunk);
         chunk1.setData(blocks, gpuTextures, gpuShaders);
-        if(!chunk1.taskRunning){
-            chunk1.taskRunning = true;
-            chunkBuildExecutor.submit(chunk1::build);
-        }
+        if(!newChunks.contains(chunk1))newChunks.add(chunk1);
     }
 
     /**
@@ -573,10 +570,7 @@ public class GL33Render implements Render {
     public void setChunkBlock(int chunk, CPUMesh block, int texture, int shader, int x, int y, int z) {
         RenderableChunk chunk1 = chunks.get(chunk);
         chunk1.setBlock(block, textures.get(texture), shaderPrograms.get(shader), x, y, z);
-        if(!chunk1.taskRunning){
-            chunk1.taskRunning = true;
-            chunkBuildExecutor.submit(chunk1::build);
-        }
+        if(!newChunks.contains(chunk1))newChunks.add(chunk1);
     }
 
     /**
@@ -795,6 +789,15 @@ public class GL33Render implements Render {
             if(!c.taskRunning){
                 iter.remove();
                 c.clearFromGPU();
+            }
+        }
+        iter = newChunks.iterator();
+        while(iter.hasNext()){
+            RenderableChunk c = iter.next();
+            if(!c.taskRunning){
+                iter.remove();
+                c.taskRunning = true;
+                chunkBuildExecutor.submit(c::build);
             }
         }
         if (window.isResized()) {
