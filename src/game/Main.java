@@ -20,7 +20,7 @@ public class Main {
         if (render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(80))) {
             resourcesPath = System.getProperty("user.dir") + "/resources";
             render.setResourcesPath(GlobalBits.resourcesPath);
-            renderDistance = 100f;
+            renderDistance = 80f;
             tempV3f = new Vector3f();
             playerPosition = new Vector3f(0, 1, 0);
             playerRotation = new Vector3f(0, 0, 0);
@@ -97,8 +97,12 @@ public class Main {
             render.setCameraPos(playerPosition.x, playerPosition.y, playerPosition.z, playerRotation.x, playerRotation.y, playerRotation.z);
         }
         if(render.getTime() - lastDebug > 1){
+            Runtime runtime = Runtime.getRuntime();
             lastDebug = render.getTime();
-            System.out.println("Entities: " + render.getNumEntities() + " | Chunks: " + render.getNumChunks() + " | pos:" + StaticUtils.getChunkPos(playerPosition));
+            System.out.println("Entities: " + render.getNumEntities() +
+                    " | Chunks: " + render.getNumChunks() +
+                    " | pos:" + StaticUtils.getChunkPos(playerPosition) +
+                    " | memory: " + (runtime.totalMemory() - runtime.freeMemory())/1048576);
         }
     }
 }

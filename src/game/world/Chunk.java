@@ -39,7 +39,18 @@ public class Chunk {
         this.blocks = new int[size][size][size];
         blockMappings = new HashMap<>();
         idMappings = new HashMap<>();
-        //TODO: finish this constructor
+        for(int xp=0; xp<size; xp++){
+            for(int yp=0; yp<size; yp++){
+                for(int zp=0; zp<size; zp++){
+                    Block block = blocks[xp][yp][zp];
+                    if(!blockMappings.containsValue(block)){
+                        blockMappings.put(numMappings, block);
+                        idMappings.put(block, numMappings++);
+                    }
+                    this.blocks[xp][yp][zp] = idMappings.get(block);
+                }
+            }
+        }
         ModelTextureShaderData MTSD = new ModelTextureShaderData(this);
         this.handle = GlobalBits.render.spawnChunk(size, MTSD.modelData, MTSD.textureData, MTSD.shaderData, x, y, z);
     }
@@ -177,6 +188,9 @@ public class Chunk {
                             textureData[x][y][z] = b.getTexture();
                             shaderData[x][y][z] = b.getShader();
                         } else {
+                            modelData[x][y][z] = Block.VOID_BLOCK.getMesh();
+                            textureData[x][y][z] = Block.VOID_BLOCK.getTexture();
+                            shaderData[x][y][z] = Block.VOID_BLOCK.getShader();
                             //todo: actual empty textures and meshes
                         }
                     }

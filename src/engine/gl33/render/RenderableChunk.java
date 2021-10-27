@@ -15,8 +15,8 @@ public class RenderableChunk {
     private RenderableEntity[] chunkModel;
     private boolean canRender;
 
-    private final ArrayList<CPUMeshBuilder> chunkModels = new ArrayList<>();
-    private final ArrayList<ShaderTexture> shaderTextures = new ArrayList<>();
+    private ArrayList<CPUMeshBuilder> chunkModels = new ArrayList<>();
+    private ArrayList<ShaderTexture> shaderTextures = new ArrayList<>();
 
     public boolean taskRunning;
 
@@ -80,7 +80,7 @@ public class RenderableChunk {
         if(taskRunning){
             return false;
         } else if(chunkModels.size() > 0){
-            System.out.println("sending " + xPos + ", " + yPos + ", " + zPos);
+            //System.out.println("sending " + xPos + ", " + yPos + ", " + zPos);
             if(canRender)clearFromGPU();
             RenderableEntity[] model = new RenderableEntity[shaderTextures.size()];
             for (int i = 0; i < model.length; i++) {
@@ -89,8 +89,10 @@ public class RenderableChunk {
                 entity.setScale(1, 1, 1);
                 model[i] = entity;
             }
-            chunkModels.clear();
-            shaderTextures.clear();
+            //chunkModels.clear();
+            //shaderTextures.clear();
+            chunkModels = new ArrayList<>();
+            shaderTextures = new ArrayList<>();
             this.chunkModel = model;
             this.canRender = true;
             return true;

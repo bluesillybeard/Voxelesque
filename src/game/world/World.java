@@ -86,6 +86,7 @@ public class World {
      * note: uses xyz chunk coordinates
      */
     public void loadChunk(int x, int y, int z){
+        //System.out.println("loading chunk " + x + ", " + y + ", " + z);
         if(chunks.containsKey(new Vector3i(x, y, z))){
             return;
         }
@@ -100,7 +101,6 @@ public class World {
     }
 
     private Chunk randomChunk(List<Block> blocks, int x, int y, int z){
-        Chunk newChunk = new Chunk(64, x, y, z);
         Block[][][] blocksg = new Block[64][64][64];
         for(int xp = 0; xp < 64; xp++){
             for(int yp = 0; yp < 64; yp++){
@@ -110,6 +110,6 @@ public class World {
                 }
             }
         }
-        return new Chunk(64, );
+        return new Chunk(64, blocksg, null, x, y, z);
     }
 }

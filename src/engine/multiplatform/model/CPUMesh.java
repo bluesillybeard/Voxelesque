@@ -18,6 +18,7 @@ public class CPUMesh {
         this.indices = indices;
         this.removableTriangles = new byte[0];
         this.blockedFaces = 0;
+        System.out.println("create CPU mesh " + this.hashCode() + "|" + positions.length + "|" + indices.length);
     }
     //blockedFaces: [top (+y), bottom(-y), (-z / +z), -x, +x]
     public CPUMesh(float[] positions, float[] UVCoords, int[] indices, byte[] removableTriangles, byte blockedFaces) {
@@ -26,6 +27,7 @@ public class CPUMesh {
         this.indices = indices;
         this.removableTriangles = removableTriangles;
         this.blockedFaces = blockedFaces;
+        System.out.println("create CPU mesh " + this.hashCode() + "|" + positions.length + "|" + indices.length);
     }
 
     public CPUMesh(VMFLoader loader){
@@ -34,6 +36,7 @@ public class CPUMesh {
         this.indices = loader.getIndices();
         this.removableTriangles = loader.getRemovableTriangles();
         this.blockedFaces = loader.getBlockedFaces();
+        System.out.println("create CPU mesh " + this.hashCode() + "|" + positions.length + "|" + indices.length);
     }
     public CPUMesh clone() {
         try {
