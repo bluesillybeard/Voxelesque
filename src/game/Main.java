@@ -20,7 +20,7 @@ public class Main {
         if (render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(80))) {
             resourcesPath = System.getProperty("user.dir") + "/resources";
             render.setResourcesPath(GlobalBits.resourcesPath);
-            renderDistance = 150f;
+            renderDistance = 100f;
             tempV3f = new Vector3f();
             playerPosition = new Vector3f(0, 1, 0);
             playerRotation = new Vector3f(0, 0, 0);

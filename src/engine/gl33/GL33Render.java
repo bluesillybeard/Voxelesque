@@ -118,6 +118,7 @@ public class GL33Render implements Render {
 
 
             this.window.init();
+            debug.println("initialized render and " + Runtime.getRuntime().availableProcessors()/2 + " chunk build worker threads");
             return true;
         } catch(Exception e){
             e.printStackTrace(err);
