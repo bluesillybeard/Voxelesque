@@ -15,20 +15,24 @@ public class Main {
     private static double lastMouseXPos = 0;
     private static double lastDebug = 0.0;
 
+    private static final Vector3f cameraInc = new Vector3f(0, 0, 0);
+
     public static void main(String[] args) {
         render = new GL33Render();
-        if (render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(80))) {
+        if (render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(90))) {
             resourcesPath = System.getProperty("user.dir") + "/resources";
             render.setResourcesPath(GlobalBits.resourcesPath);
-            renderDistance = 100f;
+            renderDistance = 50f;
             tempV3f = new Vector3f();
             playerPosition = new Vector3f(0, 1, 0);
             playerRotation = new Vector3f(0, 0, 0);
             sensitivity = 1;
             GlobalBits.defaultShader = render.loadShaderProgram("Shaders/", "");
+            GlobalBits.guiShader = render.loadShaderProgram("Shaders/", "gui");
             GlobalBits.blocks = SimpleBlock.generateBlocks(GlobalBits.resourcesPath, "BlockRegistry/voxelesque/blocks.yaml", "voxelesque");
             System.out.println(GlobalBits.blocks);
             World world = new World();
+            int debugTextEntity = render.createTextEntity(render.readTexture(render.readImage("Textures/ASCII.png")), "debug", GlobalBits.guiShader, 0f, 0f, 1f, 0f, 0f, 0f, 0.1f, 0.1f, 0.1f);
             do{
                 updateWorld(world);
                 updateCameraPos();
@@ -47,7 +51,7 @@ public class Main {
     }
 
     private static void updateCameraPos(){
-        Vector3f cameraInc = new Vector3f(0, 0, 0);
+        cameraInc.set(0, 0, 0);
         boolean cameraUpdated = false;
         cameraInc.set(0, 0, 0);
         if (render.getKey(GLFW_KEY_W) >= 2) {

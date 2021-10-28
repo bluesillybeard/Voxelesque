@@ -7,6 +7,7 @@ import engine.multiplatform.Util.Utils;
 
 public class RenderableTextEntity extends RenderableEntity{
     //this class is VERY small, but that's because it doesn't add a lot of functionality.
+    //in the future, I might add a much more complicated system with proper fonts, modifiers, etc.
     private String text;
     public RenderableTextEntity(String text, ShaderProgram shader, GPUTexture tex, boolean centerX, boolean centerY) {
         super(new GPUMesh(Utils.generateTextMesh(text, centerX, centerY)), shader, tex);

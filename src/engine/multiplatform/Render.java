@@ -245,6 +245,33 @@ public interface Render {
 
     int getNumEntitySlots();
 
+    //text
+
+    /**
+     * creates an entity that displays text.
+     * @return the text entity ID.
+     */
+    int createTextEntity(int texture, String text, int shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
+
+    void setTextEntityPos(int entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
+
+    void setTextEntityPos(int entity, float xPos, float yPos, float zPos);
+
+    void setTextEntityRotation(int entity, float xRotation, float yRotation, float zRotation);
+
+    void setTextEntityScale(int entity, float xScale, float yScale, float zScale);
+
+    void setTextEntityShader(int entity, int shader);
+
+    void setTextEntityText(int entity, String text);
+
+    Matrix4f getTextEntityTransform(int entity);
+
+    void deleteTextEntity(int entity);
+
+    int getNumTextEntities();
+
+    int getNumTextEntitySlots();
     //chunks
 
     /**

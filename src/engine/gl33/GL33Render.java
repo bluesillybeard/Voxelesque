@@ -4,10 +4,7 @@ import VMF.VMFLoader;
 import engine.gl33.model.GPUMesh;
 import engine.gl33.model.GPUModel;
 import engine.gl33.model.GPUTexture;
-import engine.gl33.render.RenderableChunk;
-import engine.gl33.render.RenderableEntity;
-import engine.gl33.render.ShaderProgram;
-import engine.gl33.render.Window;
+import engine.gl33.render.*;
 import engine.multiplatform.Render;
 import engine.multiplatform.Util.AtlasGenerator;
 import engine.multiplatform.Util.SlottedArrayList;
@@ -17,6 +14,7 @@ import engine.multiplatform.model.CPUModel;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
+import org.lwjgl.system.CallbackI;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -36,6 +34,7 @@ public class GL33Render implements Render {
     Vector4f tempv4f1 = new Vector4f();
     Vector4f tempv4f2 = new Vector4f();
     Vector4f tempv4f3 = new Vector4f();
+    Vector3f tempv3f1 = new Vector3f();
 
     private Window window;
     private boolean readyToRender;
@@ -70,6 +69,7 @@ public class GL33Render implements Render {
 
     //todo: smarter resource management that uses hashes to make sure a GPUTexture, GPUMesh, etc is only created once.
     private final SlottedArrayList<RenderableEntity> renderableEntities = new SlottedArrayList<>();
+    private final SlottedArrayList<RenderableTextEntity> textEntities = new SlottedArrayList<>();
     private final SlottedArrayList<ShaderProgram> shaderPrograms = new SlottedArrayList<>();
     private final SlottedArrayList<GPUTexture>textures = new SlottedArrayList<>();
     private final SlottedArrayList<GPUMesh> meshes = new SlottedArrayList<>();
@@ -507,6 +507,66 @@ public class GL33Render implements Render {
         return renderableEntities.capacity();
     }
 
+    @Override
+    public int createTextEntity(int texture, String text, int shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
+        return textEntities.add(new RenderableTextEntity(text, shaderPrograms.get(shader), textures.get(texture), true, true));
+    }
+
+    @Override
+    public void setTextEntityPos(int entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
+        RenderableEntity ent = textEntities.get(entity);
+        ent.setPosition(xPos, yPos, zPos);
+        ent.setRotation(xRotation, yRotation, zRotation);
+        ent.setScale(xScale, yScale, zScale);
+    }
+
+    @Override
+    public void setTextEntityPos(int entity, float xPos, float yPos, float zPos) {
+        textEntities.get(entity).setPosition(xPos, yPos, zPos);
+
+    }
+
+    @Override
+    public void setTextEntityRotation(int entity, float xRotation, float yRotation, float zRotation) {
+        textEntities.get(entity).setRotation(xRotation, yRotation, zRotation);
+    }
+
+    @Override
+    public void setTextEntityScale(int entity, float xScale, float yScale, float zScale) {
+        textEntities.get(entity).setScale(xScale, yScale, zScale);
+    }
+
+    @Override
+    public void setTextEntityShader(int entity, int shader) {
+        textEntities.get(entity).setShaderProgram(shaderPrograms.get(shader));
+    }
+
+    @Override
+    public void setTextEntityText(int entity, String text) {
+        textEntities.get(entity).setText(text, true, true);
+    }
+
+    @Override
+    public Matrix4f getTextEntityTransform(int entity) {
+        return textEntities.get(entity).getModelViewMatrix();
+    }
+
+    @Override
+    public void deleteTextEntity(int entity) {
+        textEntities.get(entity).getModel().mesh.cleanUp();
+        textEntities.remove(entity);
+    }
+
+    @Override
+    public int getNumTextEntities() {
+        return textEntities.size();
+    }
+
+    @Override
+    public int getNumTextEntitySlots() {
+        return textEntities.capacity();
+    }
+
     /**
      * creates a chunk at the chunk position [x, y, z]
      *
@@ -596,8 +656,8 @@ public class GL33Render implements Render {
     }
 
     private void updateCameraViewMatrix(){
-        viewMatrix.identity().rotate(cameraRotation.x, new Vector3f(1, 0, 0))
-                .rotate(cameraRotation.y, new Vector3f(0, 1, 0))
+        viewMatrix.identity().rotate(cameraRotation.x, tempv3f1.set(1, 0, 0))
+                .rotate(cameraRotation.y, tempv3f1.set(0, 1, 0))
                 .translate(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z);
     }
 
@@ -830,6 +890,9 @@ public class GL33Render implements Render {
         for (RenderableChunk chunk: chunks){
             chunk.render();
             chunk.sendToGPU();
+        }
+        for(RenderableEntity textEntity: textEntities){
+            textEntity.render();
         }
     }
 }

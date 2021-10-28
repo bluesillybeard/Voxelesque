@@ -14,6 +14,7 @@ public class GlobalBits {
     public static Render render;
     public static Vector3f tempV3f;
     public static int defaultShader;
+    public static int guiShader;
     //player bits
     public static Vector3f playerPosition;
     public static Vector3f playerRotation;
