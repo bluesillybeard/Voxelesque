@@ -5,6 +5,7 @@ import engine.gl33.model.GPUTexture;
 import engine.multiplatform.Util.CPUMeshBuilder;
 import engine.multiplatform.model.CPUMesh;
 import java.util.ArrayList;
+import java.util.concurrent.CompletableFuture;
 
 public class RenderableChunk {
     private final int xPos, yPos, zPos;
@@ -89,10 +90,10 @@ public class RenderableChunk {
                 entity.setScale(1, 1, 1);
                 model[i] = entity;
             }
-            //chunkModels.clear();
-            //shaderTextures.clear();
-            chunkModels = new ArrayList<>();
-            shaderTextures = new ArrayList<>();
+            chunkModels.clear();
+            shaderTextures.clear();
+            //chunkModels = new ArrayList<>();
+            //shaderTextures = new ArrayList<>();
             this.chunkModel = model;
             this.canRender = true;
             return true;
@@ -131,6 +132,9 @@ public class RenderableChunk {
                     }
                     //cloning, index removal, and vertex position modification done within the BlockMeshBuilder
                     chunkModels.get(shaderTextureIndex).addBlockMeshToChunk(block, x, y, z, this.getBlockedFaces(x, y, z));
+                    if(Thread.interrupted()){
+                        return;
+                    }
                 }
             }
         }

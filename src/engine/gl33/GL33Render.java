@@ -127,7 +127,7 @@ public class GL33Render implements Render {
 
     @Override
     public void close() {
-        chunkBuildExecutor.shutdown();
+        chunkBuildExecutor.shutdownNow();
     }
 
     @Override
@@ -775,27 +775,25 @@ public class GL33Render implements Render {
     @Override
     public double render() {
         readyToRender = false;
-        if(window.getKey(GLFW_KEY_UP) == 2){
+        if (window.getKey(GLFW_KEY_UP) == 2) {
             System.out.println(chunks);
             System.out.println(deletedChunks);
         }
-        if(window.getKey(GLFW_KEY_DOWN) == 2){
+        if (window.getKey(GLFW_KEY_DOWN) == 2) {
             System.out.println("stop");
         }
         double startTime = getTime();
         Iterator<RenderableChunk> iter = deletedChunks.iterator();
-        while(iter.hasNext()){
+        while (iter.hasNext()) {
             RenderableChunk c = iter.next();
-            if(!c.taskRunning){
+            if (!c.taskRunning) {
                 iter.remove();
                 c.clearFromGPU();
             }
         }
-        iter = newChunks.iterator();
-        while(iter.hasNext()){
-            RenderableChunk c = iter.next();
-            if(!c.taskRunning){
-                iter.remove();
+        if(!newChunks.isEmpty()){
+            RenderableChunk c = newChunks.remove(newChunks.size() - 1);
+            if (!c.taskRunning) {
                 c.taskRunning = true;
                 chunkBuildExecutor.submit(c::build);
             }
@@ -830,7 +828,7 @@ public class GL33Render implements Render {
         //render each chunk
         for (RenderableChunk chunk: chunks){
             chunk.render();
-            chunk.sendToGPU(); //todo: make sure only a few meshes are sent each frame
+            chunk.sendToGPU();
         }
     }
 }
