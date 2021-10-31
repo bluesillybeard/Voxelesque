@@ -180,7 +180,7 @@ public class VMFSaver {
     }
 
     public static void main(String[] args) throws IOException {
-        saveVBMF("resources/VMFModels/pineLeaves.vbmf0",
+        saveVBMF("resources/VMFModels/pineLog.vbmf0",
         new float[]{
                         0.57735026919f, 1.0f, -0.5f,  //0   2
                         -0.57735026919f, 1.0f, -0.5f, //0 1
@@ -198,21 +198,21 @@ public class VMFSaver {
                         -0.57735026919f, 0.0f, -0.5f,
                         0.0f, 0.0f, 0.5f,
                 }, new float[]{
-                        0.0f, 0.0f,
-                        1.0f, 0.0f,
-                        0.0f, 0.0f,
+                        0.0f, 0.5f,
+                        1.0f, 0.5f,
+                        0.0f, 0.5f,
 
                         0.0f, 1.0f,
                         1.0f, 1.0f,
                         0.0f, 1.0f,
 
                         0.5f, 0.0f,
-                        0.0f, 1.0f,
-                        1.0f, 1.0f,
+                        0.0f, 0.5f,
+                        1.0f, 0.5f,
 
                         0.0f, 0.0f,
-                        0.0f, 1.0f,
-                        0.5f, 1.0f,
+                        0.0f, 0.5f,
+                        0.5f, 0.5f,
                 }, new int[]{
                         6, 7, 8, //top face
                         9, 10, 11, //bottom face
@@ -226,7 +226,7 @@ public class VMFSaver {
 
                         2, 0, 3,
                         2, 5, 3,
-                }, "/home/bluesillybeard/Pictures/pineleaves.png",
+                }, "/home/bluesillybeard/Pictures/pineWood.png",
                 new byte[]{
                         //|16s| 8s| 4s| 2s| 1s| (place value) - Yes, java binary is big endian
                         //|+x | -x|  z| -y| +y| (importance)
@@ -241,7 +241,7 @@ public class VMFSaver {
                 },
                 //|1s| 2s| 4s| 8s| 16s| (place value)
                 //|+y| -y|  z| -x|  +x| (importance)
-                (byte) 0b00000
+                (byte) 0b11111
         );
     }
 }

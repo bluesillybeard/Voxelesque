@@ -9,4 +9,8 @@ model: VMFModels/stoneBlock.vbmf0
 ---
 id: pineLeaves
 name: pine leaves
-model: VMFModels/pineLeaves-.vbmf0
+model: VMFModels/pineLeaves.vbmf0
+---
+id: pineLog
+name: pine log
+model: VMFModels/pineLog.vbmf0
