@@ -57,4 +57,53 @@ public class StaticUtils {
                 +((a.z - b.z)*(a.z - b.z))
                 );
     }
+
+    public static String betterVectorToString(Vector3f vec){
+        int stringLength = 5;
+        StringBuilder b = new StringBuilder();
+        String x = Float.toString(vec.x);
+        String y = Float.toString(vec.y);
+        String z = Float.toString(vec.z);
+        if(x.length() > stringLength){
+            b.append(x.substring(0, stringLength));
+        } else {
+            b.append(x);
+        }
+        b.append(", ");
+        if(y.length() > stringLength){
+            b.append(y.substring(0, stringLength));
+        } else {
+            b.append(y);
+        }
+        b.append(", ");
+        if(z.length() > stringLength){
+            b.append(z.substring(0, stringLength));
+        } else {
+            b.append(z);
+        }
+        return b.toString();
+
+    }
+
+    public static String betterFloatToString(float f, int sigFigs){
+        int ceilLogf = (int)Math.ceil(Math.log10(f));
+        if(ceilLogf > sigFigs) { //if the number of integer digits is greater than the number of significant digits
+            //scientific notation
+            int mantissa = (int) Math.round(f / Math.pow(10, (ceilLogf-sigFigs))); //get the first sigFigs digits
+            // by shifting it by log(f) - sigFigs digits to the right, then casting to an integer
+            String mantissaString = Integer.toString(mantissa);
+            return mantissaString.charAt(0) + "." + mantissaString.substring(1, sigFigs) + "E" + ceilLogf;
+        } else {
+            //decimal notation
+            return Float.toString(f); //todo: actually implement this
+        }
+    }
+
+    public static void main(String[] args) {
+        System.out.println(betterFloatToString(297565.565f, 5));
+        System.out.println(betterFloatToString(29756172855.565f, 5));
+        System.out.println(betterFloatToString(297565.565f, 2));
+        System.out.println(betterFloatToString(2975.565f, 1));
+
+    }
 }

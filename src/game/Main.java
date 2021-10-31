@@ -17,6 +17,7 @@ public class Main {
 
     private static final Vector3f cameraInc = new Vector3f(0, 0, 0);
 
+    private static int debugTextEntity;
     public static void main(String[] args) {
         render = new GL33Render();
         if (render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(90))) {
@@ -32,7 +33,7 @@ public class Main {
             GlobalBits.blocks = SimpleBlock.generateBlocks(GlobalBits.resourcesPath, "BlockRegistry/voxelesque/blocks.yaml", "voxelesque");
             System.out.println(GlobalBits.blocks);
             World world = new World();
-            int debugTextEntity = render.createTextEntity(render.readTexture(render.readImage("Textures/ASCII.png")), "debug", GlobalBits.guiShader, 0f, 0f, 1f, 0f, 0f, 0f, 0.1f, 0.1f, 0.1f);
+            debugTextEntity = render.createTextEntity(render.readTexture(render.readImage("Textures/ASCII-Extended.png")), "", false, false, guiShader, -1f, 1f-0.03f, 0f, 0f, 0f, 0f, 0.03f, 0.03f, 0f);
             do{
                 updateWorld(world);
                 updateCameraPos();
@@ -46,8 +47,16 @@ public class Main {
 
     }
 
-    private static void updateWorld(World world){
+    private static void updateWorld(World world) {
         world.updateChunks();
+        Runtime runtime = Runtime.getRuntime();
+        render.setTextEntityText(debugTextEntity,
+                "Memory:" + (runtime.totalMemory() - runtime.freeMemory()) / 1048576 + " / " + runtime.totalMemory() +
+                        "\nEntities: " + render.getNumEntities() + " / " + render.getNumEntitySlots() +
+                        "\nChunks: " + render.getNumChunks() + " / " + render.getNumChunkSlots() +
+                        "\npos: " + playerPosition + ", rot: " + playerRotation,
+                false, false);
+
     }
 
     private static void updateCameraPos(){
@@ -99,14 +108,6 @@ public class Main {
         //send the camera position to Render
         if(cameraUpdated){
             render.setCameraPos(playerPosition.x, playerPosition.y, playerPosition.z, playerRotation.x, playerRotation.y, playerRotation.z);
-        }
-        if(render.getTime() - lastDebug > 1){
-            Runtime runtime = Runtime.getRuntime();
-            lastDebug = render.getTime();
-            System.out.println("Entities: " + render.getNumEntities() +
-                    " | Chunks: " + render.getNumChunks() +
-                    " | pos:" + StaticUtils.getChunkPos(playerPosition) +
-                    " | memory: " + (runtime.totalMemory() - runtime.freeMemory())/1048576);
         }
     }
 }

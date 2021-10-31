@@ -251,7 +251,7 @@ public interface Render {
      * creates an entity that displays text.
      * @return the text entity ID.
      */
-    int createTextEntity(int texture, String text, int shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
+    int createTextEntity(int texture, String text, boolean centerX, boolean centerY, int shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
     void setTextEntityPos(int entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
@@ -263,7 +263,7 @@ public interface Render {
 
     void setTextEntityShader(int entity, int shader);
 
-    void setTextEntityText(int entity, String text);
+    void setTextEntityText(int entity, String text, boolean centerX, boolean centerY);
 
     Matrix4f getTextEntityTransform(int entity);
 

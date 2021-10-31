@@ -508,13 +508,17 @@ public class GL33Render implements Render {
     }
 
     @Override
-    public int createTextEntity(int texture, String text, int shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
-        return textEntities.add(new RenderableTextEntity(text, shaderPrograms.get(shader), textures.get(texture), true, true));
+    public int createTextEntity(int texture, String text, boolean centerX, boolean centerY, int shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
+        RenderableTextEntity ent = new RenderableTextEntity(text, shaderPrograms.get(shader), textures.get(texture), centerX, centerY);
+        ent.setPosition(xPos, yPos, zPos);
+        ent.setRotation(xRotation, yRotation, zRotation);
+        ent.setScale(xScale, yScale, zScale);
+        return textEntities.add(ent);
     }
 
     @Override
     public void setTextEntityPos(int entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
-        RenderableEntity ent = textEntities.get(entity);
+        RenderableTextEntity ent = textEntities.get(entity);
         ent.setPosition(xPos, yPos, zPos);
         ent.setRotation(xRotation, yRotation, zRotation);
         ent.setScale(xScale, yScale, zScale);
@@ -542,8 +546,8 @@ public class GL33Render implements Render {
     }
 
     @Override
-    public void setTextEntityText(int entity, String text) {
-        textEntities.get(entity).setText(text, true, true);
+    public void setTextEntityText(int entity, String text, boolean centerX, boolean centerY) {
+        textEntities.get(entity).setText(text, centerX, centerY);
     }
 
     @Override
