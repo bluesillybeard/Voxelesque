@@ -180,39 +180,38 @@ public class VMFSaver {
     }
 
     public static void main(String[] args) throws IOException {
-        saveVBMF("resources/VMFModels/grassBlock.vbmf0",
+        saveVBMF("resources/VMFModels/pineLeaves.vbmf0",
         new float[]{
-                        //(0.57735026919,-0.5),(-0.57735026919, -0.5),(0.0, 0.5)
-                        0.57735026919f, 1.0f, -0.5f, //top face positions for side faces (texture coordinates)
+                        0.57735026919f, 1.0f, -0.5f,  //0   2
+                        -0.57735026919f, 1.0f, -0.5f, //0 1
+                        0.0f, 1.0f, 0.5f,             //  1 2
+
+                        0.57735026919f, 0.0f, -0.5f,  //0   2
+                        -0.57735026919f, 0.0f, -0.5f, //0 1
+                        0.0f, 0.0f, 0.5f,             //  1 2
+
+                        0.57735026919f, 1.0f, -0.5f,
                         -0.57735026919f, 1.0f, -0.5f,
                         0.0f, 1.0f, 0.5f,
 
-                        0.57735026919f, 0.0f, -0.5f, //bottom face positions for side faces (texture coordinates)
-                        -0.57735026919f, 0.0f, -0.5f,
-                        0.0f, 0.0f, 0.5f,
-
-                        0.57735026919f, 1.0f, -0.5f, //top face
-                        -0.57735026919f, 1.0f, -0.5f,
-                        0.0f, 1.0f, 0.5f,
-
-                        0.57735026919f, 0.0f, -0.5f, //bottom face
+                        0.57735026919f, 0.0f, -0.5f,
                         -0.57735026919f, 0.0f, -0.5f,
                         0.0f, 0.0f, 0.5f,
                 }, new float[]{
-                        0.0f, 0.3f,
-                        1.0f, 0.3f,
-                        0.5f, 0.3f,
-
-                        0.0f, 0.7f,
-                        1.0f, 0.7f,
-                        0.5f, 0.7f,
-
                         0.0f, 0.0f,
                         1.0f, 0.0f,
-                        0.5f, 0.5f,
+                        0.0f, 0.0f,
 
-                        0.0f, 0.6f,
-                        1.0f, 0.6f,
+                        0.0f, 1.0f,
+                        1.0f, 1.0f,
+                        0.0f, 1.0f,
+
+                        0.5f, 0.0f,
+                        0.0f, 1.0f,
+                        1.0f, 1.0f,
+
+                        0.0f, 0.0f,
+                        0.0f, 1.0f,
                         0.5f, 1.0f,
                 }, new int[]{
                         6, 7, 8, //top face
@@ -227,7 +226,7 @@ public class VMFSaver {
 
                         2, 0, 3,
                         2, 5, 3,
-                }, "resources/Textures/grass.png",
+                }, "/home/bluesillybeard/Pictures/pineleaves.png",
                 new byte[]{
                         //|16s| 8s| 4s| 2s| 1s| (place value) - Yes, java binary is big endian
                         //|+x | -x|  z| -y| +y| (importance)
@@ -242,7 +241,7 @@ public class VMFSaver {
                 },
                 //|1s| 2s| 4s| 8s| 16s| (place value)
                 //|+y| -y|  z| -x|  +x| (importance)
-                (byte) 0b11111
+                (byte) 0b00000
         );
     }
 }

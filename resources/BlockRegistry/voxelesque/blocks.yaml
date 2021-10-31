@@ -6,3 +6,7 @@ model: VMFModels/grassBlock.vbmf0
 id: stoneBlock
 name: stone block
 model: VMFModels/stoneBlock.vbmf0
+---
+id: pineLeaves
+name: pine leaves
+model: VMFModels/pineLeaves-.vbmf0
