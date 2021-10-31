@@ -22,7 +22,7 @@ public class Main {
         if (render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(90))) {
             resourcesPath = System.getProperty("user.dir") + "/resources";
             render.setResourcesPath(GlobalBits.resourcesPath);
-            renderDistance = 150f;
+            renderDistance = 100f;
             tempV3f = new Vector3f();
             playerPosition = new Vector3f(0, 1, 0);
             playerRotation = new Vector3f(0, 0, 0);
@@ -54,7 +54,7 @@ public class Main {
                 "Memory:" + (runtime.totalMemory() - runtime.freeMemory()) / 1048576 + " / " + runtime.totalMemory() / 1048576 +
                         "\nEntities: " + render.getNumEntities() + " / " + render.getNumEntitySlots() +
                         "\nChunks: " + render.getNumChunks() + " / " + render.getNumChunkSlots() +
-                        "\npos: " + StaticUtils.betterVectorToString(playerPosition, 3) + ", rot: " + StaticUtils.betterVectorToString(playerRotation, 3),
+                        "\npos: " + StaticUtils.betterVectorToString(playerPosition, 3) + ", rot: (" + StaticUtils.betterFloatToString(playerRotation.x, 3) + ", " + StaticUtils.betterFloatToString(playerRotation.y, 3) + ")",
                 false, false);
 
     }
