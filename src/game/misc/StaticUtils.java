@@ -58,52 +58,33 @@ public class StaticUtils {
                 );
     }
 
-    public static String betterVectorToString(Vector3f vec){
-        int stringLength = 5;
-        StringBuilder b = new StringBuilder();
-        String x = Float.toString(vec.x);
-        String y = Float.toString(vec.y);
-        String z = Float.toString(vec.z);
-        if(x.length() > stringLength){
-            b.append(x.substring(0, stringLength));
-        } else {
-            b.append(x);
-        }
-        b.append(", ");
-        if(y.length() > stringLength){
-            b.append(y.substring(0, stringLength));
-        } else {
-            b.append(y);
-        }
-        b.append(", ");
-        if(z.length() > stringLength){
-            b.append(z.substring(0, stringLength));
-        } else {
-            b.append(z);
-        }
-        return b.toString();
+    public static String betterVectorToString(Vector3f vec, int sigFigs){
+        String x = betterFloatToString(vec.x, sigFigs);
+        String y = betterFloatToString(vec.y, sigFigs);
+        String z = betterFloatToString(vec.z, sigFigs);
+        return "(" + x + ", " + y + ", " + z + ")";
 
     }
 
+    /**
+     * Similar to Float.toString, except this method allows you to specific a number of digits.
+     * @param f the float to create the string
+     * @param sigFigs the number of significant figures or digits to use
+     * @return a String that represents f
+     */
     public static String betterFloatToString(float f, int sigFigs){
         int ceilLogf = (int)Math.ceil(Math.log10(f));
         if(ceilLogf > sigFigs) { //if the number of integer digits is greater than the number of significant digits
             //scientific notation
-            int mantissa = (int) Math.round(f / Math.pow(10, (ceilLogf-sigFigs))); //get the first sigFigs digits
+
+            String mantissaString = Integer.toString((int) Math.round(f / Math.pow(10, (ceilLogf-sigFigs))));
+            //get the first sigFigs digits of the number
             // by shifting it by log(f) - sigFigs digits to the right, then casting to an integer
-            String mantissaString = Integer.toString(mantissa);
-            return mantissaString.charAt(0) + "." + mantissaString.substring(1, sigFigs) + "E" + ceilLogf;
+            return mantissaString.charAt(0) + "." + mantissaString.substring(1, sigFigs) + "E" + (ceilLogf-1);
         } else {
             //decimal notation
-            return Float.toString(f); //todo: actually implement this
+            String intPartString = Integer.toString((int)f);
+            return intPartString + "." + (int) Math.round(f % 1 * Math.pow(10, sigFigs - intPartString.length()));
         }
-    }
-
-    public static void main(String[] args) {
-        System.out.println(betterFloatToString(297565.565f, 5));
-        System.out.println(betterFloatToString(29756172855.565f, 5));
-        System.out.println(betterFloatToString(297565.565f, 2));
-        System.out.println(betterFloatToString(2975.565f, 1));
-
     }
 }

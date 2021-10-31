@@ -13,7 +13,6 @@ import static org.lwjgl.glfw.GLFW.*;
 public class Main {
     private static double lastMouseYPos = 0;
     private static double lastMouseXPos = 0;
-    private static double lastDebug = 0.0;
 
     private static final Vector3f cameraInc = new Vector3f(0, 0, 0);
 
@@ -23,7 +22,7 @@ public class Main {
         if (render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(90))) {
             resourcesPath = System.getProperty("user.dir") + "/resources";
             render.setResourcesPath(GlobalBits.resourcesPath);
-            renderDistance = 50f;
+            renderDistance = 150f;
             tempV3f = new Vector3f();
             playerPosition = new Vector3f(0, 1, 0);
             playerRotation = new Vector3f(0, 0, 0);
@@ -33,7 +32,8 @@ public class Main {
             GlobalBits.blocks = SimpleBlock.generateBlocks(GlobalBits.resourcesPath, "BlockRegistry/voxelesque/blocks.yaml", "voxelesque");
             System.out.println(GlobalBits.blocks);
             World world = new World();
-            debugTextEntity = render.createTextEntity(render.readTexture(render.readImage("Textures/ASCII-Extended.png")), "", false, false, guiShader, -1f, 1f-0.03f, 0f, 0f, 0f, 0f, 0.03f, 0.03f, 0f);
+            float textScale =  0.04f;
+            debugTextEntity = render.createTextEntity(render.readTexture(render.readImage("Textures/ASCII-Extended.png")), "", false, false, guiShader, -1f, 1f-textScale, 0f, 0f, 0f, 0f,  textScale, textScale, 0f);
             do{
                 updateWorld(world);
                 updateCameraPos();
@@ -51,10 +51,10 @@ public class Main {
         world.updateChunks();
         Runtime runtime = Runtime.getRuntime();
         render.setTextEntityText(debugTextEntity,
-                "Memory:" + (runtime.totalMemory() - runtime.freeMemory()) / 1048576 + " / " + runtime.totalMemory() +
+                "Memory:" + (runtime.totalMemory() - runtime.freeMemory()) / 1048576 + " / " + runtime.totalMemory() / 1048576 +
                         "\nEntities: " + render.getNumEntities() + " / " + render.getNumEntitySlots() +
                         "\nChunks: " + render.getNumChunks() + " / " + render.getNumChunkSlots() +
-                        "\npos: " + playerPosition + ", rot: " + playerRotation,
+                        "\npos: " + StaticUtils.betterVectorToString(playerPosition, 3) + ", rot: " + StaticUtils.betterVectorToString(playerRotation, 3),
                 false, false);
 
     }
