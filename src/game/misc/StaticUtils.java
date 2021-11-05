@@ -9,11 +9,11 @@ import java.nio.charset.StandardCharsets;
 
 public class StaticUtils {
     public static Vector3i getChunkPos(Vector3f worldPos){
-        return new Vector3i((int)(worldPos.x/18.4752086141), (int)(worldPos.y/32.), (int)(worldPos.z/32.));
+        return new Vector3i((int)Math.round(worldPos.x/18.4752086141-0.5), (int)Math.round(worldPos.y/32.-0.5), (int)Math.round(worldPos.z/32.-0.5));
     }
 
     public static Vector3f getWorldPos(Vector3i chunkPos){
-        return new Vector3f(chunkPos.x*18.4752086141f, chunkPos.y*32f, chunkPos.z*32f);
+        return new Vector3f(chunkPos.x*18.4752086141f, chunkPos.y*32f, chunkPos.z*32f+16f);
     }
 
     public static byte[] getFourBytes(int i){
@@ -31,7 +31,7 @@ public class StaticUtils {
         return Float.intBitsToFloat(getIntFromFourBytes(b0, b1, b2, b3));
     }
 
-    public static ByteBuffer getNBTSerialData(NBTElement element, byte[] valueBytes){
+    public static ByteBuffer getNBTSerialData(NBTElement element, byte[] valueBytes){ //todo: find a better name for this function
         byte[] name = element.getName().getBytes(StandardCharsets.UTF_8);
         int size = 4 + 1 + name.length+1 + valueBytes.length;
         return ByteBuffer.allocate(size).
@@ -41,7 +41,7 @@ public class StaticUtils {
                 put(valueBytes); //the value of the element (valueBytes.length bytes)
     }
 
-    public static ByteBuffer getNBTSerialData(NBTElement element, ByteBuffer valueBytes){
+    public static ByteBuffer getNBTSerialData(NBTElement element, ByteBuffer valueBytes){//todo: find a better name for this function
         byte[] name = element.getName().getBytes(StandardCharsets.UTF_8);
         int size = 4 + 1 + name.length+1 + valueBytes.capacity();
         return ByteBuffer.allocate(size).
@@ -50,18 +50,11 @@ public class StaticUtils {
                         put(name).put((byte) 0). //the name of the element and the null terminator (name.length+1 bytes)
                         put(valueBytes.flip()); //the value of the element (valueBytes.length bytes)
     }
-    public static double getDistance(Vector3f a, Vector3f b){
-        return Math.sqrt(
-                ((a.x - b.x)*(a.x - b.x))
-                +((a.y - b.y)*(a.y - b.y))
-                +((a.z - b.z)*(a.z - b.z))
-                );
-    }
 
     public static String betterVectorToString(Vector3f vec, int sigFigs){
-        String x = betterFloatToString(vec.x, sigFigs);
-        String y = betterFloatToString(vec.y, sigFigs);
-        String z = betterFloatToString(vec.z, sigFigs);
+        String x = FloatToStringSigFigs(vec.x, sigFigs);
+        String y = FloatToStringSigFigs(vec.y, sigFigs);
+        String z = FloatToStringSigFigs(vec.z, sigFigs);
         return "(" + x + ", " + y + ", " + z + ")";
 
     }
@@ -72,8 +65,9 @@ public class StaticUtils {
      * @param sigFigs the number of significant figures or digits to use
      * @return a String that represents f
      */
-    public static String betterFloatToString(float f, int sigFigs){
-        int ceilLogf = (int)Math.ceil(Math.log10(f));
+    public static String FloatToStringSigFigs(float f, int sigFigs){
+        //uses simple mathematical concepts way to convert a float into a string.
+        int ceilLogf = (int)Math.ceil(Math.log10(f)); //the number of integer digits in the number.
         if(ceilLogf > sigFigs) { //if the number of integer digits is greater than the number of significant digits
             //scientific notation
 
@@ -84,7 +78,7 @@ public class StaticUtils {
         } else {
             //decimal notation
             String intPartString = Integer.toString((int)f);
-            return intPartString + "." + (int) Math.round(f % 1 * Math.pow(10, sigFigs - intPartString.length()));
+            return intPartString + "." + (int) Math.abs(Math.round(f % 1 * Math.pow(10, sigFigs - intPartString.length())));
         }
     }
 }

@@ -7,6 +7,8 @@ import game.world.block.SimpleBlock;
 import org.joml.Vector3f;
 
 
+import java.text.NumberFormat;
+
 import static game.GlobalBits.*;
 import static org.lwjgl.glfw.GLFW.*;
 //todo: Main class is awful, fix this atrocity.
@@ -17,7 +19,14 @@ public class Main {
     private static final Vector3f cameraInc = new Vector3f(0, 0, 0);
 
     private static int debugTextEntity;
+    private static float textScale;
     public static void main(String[] args) {
+        //render = new GL33Render();
+        //if(!render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(90))){
+        //    System.err.println("Unable to initialize Voxelesque engine");
+        //    System.exit(-1);
+        //}
+
         render = new GL33Render();
         if (render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(90))) {
             resourcesPath = System.getProperty("user.dir") + "/resources";
@@ -45,6 +54,7 @@ public class Main {
         }
         System.out.println("EXIT");
 
+
     }
 
     private static void updateWorld(World world) {
@@ -54,7 +64,8 @@ public class Main {
                 "Memory:" + (runtime.totalMemory() - runtime.freeMemory()) / 1048576 + " / " + runtime.totalMemory() / 1048576 +
                         "\nEntities: " + render.getNumEntities() + " / " + render.getNumEntitySlots() +
                         "\nChunks: " + render.getNumChunks() + " / " + render.getNumChunkSlots() +
-                        "\npos: " + StaticUtils.betterVectorToString(playerPosition, 3) + ", rot: (" + StaticUtils.betterFloatToString(playerRotation.x, 3) + ", " + StaticUtils.betterFloatToString(playerRotation.y, 3) + ")",
+                        "\npos: " + StaticUtils.betterVectorToString(playerPosition, 3) + ", rot: (" + StaticUtils.FloatToStringSigFigs(playerRotation.x, 3) + ", " + StaticUtils.FloatToStringSigFigs(playerRotation.y, 3) + ")" +
+                        "\nchunkPos: " + StaticUtils.getChunkPos(playerPosition).toString(NumberFormat.getIntegerInstance()),
                 false, false);
 
     }
