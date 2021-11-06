@@ -16,7 +16,7 @@ public class World {
     private final Chunk emptyChunk;
     private final Map<Vector3i, Chunk> chunks;
     private final LinkedList<Vector3i> chunksToUnload;
-    private static final int CHUNK_SIZE = 64;
+    private static final int CHUNK_SIZE = 64; //MUST BE A POWER OF 2! If this is changed to a non-power of 2, many things would have to be reworked.
 
     public World() {
         emptyChunk = new Chunk(CHUNK_SIZE, -1, -1, -1);
@@ -25,30 +25,25 @@ public class World {
     }
 
     public Block getBlock(int x, int y, int z){
-        return getChunk(x, y, z).getBlock(x&63, y&63, z&63);
+        return getChunk(x, y, z).getBlock(x&(CHUNK_SIZE-1), y&(CHUNK_SIZE-1), z&(CHUNK_SIZE-1));
     }
     public void setBlock(int x, int y, int z, Block block){
-        getChunk(x, y, z).setBlock(x%CHUNK_SIZE, y%CHUNK_SIZE, z%CHUNK_SIZE, block);
+        Chunk c = getChunk(x, y, z);
+        if(c != null)c.setBlock(x&(CHUNK_SIZE-1), y&(CHUNK_SIZE-1), z&(CHUNK_SIZE-1), block);
+        else System.err.println("Coould not set chunk block!!!");
+        //TODO: create a system that keeps track of blocks placed into nonexistent chunks
     }
 
     /**
      * Gets the chunk that contains the block coordinates.
+     * If the chunk does not exist, it will return null
      * @param x the x coordinate of the block
      * @param y the y coordinate of the block
      * @param z the z coordinate of the block
      * @return the Chunk that contains the block coordinates.
      */
     public Chunk getChunk(int x, int y, int z){
-        Chunk chunk = chunks.get(StaticUtils.getChunkPos(StaticUtils.getBlockWorldPos(new BetterVector3i(x, y, z))));
-        return chunk != null ? chunk : emptyChunk;
-    }
-
-    public void addChunk(int x, int y, int z, Chunk chunk){
-        chunks.put(new BetterVector3i(x, y, z), chunk);
-    }
-
-    public void removeChunk(int x, int y, int z){
-        chunks.remove(new BetterVector3i(x, y, z));
+        return chunks.get(StaticUtils.getChunkPos(StaticUtils.getBlockWorldPos(new BetterVector3i(x, y, z))));
     }
 
     public void updateChunks(){
