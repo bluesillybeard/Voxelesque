@@ -1,6 +1,7 @@
 package game.world;
 
 import game.GlobalBits;
+import game.misc.StaticUtils;
 import game.world.block.Block;
 import org.joml.Vector3i;
 import Math.BetterVector3i;
@@ -9,20 +10,22 @@ import java.util.*;
 
 import static game.GlobalBits.renderDistance;
 import static game.misc.StaticUtils.getChunkPos;
-import static game.misc.StaticUtils.getWorldPos;
+import static game.misc.StaticUtils.getChunkWorldPos;
 
 public class World {
+    private final Chunk emptyChunk;
     private final Map<Vector3i, Chunk> chunks;
     private final LinkedList<Vector3i> chunksToUnload;
     private static final int CHUNK_SIZE = 64;
 
     public World() {
+        emptyChunk = new Chunk(CHUNK_SIZE, -1, -1, -1);
         chunks = new HashMap<>();
         chunksToUnload = new LinkedList<>();
     }
 
     public Block getBlock(int x, int y, int z){
-        return getChunk(x, y, z).getBlock(x%CHUNK_SIZE, y%CHUNK_SIZE, z%CHUNK_SIZE);
+        return getChunk(x, y, z).getBlock(x&63, y&63, z&63);
     }
     public void setBlock(int x, int y, int z, Block block){
         getChunk(x, y, z).setBlock(x%CHUNK_SIZE, y%CHUNK_SIZE, z%CHUNK_SIZE, block);
@@ -36,7 +39,8 @@ public class World {
      * @return the Chunk that contains the block coordinates.
      */
     public Chunk getChunk(int x, int y, int z){
-        return chunks.get(new BetterVector3i(x/CHUNK_SIZE, y/CHUNK_SIZE, z/CHUNK_SIZE));
+        Chunk chunk = chunks.get(StaticUtils.getChunkPos(StaticUtils.getBlockWorldPos(new BetterVector3i(x, y, z))));
+        return chunk != null ? chunk : emptyChunk;
     }
 
     public void addChunk(int x, int y, int z, Chunk chunk){
@@ -53,16 +57,15 @@ public class World {
             for(int y=playerChunk.y-(int)(renderDistance/31)-1; y<playerChunk.y+(int)(renderDistance/31)+1; y++){
                 for(int z=playerChunk.z-(int)(renderDistance/31)-1; z<playerChunk.z+(int)(renderDistance/31)+1; z++){
                     //System.out.println(x + ", " + y + ", " + z);
-                    if(!chunks.containsKey(new BetterVector3i(x, y, z)) && getWorldPos(new BetterVector3i(x, y, z)).distance(GlobalBits.playerPosition) < renderDistance) {
+                    if(!chunks.containsKey(new BetterVector3i(x, y, z)) && getChunkWorldPos(new BetterVector3i(x, y, z)).distance(GlobalBits.playerPosition) < renderDistance) {
                         loadChunk(x, y, z);
                     }
                 }
             }
         }
         chunks.forEach((key, value) -> {
-            if (getWorldPos(key).distance(GlobalBits.playerPosition) > renderDistance) {
+            if (getChunkWorldPos(key).distance(GlobalBits.playerPosition) > renderDistance) {
                 chunksToUnload.add(key);
-                System.out.println("unloaded chunk " + key + ", "  + getWorldPos(key).distance(GlobalBits.playerPosition));
             }
         });
         Iterator<Vector3i> chunkIterator = chunksToUnload.iterator();

@@ -5,6 +5,7 @@ import game.misc.StaticUtils;
 import game.world.World;
 import game.world.block.SimpleBlock;
 import org.joml.Vector3f;
+import org.joml.Vector3i;
 
 import static game.GlobalBits.*;
 import static org.lwjgl.glfw.GLFW.*;
@@ -18,50 +19,48 @@ public class Main {
     private static int debugTextEntity;
     private static float textScale;
     public static void main(String[] args) {
-        //render = new GL33Render();
-        //if(!render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(90))){
-        //    System.err.println("Unable to initialize Voxelesque engine");
-        //    System.exit(-1);
-        //}
-        render = new GL33Render();
-        if (render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(90))) {
+        try {
+            render = new GL33Render();
+            if (!render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(90))) {
+                System.err.println("Unable to initialize Voxelesque engine");
+                System.exit(-1);
+            }
             resourcesPath = System.getProperty("user.dir") + "/resources";
             render.setResourcesPath(GlobalBits.resourcesPath);
-            renderDistance = 50f;
+            renderDistance = 150f;
             tempV3f = new Vector3f();
             playerPosition = new Vector3f(0, 1, 0);
             playerRotation = new Vector3f(0, 0, 0);
             sensitivity = 1;
-            GlobalBits.defaultShader = render.loadShaderProgram("Shaders/", "");
-            GlobalBits.guiShader = render.loadShaderProgram("Shaders/", "gui");
-            GlobalBits.blocks = SimpleBlock.generateBlocks(GlobalBits.resourcesPath, "BlockRegistry/voxelesque/blocks.yaml", "voxelesque");
-            System.out.println(GlobalBits.blocks);
+            defaultShader = render.loadShaderProgram("Shaders/", "");
+            guiShader = render.loadShaderProgram("Shaders/", "gui");
+            blocks = SimpleBlock.generateBlocks(GlobalBits.resourcesPath, "BlockRegistry/voxelesque/blocks.yaml", "voxelesque");
+            guiScale = 0.03f;
             World world = new World();
-            float textScale =  0.04f;
-            debugTextEntity = render.createTextEntity(render.readTexture(render.readImage("Textures/ASCII-Extended.png")), "", false, false, guiShader, -1f, 1f-textScale, 0f, 0f, 0f, 0f,  textScale, textScale, 0f);
-            do{
+            debugTextEntity = render.createTextEntity(render.readTexture(render.readImage("Textures/ASCII-Extended.png")), "", false, false, guiShader, -1f, 1f - guiScale, 0f, 0f, 0f, 0f, guiScale, guiScale, 0f);
+            do {
                 updateWorld(world);
                 updateCameraPos();
                 render.render();
-            }while(!render.shouldClose());
+            } while (!render.shouldClose());
             render.close();
-        } else {
-            System.err.println("Unable to initialize Voxelesque engine");
+        } catch(Exception e){
+            e.printStackTrace();
+            render.close();
         }
-        System.out.println("EXIT");
-
-
     }
 
     private static void updateWorld(World world) {
         world.updateChunks();
         Runtime runtime = Runtime.getRuntime();
+        Vector3i blockPos = StaticUtils.getBlockPos(playerPosition);
         render.setTextEntityText(debugTextEntity,
                 "Memory:" + (runtime.totalMemory() - runtime.freeMemory()) / 1048576 + " / " + runtime.totalMemory() / 1048576 +
                         "\nEntities: " + render.getNumEntities() + " / " + render.getNumEntitySlots() +
                         "\nChunks: " + render.getNumChunks() + " / " + render.getNumChunkSlots() +
                         "\npos: " + StaticUtils.betterVectorToString(playerPosition, 3) + ", rot: (" + StaticUtils.FloatToStringSigFigs(playerRotation.x, 3) + ", " + StaticUtils.FloatToStringSigFigs(playerRotation.y, 3) + ")" +
-                        "\nchunkPos: " + StaticUtils.betterVectorToString(StaticUtils.getWorldPos(StaticUtils.getChunkPos(playerPosition)), 3) + "|",
+                        "\nchunkPos: " + StaticUtils.getChunkPos(playerPosition) +
+                        "\nblock: " + world.getBlock(blockPos.x, blockPos.y, blockPos.z).getID(),
                 false, false);
 
     }

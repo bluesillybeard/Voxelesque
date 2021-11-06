@@ -12,8 +12,16 @@ public class StaticUtils {
         return new Vector3i((int)Math.round(worldPos.x/18.4752086141-0.5), (int)Math.round(worldPos.y/32.-0.5), (int)Math.round(worldPos.z/32.-0.5));
     }
 
-    public static Vector3f getWorldPos(Vector3i chunkPos){
+    public static Vector3f getChunkWorldPos(Vector3i chunkPos){
         return new Vector3f((chunkPos.x+0.5f)*18.4752086141f, (chunkPos.y+0.5f)*32f, (chunkPos.z+0.5f)*32f);
+    }
+
+    public static Vector3i getBlockPos(Vector3f worldPos){
+        return new Vector3i((int)Math.round(worldPos.x/0.288675134595-0.5), (int)Math.round(worldPos.y/0.5-0.5), (int)Math.round(worldPos.z/0.5-0.5));
+    }
+
+    public static Vector3f getBlockWorldPos(Vector3i blockPos){
+        return new Vector3f((blockPos.x+0.5f)*0.288675134595f, (blockPos.y+0.5f)*0.5f, (blockPos.z+0.5f)*0.5f);
     }
 
     public static byte[] getFourBytes(int i){
