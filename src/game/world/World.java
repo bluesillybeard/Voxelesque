@@ -1,11 +1,9 @@
 package game.world;
 
 import game.GlobalBits;
-import game.data.nbt.NBTFolder;
 import game.world.block.Block;
-import org.joml.Vector2dc;
-import org.joml.Vector3f;
 import org.joml.Vector3i;
+import Math.BetterVector3i;
 
 import java.util.*;
 
@@ -31,25 +29,23 @@ public class World {
     }
 
     /**
-     * Gets the chunk that contains the block coordinates, assuming a chunk is 64x64x64
+     * Gets the chunk that contains the block coordinates.
      * @param x the x coordinate of the block
      * @param y the y coordinate of the block
      * @param z the z coordinate of the block
      * @return the Chunk that contains the block coordinates.
      */
     public Chunk getChunk(int x, int y, int z){
-        return chunks.get(new Vector3i(x/CHUNK_SIZE, y/CHUNK_SIZE, z/CHUNK_SIZE));
+        return chunks.get(new BetterVector3i(x/CHUNK_SIZE, y/CHUNK_SIZE, z/CHUNK_SIZE));
     }
 
     public void addChunk(int x, int y, int z, Chunk chunk){
-        chunks.put(new Vector3i(x, y, z), chunk);
+        chunks.put(new BetterVector3i(x, y, z), chunk);
     }
 
     public void removeChunk(int x, int y, int z){
-        chunks.remove(new Vector3i(x, y, z));
+        chunks.remove(new BetterVector3i(x, y, z));
     }
-
-
 
     public void updateChunks(){
         Vector3i playerChunk = getChunkPos(GlobalBits.playerPosition);
@@ -57,7 +53,7 @@ public class World {
             for(int y=playerChunk.y-(int)(renderDistance/31)-1; y<playerChunk.y+(int)(renderDistance/31)+1; y++){
                 for(int z=playerChunk.z-(int)(renderDistance/31)-1; z<playerChunk.z+(int)(renderDistance/31)+1; z++){
                     //System.out.println(x + ", " + y + ", " + z);
-                    if(!chunks.containsKey(new Vector3i(x, y, z)) && getWorldPos(new Vector3i(x, y, z)).distance(GlobalBits.playerPosition) < renderDistance) {
+                    if(!chunks.containsKey(new BetterVector3i(x, y, z)) && getWorldPos(new BetterVector3i(x, y, z)).distance(GlobalBits.playerPosition) < renderDistance) {
                         loadChunk(x, y, z);
                     }
                 }
@@ -66,6 +62,7 @@ public class World {
         chunks.forEach((key, value) -> {
             if (getWorldPos(key).distance(GlobalBits.playerPosition) > renderDistance) {
                 chunksToUnload.add(key);
+                System.out.println("unloaded chunk " + key + ", "  + getWorldPos(key).distance(GlobalBits.playerPosition));
             }
         });
         Iterator<Vector3i> chunkIterator = chunksToUnload.iterator();
@@ -93,7 +90,7 @@ public class World {
         //todo: actual world generation and world saves
         Chunk chunk;
         if(y > -1){
-            chunk = new Chunk(64, x, y, z);
+            chunk = new Chunk(CHUNK_SIZE, x, y, z);
         } else {
             chunk = randomChunk(GlobalBits.blocks, x, y, z);
         }
@@ -101,15 +98,15 @@ public class World {
     }
 
     private Chunk randomChunk(List<Block> blocks, int x, int y, int z){
-        Block[][][] blocksg = new Block[64][64][64];
-        for(int xp = 0; xp < 64; xp++){
-            for(int yp = 0; yp < 64; yp++){
-                for(int zp = 0; zp < 64; zp++){
+        Block[][][] blocksg = new Block[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
+        for(int xp = 0; xp < CHUNK_SIZE; xp++){
+            for(int yp = 0; yp < CHUNK_SIZE; yp++){
+                for(int zp = 0; zp < CHUNK_SIZE; zp++){
                     int random = (int) (Math.random()*blocks.size());
                     blocksg[xp][yp][zp] = blocks.get(random);
                 }
             }
         }
-        return new Chunk(64, blocksg, null, x, y, z);
+        return new Chunk(CHUNK_SIZE, blocksg, null, x, y, z);
     }
 }

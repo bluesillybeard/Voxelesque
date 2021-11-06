@@ -13,7 +13,7 @@ public class StaticUtils {
     }
 
     public static Vector3f getWorldPos(Vector3i chunkPos){
-        return new Vector3f(chunkPos.x*18.4752086141f, chunkPos.y*32f, chunkPos.z*32f+16f);
+        return new Vector3f((chunkPos.x+0.5f)*18.4752086141f, (chunkPos.y+0.5f)*32f, (chunkPos.z+0.5f)*32f);
     }
 
     public static byte[] getFourBytes(int i){

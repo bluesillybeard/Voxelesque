@@ -6,9 +6,6 @@ import game.world.World;
 import game.world.block.SimpleBlock;
 import org.joml.Vector3f;
 
-
-import java.text.NumberFormat;
-
 import static game.GlobalBits.*;
 import static org.lwjgl.glfw.GLFW.*;
 //todo: Main class is awful, fix this atrocity.
@@ -26,7 +23,6 @@ public class Main {
         //    System.err.println("Unable to initialize Voxelesque engine");
         //    System.exit(-1);
         //}
-
         render = new GL33Render();
         if (render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(90))) {
             resourcesPath = System.getProperty("user.dir") + "/resources";
@@ -65,7 +61,7 @@ public class Main {
                         "\nEntities: " + render.getNumEntities() + " / " + render.getNumEntitySlots() +
                         "\nChunks: " + render.getNumChunks() + " / " + render.getNumChunkSlots() +
                         "\npos: " + StaticUtils.betterVectorToString(playerPosition, 3) + ", rot: (" + StaticUtils.FloatToStringSigFigs(playerRotation.x, 3) + ", " + StaticUtils.FloatToStringSigFigs(playerRotation.y, 3) + ")" +
-                        "\nchunkPos: " + StaticUtils.getChunkPos(playerPosition).toString(NumberFormat.getIntegerInstance()),
+                        "\nchunkPos: " + StaticUtils.betterVectorToString(StaticUtils.getWorldPos(StaticUtils.getChunkPos(playerPosition)), 3) + "|",
                 false, false);
 
     }
