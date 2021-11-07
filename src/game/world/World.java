@@ -22,7 +22,7 @@ public class World {
     private static final int CHUNK_SIZE = 64; //MUST BE A POWER OF 2! If this is changed to a non-power of 2, many things would have to be reworked.
 
     public World() {
-        noise = new PerlinNoise((int) ((Math.random()*2-1)*Integer.MAX_VALUE), 1, 100, 10, 1);
+        noise = new PerlinNoise((int) ((Math.random()*2-1)*Integer.MAX_VALUE), 1, 0.1, 10, 1);
         emptyChunk = new Chunk(CHUNK_SIZE, -1, -1, -1);
         chunks = new HashMap<>();
         chunksToUnload = new LinkedList<>();
@@ -101,18 +101,20 @@ public class World {
 
         for(int xp = 0; xp < CHUNK_SIZE; xp++){
             for(int zp = 0; zp < CHUNK_SIZE; zp++){
-                Vector3f pos = StaticUtils.getBlockWorldPos(new Vector3i(xp, 0, zp));
+                Vector3f pos = StaticUtils.getBlockWorldPos(new Vector3i(CHUNK_SIZE*x+xp, 0, CHUNK_SIZE*z+zp));
                 double height = noise.getHeight(pos.x, pos.z);
                 for(int yp = 0; yp < CHUNK_SIZE; yp++){
                     pos = StaticUtils.getBlockWorldPos(new Vector3i(CHUNK_SIZE*x+xp, CHUNK_SIZE * y+yp, CHUNK_SIZE*z+zp));
                     blocksg[xp][yp][zp] = stoneBlock;
                     if(pos.y < height) {
-                        System.out.println(xp + ", " + yp + ", " + zp);
+                        //don't print here, ruins world gen for unexplained reasons
+                        //seriously - it's really creepy
                         blocksg[xp][yp][zp] = grassBlock;
                     }
                 }
             }
         }
+
         return new Chunk(CHUNK_SIZE, blocksg, null, x, y, z);
     }
 }

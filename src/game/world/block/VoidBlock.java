@@ -23,12 +23,12 @@ public class VoidBlock implements Block{
 
     @Override
     public CPUMesh getMesh() {
-        return null; //This is probably going to end badly. todo: use an actual mesh you idiot
+        return null;
     }
 
     @Override
     public int getTexture() {
-        return 0; //Since the model is completely empty, it makes no difference what shader is used.
+        return 0; //Since the model is completely empty, it makes no difference what texture is used.
     }
 
     @Override

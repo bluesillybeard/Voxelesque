@@ -81,7 +81,6 @@ public class RenderableChunk {
         if(taskRunning){
             return false;
         } else if(chunkModels.size() > 0){
-            //System.out.println("sending " + xPos + ", " + yPos + ", " + zPos);
             if(canRender)clearFromGPU();
             RenderableEntity[] model = new RenderableEntity[shaderTextures.size()];
             for (int i = 0; i < model.length; i++) {
@@ -131,7 +130,7 @@ public class RenderableChunk {
                         chunkModels.add(new CPUMeshBuilder(this.size * this.size * this.size * 10, true));//todo: test optimal factor (currently 10)
                     }
                     //cloning, index removal, and vertex position modification done within the BlockMeshBuilder
-                    chunkModels.get(shaderTextureIndex).addBlockMeshToChunk(block, x, y, z, this.getBlockedFaces(x, y, z));
+                    chunkModels.get(shaderTextureIndex).addBlockMeshToChunk(block, x, y, z, /*this.getBlockedFaces(x, y, z)*/(byte)0);
                     if(Thread.interrupted()){
                         return;
                     }
