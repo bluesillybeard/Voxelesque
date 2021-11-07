@@ -57,9 +57,9 @@ public class CPUMeshBuilder {
     }
 
     public void addBlockMeshToChunk(CPUMesh mesh, int x, int y, int z, byte blockedFaces){
-        if((~blockedFaces & 0b11111) == 0){
-            return; //if all the faces are blocked, just skip the voxel completely.
-        }
+        //if((~blockedFaces & 0b11111) == 0){
+        //    return; //if all the faces are blocked, just skip the voxel completely.
+        //}
 
         int indexOffset = this.positions.size()/3;
         float mirror = ((x + z) & 1) - 0.5f; //it's upside down or not (-1 if it needs to be mirrored on the Z axis)
@@ -75,10 +75,10 @@ public class CPUMeshBuilder {
         }
         //STEP THREE: modify indices and add them to the buffer
         for (int tri = 0; tri < mesh.indices.length/3; tri++) {
-            if(mesh.removableTriangles.length == 0) continue;
-            if((mesh.removableTriangles[tri] & blockedFaces)!=0) {
-                continue; // Skip this triangle if it should be removed
-            }
+            //if(mesh.removableTriangles.length == 0) continue;
+            //if((mesh.removableTriangles[tri] & blockedFaces)!=0) {
+            //    continue; // Skip this triangle if it should be removed
+            //}
 
             indices.add(mesh.indices[3 * tri    ] + indexOffset);
             indices.add(mesh.indices[3 * tri + 1] + indexOffset); //add the triangle's indices to the mesh

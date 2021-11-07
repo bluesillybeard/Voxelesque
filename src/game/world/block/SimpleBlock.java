@@ -13,7 +13,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SimpleBlock implements Block {
     private final String id;
@@ -60,9 +62,9 @@ public class SimpleBlock implements Block {
         return shader;
     }
 
-    public static ArrayList<Block> generateBlocks(String pathToResources, String pathToBlockRegistry, String modID) {
+    public static Map<String, Block> generateBlocks(String pathToResources, String pathToBlockRegistry, String modID) {
         GlobalBits.render.setResourcesPath(pathToResources); //set render resource path the mod resource path
-        ArrayList<Block> blocks = new ArrayList<>();
+        Map<String, Block> blocks = new HashMap<>();
         try {
             YamlStream stream = Yaml.createYamlInput(new File(pathToResources + "/" + pathToBlockRegistry)).readYamlStream();
             List<CPUModel> blockModels = new ArrayList<>();
@@ -80,7 +82,7 @@ public class SimpleBlock implements Block {
             blockModels = GlobalBits.render.generateImageAtlas(blockModels);
             int texture = GlobalBits.render.readTexture(blockModels.get(0).texture);
             for(int i=0; i<blockModels.size(); i++){
-                blocks.add(new SimpleBlock(blockIDs.get(i), modID, blockModels.get(i).mesh, texture, GlobalBits.defaultShader));
+                blocks.put(modID + ":" + blockIDs.get(i), new SimpleBlock(blockIDs.get(i), modID, blockModels.get(i).mesh, texture, GlobalBits.defaultShader));
             }
         } catch(FileNotFoundException e){
             System.err.println("unable to find simpleBlock registry for mod " + modID);

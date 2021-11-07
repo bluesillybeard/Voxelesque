@@ -3,6 +3,8 @@ package game.world;
 import game.GlobalBits;
 import game.misc.StaticUtils;
 import game.world.block.Block;
+import game.world.generation.PerlinNoise;
+import org.joml.Vector3f;
 import org.joml.Vector3i;
 import Math.BetterVector3i;
 
@@ -16,9 +18,11 @@ public class World {
     private final Chunk emptyChunk;
     private final Map<Vector3i, Chunk> chunks;
     private final LinkedList<Vector3i> chunksToUnload;
+    private final PerlinNoise noise;
     private static final int CHUNK_SIZE = 64; //MUST BE A POWER OF 2! If this is changed to a non-power of 2, many things would have to be reworked.
 
     public World() {
+        noise = new PerlinNoise((int) ((Math.random()*2-1)*Integer.MAX_VALUE), 1, 100, 10, 1);
         emptyChunk = new Chunk(CHUNK_SIZE, -1, -1, -1);
         chunks = new HashMap<>();
         chunksToUnload = new LinkedList<>();
@@ -30,7 +34,7 @@ public class World {
     public void setBlock(int x, int y, int z, Block block){
         Chunk c = getChunk(x, y, z);
         if(c != null)c.setBlock(x&(CHUNK_SIZE-1), y&(CHUNK_SIZE-1), z&(CHUNK_SIZE-1), block);
-        else System.err.println("Coould not set chunk block!!!");
+        else System.err.println("Could not set chunk block!!!");
         //TODO: create a system that keeps track of blocks placed into nonexistent chunks
     }
 
@@ -81,27 +85,31 @@ public class World {
      * note: uses xyz chunk coordinates
      */
     public void loadChunk(int x, int y, int z){
-        //System.out.println("loading chunk " + x + ", " + y + ", " + z);
         if(chunks.containsKey(new Vector3i(x, y, z))){
             return;
         }
         //todo: actual world generation and world saves
-        Chunk chunk;
-        if(y > -1){
-            chunk = new Chunk(CHUNK_SIZE, x, y, z);
-        } else {
-            chunk = randomChunk(GlobalBits.blocks, x, y, z);
-        }
+        Chunk chunk = generateChunk(GlobalBits.blocks, x, y, z);
+
         chunks.put(new Vector3i(x, y, z), chunk);
     }
 
-    private Chunk randomChunk(List<Block> blocks, int x, int y, int z){
+    private Chunk generateChunk(Map<String, Block> blocks, int x, int y, int z){
         Block[][][] blocksg = new Block[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
+        Block grassBlock = blocks.get("voxelesque:grassBlock");
+        Block stoneBlock = Block.VOID_BLOCK;//blocks.get("voxelesque:stoneBlock");
+
         for(int xp = 0; xp < CHUNK_SIZE; xp++){
-            for(int yp = 0; yp < CHUNK_SIZE; yp++){
-                for(int zp = 0; zp < CHUNK_SIZE; zp++){
-                    int random = (int) (Math.random()*blocks.size());
-                    blocksg[xp][yp][zp] = blocks.get(random);
+            for(int zp = 0; zp < CHUNK_SIZE; zp++){
+                Vector3f pos = StaticUtils.getBlockWorldPos(new Vector3i(xp, 0, zp));
+                double height = noise.getHeight(pos.x, pos.z);
+                for(int yp = 0; yp < CHUNK_SIZE; yp++){
+                    pos = StaticUtils.getBlockWorldPos(new Vector3i(CHUNK_SIZE*x+xp, CHUNK_SIZE * y+yp, CHUNK_SIZE*z+zp));
+                    blocksg[xp][yp][zp] = stoneBlock;
+                    if(pos.y < height) {
+                        System.out.println(xp + ", " + yp + ", " + zp);
+                        blocksg[xp][yp][zp] = grassBlock;
+                    }
                 }
             }
         }

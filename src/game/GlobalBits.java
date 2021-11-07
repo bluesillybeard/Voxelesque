@@ -5,6 +5,7 @@ import game.world.block.Block;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class GlobalBits {
     //settings
@@ -22,6 +23,6 @@ public class GlobalBits {
     public static Vector3f playerRotation;
     public static double sensitivity;
     //blocks
-    public static ArrayList<Block> blocks;
+    public static Map<String, Block> blocks;
 
 }
