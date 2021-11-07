@@ -11,6 +11,7 @@ import engine.multiplatform.Util.SlottedArrayList;
 import engine.multiplatform.Util.Utils;
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
+import engine.multiplatform.model.RenderBlockModel;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -575,27 +576,32 @@ public class GL33Render implements Render {
      * creates a chunk at the chunk position [x, y, z]
      *
      * @param size   how big the chunk is in each dimension
-     * @param blocks a 3D array of CPUMeshes that represent that chunk's block data.
-     * @param x the X position of the chunk
-     * @param y the Y position of the chunk
-     * @param z the Z position of the chunk
+     * @param blocks a 3D array of blocks that are the chunk.
+     * @param xp the X position of the chunk
+     * @param yp the Y position of the chunk
+     * @param zp the Z position of the chunk
      * @return the ID of the new chunk.
      */
     @Override
-    public int spawnChunk(int size, CPUMesh[][][] blocks, int[][][] textures, int[][][] shaders, int x, int y, int z) {
-        //oh boy, this translation layer between the general GPU texture index
-        // and the GPU texture object is starting to become a nuisance
-        GPUTexture[][][] gpuTextures = new GPUTexture[textures.length][textures[0].length][textures[0][0].length];
-        ShaderProgram[][][] gpuShaders = new ShaderProgram[shaders.length][shaders[0].length][shaders[0][0].length];
-        for(int xp=0; xp<textures.length; xp++){
-            for(int yp=0; yp < textures[xp].length; yp++){
-                for(int zp=0; zp<textures[xp][yp].length; zp++){
-                    gpuTextures[xp][yp][zp] = this.textures.get(textures[xp][yp][zp]);
-                    gpuShaders[xp][yp][zp] = this.shaderPrograms.get(shaders[xp][yp][zp]);
+    public int spawnChunk(int size, RenderBlockModel[][][] blocks, int xp, int yp, int zp) {
+
+        //todo: eventually the refactor will reach the RenderableChunk class, at which point this code will be useless.
+        GPUTexture[][][] gpuTextures = new GPUTexture[size][size][size];
+        ShaderProgram[][][] shaders = new ShaderProgram[size][size][size];
+        CPUMesh[][][] meshes = new CPUMesh[size][size][size];
+        for(int x=0; x<size; x++){
+            for(int y=0; y<size; y++){
+                for(int z=0; z<size; z++){
+                    RenderBlockModel block = blocks[x][y][z];
+                    assert block != null;
+                    gpuTextures[x][y][z] = this.textures.get(block.getTexture());
+                    ShaderProgram s = this.shaderPrograms.get(block.getShader());
+                    shaders[x][y][z] = s;
+                    meshes[x][y][z] = block.getMesh();
                 }
             }
         }
-        RenderableChunk chunk = new RenderableChunk(size, blocks, gpuTextures, gpuShaders, x, y, z);
+        RenderableChunk chunk = new RenderableChunk(size, meshes, gpuTextures, shaders, xp, yp, zp);
         newChunks.add(chunk);
         return chunks.add(chunk);
     }
@@ -604,24 +610,29 @@ public class GL33Render implements Render {
      * sets the block data of a chunk.
      *
      * @param chunk  the chunk whose data will be set.
-     * @param blocks a 3D array of blockModel IDs that represent that chunk's block data.
+     * @param blocks a 3D array of models that are this chunk.
      */
     @Override
-    public void setChunkData(int chunk, CPUMesh[][][] blocks, int[][][] textures, int[][][] shaders) {
-        //oh boy, this translation layer between the general GPU texture index
-        // and the GPU texture object is starting to become a nuisance
-        GPUTexture[][][] gpuTextures = new GPUTexture[textures.length][textures[0].length][textures[0][0].length];
-        ShaderProgram[][][] gpuShaders = new ShaderProgram[shaders.length][shaders[0].length][shaders[0][0].length];
-        for(int xp=0; xp<textures.length; xp++){
-            for(int yp=0; yp < textures[xp].length; yp++){
-                for(int zp=0; zp<textures[xp][yp].length; zp++){
-                    gpuTextures[xp][yp][zp] = this.textures.get(textures[xp][yp][zp]);
-                    gpuShaders[xp][yp][zp] = this.shaderPrograms.get(shaders[xp][yp][zp]);
+    public void setChunkData(int chunk, RenderBlockModel[][][] blocks) {
+
+        //todo: eventually the refactor will reach the RenderableChunk class, at which point this code will be useless.
+        RenderableChunk chunk1 = this.chunks.get(chunk);
+        int size = blocks.length;
+        GPUTexture[][][] gpuTextures = new GPUTexture[size][size][size];
+        ShaderProgram[][][] shaders = new ShaderProgram[size][size][size];
+        CPUMesh[][][] meshes = new CPUMesh[size][size][size];
+        for(int x=0; x<size; x++){
+            for(int y=0; y<size; y++){
+                for(int z=0; z<size; z++){
+                    RenderBlockModel block = blocks[x][y][z];
+                    assert block != null;
+                    gpuTextures[x][y][z] = this.textures.get(block.getTexture());
+                    shaders[x][y][z] = this.shaderPrograms.get(block.getShader());
+                    meshes[x][y][z] = block.getMesh();
                 }
             }
         }
-        RenderableChunk chunk1 = chunks.get(chunk);
-        chunk1.setData(blocks, gpuTextures, gpuShaders);
+        chunk1.setData(meshes, gpuTextures, shaders);
         if(!newChunks.contains(chunk1))newChunks.add(chunk1);
     }
 
@@ -632,9 +643,9 @@ public class GL33Render implements Render {
      * @param block the blockModel to be used
      */
     @Override
-    public void setChunkBlock(int chunk, CPUMesh block, int texture, int shader, int x, int y, int z) {
+    public void setChunkBlock(int chunk, RenderBlockModel block, int x, int y, int z) {
         RenderableChunk chunk1 = chunks.get(chunk);
-        chunk1.setBlock(block, textures.get(texture), shaderPrograms.get(shader), x, y, z);
+        chunk1.setBlock(block.getMesh(), textures.get(block.getTexture()), shaderPrograms.get(block.getShader()), x, y, z);
         if(!newChunks.contains(chunk1))newChunks.add(chunk1);
     }
 
