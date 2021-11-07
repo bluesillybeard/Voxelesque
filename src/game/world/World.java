@@ -88,7 +88,7 @@ public class World {
         if(chunks.containsKey(new Vector3i(x, y, z))){
             return;
         }
-        //todo: actual world generation and world saves
+        //todo: world saves
         Chunk chunk = generateChunk(GlobalBits.blocks, x, y, z);
 
         chunks.put(new Vector3i(x, y, z), chunk);
@@ -97,7 +97,7 @@ public class World {
     private Chunk generateChunk(Map<String, Block> blocks, int x, int y, int z){
         Block[][][] blocksg = new Block[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
         Block grassBlock = blocks.get("voxelesque:grassBlock");
-        Block stoneBlock = Block.VOID_BLOCK;//blocks.get("voxelesque:stoneBlock");
+        Block stoneBlock = Block.VOID_BLOCK;
 
         for(int xp = 0; xp < CHUNK_SIZE; xp++){
             for(int zp = 0; zp < CHUNK_SIZE; zp++){
