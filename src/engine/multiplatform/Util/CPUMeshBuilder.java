@@ -60,6 +60,7 @@ public class CPUMeshBuilder {
         //if((~blockedFaces & 0b11111) == 0){
         //    return; //if all the faces are blocked, just skip the voxel completely.
         //}
+        if(mesh == null)return;
 
         int indexOffset = this.positions.size()/3;
         float mirror = ((x + z) & 1) - 0.5f; //it's upside down or not (-1 if it needs to be mirrored on the Z axis)

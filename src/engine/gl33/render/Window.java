@@ -5,12 +5,11 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL14.glBlendFuncSeparate;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Window {
 
-    private final String title;
+    private String title;
 
     private int width, height;
 
@@ -26,17 +25,18 @@ public class Window {
     private static final int numKeys = 348; //there are 348 keys supported by GLFW
     private static final int numMouseButtons = 5; //there are 5 mouse buttons supported by GLFW
 
-    public Window(String title, int width, int height, boolean vSync) {
+    public Window() {
+        this.keys = new int[numKeys-1];
+        this.mouseButtons = new int[numMouseButtons-1];
+    }
+
+    public void init(String title, int width, int height, boolean vSync) {
         this.title = title;
         this.width = width;
         this.height = height;
         this.vSync = vSync;
         this.resized = false;
-        this.keys = new int[numKeys-1];
-        this.mouseButtons = new int[numMouseButtons-1];
-    }
 
-    public void init() {
         // Setup an error callback. The default implementation
         // will print the error message in System.err.
         GLFWErrorCallback.createPrint(System.err).set();
@@ -61,9 +61,9 @@ public class Window {
         }
 
         // Setup resize callback
-        glfwSetFramebufferSizeCallback(windowHandle, (window, width, height) -> {
-            this.width = width;
-            this.height = height;
+        glfwSetFramebufferSizeCallback(windowHandle, (window, newWidth, newHeight) -> {
+            this.width = newWidth;
+            this.height = newHeight;
             this.setResized(true);
         });
 
@@ -86,8 +86,8 @@ public class Window {
             scrolls += yOffset; // set scroll amount
         });
         glfwSetCursorPosCallback(windowHandle, (window, xPos, yPos) -> {
-            cursorXPos = (xPos/width)*2-1; //GLFW gives pixel coordinates, but I want a nice value between -1 and 1, which maps the same way as OpenGL maps it.
-            cursorYPos = (yPos/height)*2-1;
+            cursorXPos = (xPos/this.width)*2-1; //GLFW gives pixel coordinates, but I want a nice value between -1 and 1, which maps the same way as OpenGL maps it.
+            cursorYPos = (yPos/this.height)*2-1;
         });
 
         // Get the resolution of the primary monitor
@@ -119,15 +119,21 @@ public class Window {
 
         //enable depth testing
         glEnable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
+        //glEnable(GL_BLEND);
+        //glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    }
+
+    public void close(){
+        glfwTerminate();
     }
     public int getKey(int key) {
         int keyValue = keys[key];
-        if     (keys[key] == 0) keys[key] = 1;
-        else if(keys[key] == 2) keys[key] = 3; //when was the Switch statement added? I thought for sure it exists in version 11...
-        return keyValue; //I'm using a slightly older version of Java for compatibility reasons. Considering 11 came out just last year, it's actually not that old.
+        switch (keys[key]) {
+            case 0 -> keys[key] = 1;
+            case 2 -> keys[key] = 3;
+        }
+        return keyValue;
     }
 
     public int getMouseButton(int button) {
@@ -184,7 +190,7 @@ public class Window {
     public void setVSync(boolean vSync) {
         this.vSync = vSync;
         if(vSync)
-            glfwSwapInterval(1); //Just came back from C++, and I nearly did glfwSwapInterval(vSync)
+            glfwSwapInterval(1);
         else
             glfwSwapInterval(0);
     }

@@ -1,10 +1,11 @@
 package engine.gl33.render;
 
+import engine.multiplatform.render.GPUShader;
 import org.joml.Matrix4f;
 import static org.lwjgl.opengl.GL20.*;
 import org.lwjgl.system.MemoryStack;
 
-public class ShaderProgram {
+public class GL33Shader implements GPUShader {
 
     //handles
     private final int programId;
@@ -13,7 +14,7 @@ public class ShaderProgram {
     private final int viewMatrixUniform, modelViewMatrixUniform, projectionMatrixUniform, textureSamplerUniform;
     private final int timeInSecondsUniform;
 
-    public ShaderProgram(String vertexShaderCode, String fragmentShaderCode) throws Exception {
+    public GL33Shader(String vertexShaderCode, String fragmentShaderCode) throws Exception {
 
         this.programId = glCreateProgram();
         if (this.programId == 0) {
@@ -117,5 +118,18 @@ public class ShaderProgram {
         if (programId != 0) {
             glDeleteProgram(programId);
         }
+    }
+
+    /**
+     * 0: unknown
+     * 1: GL33
+     * 2: GL21
+     * 3: DX9
+     *
+     * @return the integer ID of the render class this mesh belongs to.
+     */
+    @Override
+    public int getRenderClass() {
+        return 1;
     }
 }
