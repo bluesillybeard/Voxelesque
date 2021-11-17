@@ -9,14 +9,14 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 
-public class GPUTexture {
+public class GL33Texture {
     private final int textureID;
 
-    public GPUTexture(String filePath, PrintStream print) throws IOException {
+    public GL33Texture(String filePath, PrintStream print) throws IOException {
         this(new FileInputStream(filePath), print);
     }
 
-    public GPUTexture(InputStream stream, PrintStream print){
+    public GL33Texture(InputStream stream, PrintStream print){
         int textureID1;
         try {
             textureID1 = loadTexture(ImageIO.read(stream));
@@ -32,7 +32,7 @@ public class GPUTexture {
         }
         this.textureID = textureID1;
     }
-    public GPUTexture(BufferedImage img){
+    public GL33Texture(BufferedImage img){
         this.textureID = loadTexture(img);
     }
     public void bind(){

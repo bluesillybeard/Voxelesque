@@ -8,7 +8,7 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL14.glBlendFuncSeparate;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public class Window {
+public class GL33Window {
 
     private final String title;
 
@@ -26,7 +26,7 @@ public class Window {
     private static final int numKeys = 348; //there are 348 keys supported by GLFW
     private static final int numMouseButtons = 5; //there are 5 mouse buttons supported by GLFW
 
-    public Window(String title, int width, int height, boolean vSync) {
+    public GL33Window(String title, int width, int height, boolean vSync) {
         this.title = title;
         this.width = width;
         this.height = height;

@@ -1,19 +1,18 @@
 package engine.gl33.render;
 
-import engine.gl33.model.GPUMesh;
-import engine.gl33.model.GPUTexture;
+import engine.gl33.model.GL33Mesh;
+import engine.gl33.model.GL33Texture;
 import engine.multiplatform.Util.CPUMeshBuilder;
 import engine.multiplatform.model.CPUMesh;
 import java.util.ArrayList;
-import java.util.concurrent.CompletableFuture;
 
-public class RenderableChunk {
+public class GL33Chunk {
     private final int xPos, yPos, zPos;
     private CPUMesh[][][] data;
-    private GPUTexture[][][] textures;
-    private ShaderProgram[][][] shaders;
+    private GL33Texture[][][] textures;
+    private GL33Shader[][][] shaders;
     private final int size;
-    private RenderableEntity[] chunkModel;
+    private GL33Entity[] chunkModel;
     private boolean canRender;
 
     private ArrayList<CPUMeshBuilder> chunkModels = new ArrayList<>();
@@ -21,7 +20,7 @@ public class RenderableChunk {
 
     public boolean taskRunning;
 
-    public RenderableChunk(int size, CPUMesh[][][] data, GPUTexture[][][] textures, ShaderProgram[][][] shaders, int xPos, int yPos, int zPos){
+    public GL33Chunk(int size, CPUMesh[][][] data, GL33Texture[][][] textures, GL33Shader[][][] shaders, int xPos, int yPos, int zPos){
         if(data.length != size || data[0].length != size || data[0][0].length != size){
             throw new IllegalStateException("a chunk's data cannot be any other size than " + size + "," +
                     "\n but the data given to the constructor has dimensions (" + data.length + ", " + data[0].length + ", " + data[0][0].length + ")");
@@ -37,7 +36,7 @@ public class RenderableChunk {
         this.zPos = zPos;
     }
 
-    public void setData(CPUMesh[][][] data, GPUTexture[][][] textures, ShaderProgram[][][] shaders){
+    public void setData(CPUMesh[][][] data, GL33Texture[][][] textures, GL33Shader[][][] shaders){
         if(data != null && (data.length != this.size || data[0].length != this.size || data[0][0].length != this.size)){
             throw new IllegalStateException("a chunk's data cannot be any other size than " + this.size + "," +
                     " but the data given to the constructor has dimensions (" + data.length + ", " + data[0].length + ", " + data[0][0].length + ")");
@@ -54,14 +53,14 @@ public class RenderableChunk {
         this.textures = textures;
         this.shaders = shaders;
     }
-    public void setBlock(CPUMesh block, GPUTexture texture, ShaderProgram shader, int x, int y, int z){
+    public void setBlock(CPUMesh block, GL33Texture texture, GL33Shader shader, int x, int y, int z){
         data[x][y][z] = block;
         textures[x][y][z] = texture;
         shaders[x][y][z] = shader;
     }
     public void render(){
         if(!canRender) return; //don't render if it can't
-        for(RenderableEntity entity: chunkModel){
+        for(GL33Entity entity: chunkModel){
             entity.render(); //the entities positions are already set to the right place in the build method
         }
     }
@@ -71,7 +70,7 @@ public class RenderableChunk {
      */
     public void clearFromGPU(){
         if(this.chunkModel != null) {
-            for (RenderableEntity entity : this.chunkModel) {
+            for (GL33Entity entity : this.chunkModel) {
                 entity.getModel().mesh.cleanUp();//DON'T clear the texture.
             }
         }
@@ -82,9 +81,9 @@ public class RenderableChunk {
             return false;
         } else if(chunkModels.size() > 0){
             if(canRender)clearFromGPU();
-            RenderableEntity[] model = new RenderableEntity[shaderTextures.size()];
+            GL33Entity[] model = new GL33Entity[shaderTextures.size()];
             for (int i = 0; i < model.length; i++) {
-                RenderableEntity entity = new RenderableEntity(new GPUMesh(chunkModels.get(i).getMesh()), shaderTextures.get(i).shader, shaderTextures.get(i).texture);
+                GL33Entity entity = new GL33Entity(new GL33Mesh(chunkModels.get(i).getMesh()), shaderTextures.get(i).shader, shaderTextures.get(i).texture);
                 entity.setPosition(this.xPos * this.size * 0.288675134595f, this.yPos * this.size * 0.5f, this.zPos * this.size * 0.5f);
                 entity.setScale(1, 1, 1);
                 model[i] = entity;
@@ -121,8 +120,8 @@ public class RenderableChunk {
                 for (int z = 0; z < data[x][y].length; z++) {
                     CPUMesh block = data[x][y][z];
                     if (block == null) continue; //skip rendering this block if it is null (void)
-                    ShaderProgram program = shaders[x][y][z];
-                    GPUTexture texture = textures[x][y][z];
+                    GL33Shader program = shaders[x][y][z];
+                    GL33Texture texture = textures[x][y][z];
                     int shaderTextureIndex = shaderTextures.indexOf(TSP.s(program).t(texture));
                     if (shaderTextureIndex == -1) {
                         shaderTextureIndex = chunkModels.size();
@@ -181,21 +180,21 @@ public class RenderableChunk {
 
 
     private static class ShaderTexture{
-        public ShaderProgram shader;
-        public GPUTexture texture;
+        public GL33Shader shader;
+        public GL33Texture texture;
 
         public ShaderTexture(){
 
         }
-        public ShaderTexture(ShaderProgram s, GPUTexture t){
+        public ShaderTexture(GL33Shader s, GL33Texture t){
             this.shader = s;
             this.texture = t;
         }
-        public ShaderTexture s(ShaderProgram s){
+        public ShaderTexture s(GL33Shader s){
             this.shader = s;
             return this;
         }
-        public ShaderTexture t(GPUTexture s){
+        public ShaderTexture t(GL33Texture s){
             this.texture = s;
             return this;
         }

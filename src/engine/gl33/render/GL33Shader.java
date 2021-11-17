@@ -4,7 +4,7 @@ import org.joml.Matrix4f;
 import static org.lwjgl.opengl.GL20.*;
 import org.lwjgl.system.MemoryStack;
 
-public class ShaderProgram {
+public class GL33Shader {
 
     //handles
     private final int programId;
@@ -13,7 +13,7 @@ public class ShaderProgram {
     private final int viewMatrixUniform, modelViewMatrixUniform, projectionMatrixUniform, textureSamplerUniform;
     private final int timeInSecondsUniform;
 
-    public ShaderProgram(String vertexShaderCode, String fragmentShaderCode) throws Exception {
+    public GL33Shader(String vertexShaderCode, String fragmentShaderCode) throws Exception {
 
         this.programId = glCreateProgram();
         if (this.programId == 0) {
