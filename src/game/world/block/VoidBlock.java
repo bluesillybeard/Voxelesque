@@ -1,5 +1,6 @@
 package game.world.block;
 
+import engine.multiplatform.gpu.GPUShader;
 import engine.multiplatform.model.CPUMesh;
 import game.GlobalBits;
 import game.world.World;
@@ -32,7 +33,7 @@ public class VoidBlock implements Block{
     }
 
     @Override
-    public int getShader() {
+    public GPUShader getShader() {
         return GlobalBits.defaultShader;
     }
 }

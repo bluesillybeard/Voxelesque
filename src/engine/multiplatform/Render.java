@@ -1,5 +1,6 @@
 package engine.multiplatform;
 
+import engine.multiplatform.gpu.GPUShader;
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
 import org.joml.Matrix4f;
@@ -217,15 +218,15 @@ public interface Render {
      * @param shader the shader name.
      * @return the reference to the shader.
      */
-    int loadShaderProgram(String path, String shader);
+    GPUShader loadShaderProgram(String path, String shader);
 
-    void deleteShaderProgram(int shaderProgram);
+    void deleteShaderProgram(GPUShader shaderProgram);
 
     //entities
 
-    int createEntity(int model, int shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
+    int createEntity(int model, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
-    int createEntity(int texture, int mesh, int shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
+    int createEntity(int texture, int mesh, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
     void setEntityPos(int entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
@@ -235,7 +236,7 @@ public interface Render {
 
     void setEntityScale(int entity, float xScale, float yScale, float zScale);
 
-    void setEntityShader(int entity, int shader);
+    void setEntityShader(int entity, GPUShader shader);
 
     Matrix4f getEntityTransform(int entity);
 
@@ -251,7 +252,7 @@ public interface Render {
      * creates an entity that displays text.
      * @return the text entity ID.
      */
-    int createTextEntity(int texture, String text, boolean centerX, boolean centerY, int shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
+    int createTextEntity(int texture, String text, boolean centerX, boolean centerY, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
     void setTextEntityPos(int entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
@@ -261,7 +262,7 @@ public interface Render {
 
     void setTextEntityScale(int entity, float xScale, float yScale, float zScale);
 
-    void setTextEntityShader(int entity, int shader);
+    void setTextEntityShader(int entity, GPUShader shader);
 
     void setTextEntityText(int entity, String text, boolean centerX, boolean centerY);
 
@@ -284,21 +285,21 @@ public interface Render {
      * @param z the Z position of the chunk
      * @return the ID of the new chunk.
      */
-    int spawnChunk(int size, CPUMesh[][][] blocks, int[][][] textures, int[][][] shaders, int x, int y, int z);
+    int spawnChunk(int size, CPUMesh[][][] blocks, int[][][] textures, GPUShader[][][] shaders, int x, int y, int z);
 
     /**
      * sets the block data of a chunk.
      * @param blocks a 3D array of blockModel IDs that represent that chunk's block data.
      * @param chunk the chunk whose data will be set.
      */
-    void setChunkData(int chunk, CPUMesh[][][] blocks, int[][][] textures, int[][][] shaders);
+    void setChunkData(int chunk, CPUMesh[][][] blocks, int[][][] textures, GPUShader[][][] shaders);
 
     /**
      * sets a specific block [z, y, x] of a chunk.
      * @param chunk the chunk whose block will be modified
      * @param block the blockModel to be used
      */
-    void setChunkBlock(int chunk, CPUMesh block, int texture, int shader, int x, int y, int z);
+    void setChunkBlock(int chunk, CPUMesh block, int texture, GPUShader shader, int x, int y, int z);
 
     /**
      * deletes a chunk so it is no longer rendered.

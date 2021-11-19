@@ -1,5 +1,6 @@
 import engine.gl33.GL33Render;
 import engine.multiplatform.Render;
+import engine.multiplatform.gpu.GPUShader;
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
 import org.joml.Vector3f;
@@ -43,8 +44,8 @@ public class TestGame2 {
 
 
 
-        int defaultShader = render.loadShaderProgram("Shaders/", "");
-        int sillyShader = render.loadShaderProgram("Shaders/", "silly");
+        GPUShader defaultShader = render.loadShaderProgram("Shaders/", "");
+        GPUShader sillyShader = render.loadShaderProgram("Shaders/", "silly");
 
         int grassEntity = render.createEntity(gpuGrassVoxel, defaultShader, -5f, 0f,  0f, 0f,  0f, 0f, 1f, 1f, 1f);
         int stoneEntity = render.createEntity(gpuStoneVoxel, defaultShader, -5f, 1f,  0f, 0f,  0f, 0f, 1f, 1f, 1f);
@@ -61,7 +62,7 @@ public class TestGame2 {
 
         CPUMesh[][][] randomChunkModels = new CPUMesh[64][64][64];
         int[][][] randomChunkTextures = new int[64][64][64];
-        int[][][] randomChunkShaders = new int[64][64][64];
+        GPUShader[][][] randomChunkShaders = new GPUShader[64][64][64];
         for(int x = 0; x < randomChunkModels.length; x++){
             for(int y=0; y<randomChunkModels[x].length; y++){
                 for(int z=0; z<randomChunkModels[x][y].length; z++){
@@ -73,7 +74,7 @@ public class TestGame2 {
                 }
             }
         }
-        int renderDistance = 6;
+        int renderDistance = 2;
         for(int x=0; x<renderDistance; x++){
             for(int y=0;y<renderDistance/2;y++){
                 for(int z=0;z<renderDistance/2;z++){
@@ -182,5 +183,7 @@ public class TestGame2 {
             }
 
         }while(!render.shouldClose());
+
+        render.close();
     }
 }

@@ -1,10 +1,11 @@
 package engine.gl33.render;
 
+import engine.multiplatform.gpu.GPUShader;
 import org.joml.Matrix4f;
 import static org.lwjgl.opengl.GL20.*;
 import org.lwjgl.system.MemoryStack;
 
-public class GL33Shader {
+public class GL33Shader implements GPUShader {
 
     //handles
     private final int programId;
@@ -117,5 +118,18 @@ public class GL33Shader {
         if (programId != 0) {
             glDeleteProgram(programId);
         }
+    }
+
+    /**
+     * tells what render backend this came from.
+     * supported render APIs:
+     * 0:unknown (for when
+     * 1:GL33
+     *
+     * @return the render backend ID
+     */
+    @Override
+    public int getRenderType() {
+        return 1;
     }
 }

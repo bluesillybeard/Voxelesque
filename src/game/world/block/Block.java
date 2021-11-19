@@ -1,5 +1,6 @@
 package game.world.block;
 
+import engine.multiplatform.gpu.GPUShader;
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
 import game.world.World;
@@ -18,6 +19,6 @@ public interface Block {
     String getID();
     CPUMesh getMesh();
     int getTexture();
-    int getShader();
+    GPUShader getShader();
 
 }

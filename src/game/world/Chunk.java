@@ -1,5 +1,6 @@
 package game.world;
 
+import engine.multiplatform.gpu.GPUShader;
 import engine.multiplatform.model.CPUMesh;
 import game.GlobalBits;
 import game.data.nbt.NBTElement;
@@ -188,7 +189,7 @@ public class Chunk {
     private int sendToRender() {
         CPUMesh[][][] modelData = new CPUMesh[this.size][this.size][this.size];
         int[][][] textureData = new int[this.size][this.size][this.size];
-        int[][][] shaderData = new int[this.size][this.size][this.size];
+        GPUShader[][][] shaderData = new GPUShader[this.size][this.size][this.size];
         for (int x = 0; x < this.size; x++) {
             for (int y = 0; y < this.size; y++) {
                 for (int z = 0; z < this.size; z++) {
