@@ -1,5 +1,7 @@
 package engine.gl33.model;
 
+import engine.multiplatform.gpu.GPUTexture;
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -9,7 +11,7 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 
-public class GL33Texture {
+public class GL33Texture implements GPUTexture {
     private final int textureID;
 
     public GL33Texture(String filePath, PrintStream print) throws IOException {
@@ -84,5 +86,18 @@ public class GL33Texture {
         imgDataBuffer.flip();
 
         return loadTexture(imgDataBuffer, width, height);
+    }
+
+    /**
+     * tells what render backend this came from.
+     * supported render APIs:
+     * 0:unknown (for when
+     * 1:GL33
+     *
+     * @return the render backend ID
+     */
+    @Override
+    public int getRenderType() {
+        return 1;
     }
 }

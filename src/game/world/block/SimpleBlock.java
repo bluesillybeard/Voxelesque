@@ -5,6 +5,7 @@ import com.amihaiemil.eoyaml.YamlMapping;
 import com.amihaiemil.eoyaml.YamlNode;
 import com.amihaiemil.eoyaml.YamlStream;
 import engine.multiplatform.gpu.GPUShader;
+import engine.multiplatform.gpu.GPUTexture;
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
 import game.GlobalBits;
@@ -22,10 +23,10 @@ public class SimpleBlock implements Block {
     private final String id;
     private final String modID;
     private final CPUMesh mesh;
-    private final int texture;
+    private final GPUTexture texture;
     private final GPUShader shader;
 
-    public SimpleBlock(String id, String modID, CPUMesh mesh, int texture, GPUShader shader){
+    public SimpleBlock(String id, String modID, CPUMesh mesh, GPUTexture texture, GPUShader shader){
         this.id = id;
         this.modID = modID;
         this.mesh = mesh;
@@ -54,7 +55,7 @@ public class SimpleBlock implements Block {
     }
 
     @Override
-    public int getTexture() {
+    public GPUTexture getTexture() {
         return texture;
     }
 
@@ -81,7 +82,7 @@ public class SimpleBlock implements Block {
                 blockIDs.add(id);
             }
             blockModels = GlobalBits.render.generateImageAtlas(blockModels);
-            int texture = GlobalBits.render.readTexture(blockModels.get(0).texture);
+            GPUTexture texture = GlobalBits.render.readTexture(blockModels.get(0).texture);
             for(int i=0; i<blockModels.size(); i++){
                 blocks.put(modID + ":" + blockIDs.get(i), new SimpleBlock(blockIDs.get(i), modID, blockModels.get(i).mesh, texture, GlobalBits.defaultShader));
             }

@@ -1,6 +1,7 @@
 package engine.multiplatform;
 
 import engine.multiplatform.gpu.GPUShader;
+import engine.multiplatform.gpu.GPUTexture;
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
 import org.joml.Matrix4f;
@@ -71,14 +72,14 @@ public interface Render {
      * @param image the image to texturize
      * @return the texture refference. Use in methods that require a texture.
      */
-    int readTexture(BufferedImage image);
+    GPUTexture readTexture(BufferedImage image);
 
     /**
      * removes a texture from the GPU to free GPU memory.
      * @param texture the reference to the texture to remove
      * @return true if the texture was successfully deleted, false if something went wrong
      */
-    boolean deleteTexture(int texture);
+    boolean deleteTexture(GPUTexture texture);
 
     /**
      * combines textures into an atlas and transforms the texture coordinates of the meshes to use the atlas,
@@ -195,7 +196,7 @@ public interface Render {
      * @param mesh the mesh.
      * @return ta reference to the resulting model.
      */
-    int loadGPUModel(int texture, int mesh);
+    int loadGPUModel(GPUTexture texture, int mesh);
 
     /**
      * deletes a model from the GPU
@@ -226,7 +227,7 @@ public interface Render {
 
     int createEntity(int model, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
-    int createEntity(int texture, int mesh, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
+    int createEntity(GPUTexture texture, int mesh, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
     void setEntityPos(int entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
@@ -252,7 +253,7 @@ public interface Render {
      * creates an entity that displays text.
      * @return the text entity ID.
      */
-    int createTextEntity(int texture, String text, boolean centerX, boolean centerY, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
+    int createTextEntity(GPUTexture texture, String text, boolean centerX, boolean centerY, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
     void setTextEntityPos(int entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
@@ -285,21 +286,21 @@ public interface Render {
      * @param z the Z position of the chunk
      * @return the ID of the new chunk.
      */
-    int spawnChunk(int size, CPUMesh[][][] blocks, int[][][] textures, GPUShader[][][] shaders, int x, int y, int z);
+    int spawnChunk(int size, CPUMesh[][][] blocks, GPUTexture[][][] textures, GPUShader[][][] shaders, int x, int y, int z);
 
     /**
      * sets the block data of a chunk.
      * @param blocks a 3D array of blockModel IDs that represent that chunk's block data.
      * @param chunk the chunk whose data will be set.
      */
-    void setChunkData(int chunk, CPUMesh[][][] blocks, int[][][] textures, GPUShader[][][] shaders);
+    void setChunkData(int chunk, CPUMesh[][][] blocks, GPUTexture[][][] textures, GPUShader[][][] shaders);
 
     /**
      * sets a specific block [z, y, x] of a chunk.
      * @param chunk the chunk whose block will be modified
      * @param block the blockModel to be used
      */
-    void setChunkBlock(int chunk, CPUMesh block, int texture, GPUShader shader, int x, int y, int z);
+    void setChunkBlock(int chunk, CPUMesh block, GPUTexture texture, GPUShader shader, int x, int y, int z);
 
     /**
      * deletes a chunk so it is no longer rendered.

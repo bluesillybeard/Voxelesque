@@ -1,8 +1,8 @@
 package game.world.block;
 
 import engine.multiplatform.gpu.GPUShader;
+import engine.multiplatform.gpu.GPUTexture;
 import engine.multiplatform.model.CPUMesh;
-import engine.multiplatform.model.CPUModel;
 import game.world.World;
 
 public interface Block {
@@ -18,7 +18,7 @@ public interface Block {
     void place(int x, int y, int z, World world);
     String getID();
     CPUMesh getMesh();
-    int getTexture();
+    GPUTexture getTexture();
     GPUShader getShader();
 
 }

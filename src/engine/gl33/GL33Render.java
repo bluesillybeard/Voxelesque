@@ -10,6 +10,7 @@ import engine.multiplatform.Util.AtlasGenerator;
 import engine.multiplatform.Util.SlottedArrayList;
 import engine.multiplatform.Util.Utils;
 import engine.multiplatform.gpu.GPUShader;
+import engine.multiplatform.gpu.GPUTexture;
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
 import org.joml.Matrix4f;
@@ -70,7 +71,6 @@ public class GL33Render implements Render {
     //todo: smarter resource management that uses hashes to make sure a GPUTexture, GPUMesh, etc is only created once.
     private final SlottedArrayList<GL33Entity> renderableEntities = new SlottedArrayList<>();
     private final SlottedArrayList<GL33TextEntity> textEntities = new SlottedArrayList<>();
-    private final SlottedArrayList<GL33Texture>textures = new SlottedArrayList<>();
     private final Set<GL33Shader> shaderPrograms = new HashSet<>();
     private final SlottedArrayList<GL33Mesh> meshes = new SlottedArrayList<>();
     private final SlottedArrayList<GL33Model> models = new SlottedArrayList<>();
@@ -207,8 +207,8 @@ public class GL33Render implements Render {
      * @return the texture reference. Use in methods that require a texture.
      */
     @Override
-    public int readTexture(BufferedImage image) {
-        return textures.add(new GL33Texture(image));
+    public GPUTexture readTexture(BufferedImage image) {
+        return new GL33Texture(image);
     }
 
     /**
@@ -218,9 +218,9 @@ public class GL33Render implements Render {
      * @return true if the texture was successfully deleted, false if something went wrong
      */
     @Override
-    public boolean deleteTexture(int texture) {
+    public boolean deleteTexture(GPUTexture texture) {
 
-        GL33Texture tex = textures.get(texture);
+        GL33Texture tex = (GL33Texture)(texture);
         tex.cleanUp();
         return true;
     }
@@ -393,8 +393,8 @@ public class GL33Render implements Render {
      * @return ta reference to the resulting model.
      */
     @Override
-    public int loadGPUModel(int texture, int mesh) {
-        return models.add(new GL33Model(meshes.get(mesh), textures.get(texture)));
+    public int loadGPUModel(GPUTexture texture, int mesh) {
+        return models.add(new GL33Model(meshes.get(mesh), (GL33Texture)(texture)));
     }
 
     /**
@@ -452,8 +452,8 @@ public class GL33Render implements Render {
     }
 
     @Override
-    public int createEntity(int texture, int mesh, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
-        GL33Entity entity = new GL33Entity(meshes.get(mesh), (GL33Shader)(shader), textures.get(texture));
+    public int createEntity(GPUTexture texture, int mesh, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
+        GL33Entity entity = new GL33Entity(meshes.get(mesh), (GL33Shader)(shader), (GL33Texture)(texture));
         entity.setPosition(xPos, yPos, zPos);
         entity.setRotation(xRotation, yRotation, zRotation);
         entity.setScale(xScale, yScale, zScale);
@@ -510,8 +510,8 @@ public class GL33Render implements Render {
     }
 
     @Override
-    public int createTextEntity(int texture, String text, boolean centerX, boolean centerY, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
-        GL33TextEntity ent = new GL33TextEntity(text, (GL33Shader)(shader), textures.get(texture), centerX, centerY);
+    public int createTextEntity(GPUTexture texture, String text, boolean centerX, boolean centerY, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
+        GL33TextEntity ent = new GL33TextEntity(text, (GL33Shader)(shader), (GL33Texture)(texture), centerX, centerY);
         ent.setPosition(xPos, yPos, zPos);
         ent.setRotation(xRotation, yRotation, zRotation);
         ent.setScale(xScale, yScale, zScale);
@@ -584,7 +584,7 @@ public class GL33Render implements Render {
      * @return the ID of the new chunk.
      */
     @Override
-    public int spawnChunk(int size, CPUMesh[][][] blocks, int[][][] textures, GPUShader[][][] shaders, int x, int y, int z) {
+    public int spawnChunk(int size, CPUMesh[][][] blocks, GPUTexture[][][] textures, GPUShader[][][] shaders, int x, int y, int z) {
         //oh boy, this translation layer between the general GPU texture index
         // and the GPU texture object is starting to become a nuisance
         GL33Texture[][][] GL33Textures = new GL33Texture[textures.length][textures[0].length][textures[0][0].length];
@@ -592,7 +592,7 @@ public class GL33Render implements Render {
         for(int xp=0; xp<textures.length; xp++){
             for(int yp=0; yp < textures[xp].length; yp++){
                 for(int zp=0; zp<textures[xp][yp].length; zp++){
-                    GL33Textures[xp][yp][zp] = this.textures.get(textures[xp][yp][zp]);
+                    GL33Textures[xp][yp][zp] = (GL33Texture)(textures[xp][yp][zp]);
                     gpuShaders[xp][yp][zp] = (GL33Shader)(shaders[xp][yp][zp]);
                 }
             }
@@ -609,7 +609,7 @@ public class GL33Render implements Render {
      * @param blocks a 3D array of blockModel IDs that represent that chunk's block data.
      */
     @Override
-    public void setChunkData(int chunk, CPUMesh[][][] blocks, int[][][] textures, GPUShader[][][] shaders) {
+    public void setChunkData(int chunk, CPUMesh[][][] blocks, GPUTexture[][][] textures, GPUShader[][][] shaders) {
         //oh boy, this translation layer between the general GPU texture index
         // and the GPU texture object is starting to become a nuisance
         GL33Texture[][][] GL33Textures = new GL33Texture[textures.length][textures[0].length][textures[0][0].length];
@@ -617,7 +617,7 @@ public class GL33Render implements Render {
         for(int xp=0; xp<textures.length; xp++){
             for(int yp=0; yp < textures[xp].length; yp++){
                 for(int zp=0; zp<textures[xp][yp].length; zp++){
-                    GL33Textures[xp][yp][zp] = this.textures.get(textures[xp][yp][zp]);
+                    GL33Textures[xp][yp][zp] = (GL33Texture)(textures[xp][yp][zp]);
                     gpuShaders[xp][yp][zp] = (GL33Shader)(shaders[xp][yp][zp]);
                 }
             }
@@ -634,9 +634,9 @@ public class GL33Render implements Render {
      * @param block the blockModel to be used
      */
     @Override
-    public void setChunkBlock(int chunk, CPUMesh block, int texture, GPUShader shader, int x, int y, int z) {
+    public void setChunkBlock(int chunk, CPUMesh block, GPUTexture texture, GPUShader shader, int x, int y, int z) {
         GL33Chunk chunk1 = chunks.get(chunk);
-        chunk1.setBlock(block, textures.get(texture), (GL33Shader)(shader), x, y, z);
+        chunk1.setBlock(block, (GL33Texture)(texture), (GL33Shader)(shader), x, y, z);
         if(!newChunks.contains(chunk1))newChunks.add(chunk1);
     }
 

@@ -1,6 +1,7 @@
 import engine.gl33.GL33Render;
 import engine.multiplatform.Render;
 import engine.multiplatform.gpu.GPUShader;
+import engine.multiplatform.gpu.GPUTexture;
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
 import org.joml.Vector3f;
@@ -33,7 +34,7 @@ public class TestGame2 {
 
         CPUModel[] voxels = render.generateImageAtlas(new CPUModel[]{grassVoxel, stoneVoxel});
 
-        int gpuChunkTexture = render.readTexture(voxels[0].texture);
+        GPUTexture gpuChunkTexture = render.readTexture(voxels[0].texture);
         int gpuGrassVoxel = render.loadGPUModel(grassVoxel);
         int gpuStoneVoxel = render.loadGPUModel(stoneVoxel);
         int gpuGrassVoxelAtlas = render.loadGPUModel(voxels[0]);
@@ -61,7 +62,7 @@ public class TestGame2 {
 
 
         CPUMesh[][][] randomChunkModels = new CPUMesh[64][64][64];
-        int[][][] randomChunkTextures = new int[64][64][64];
+        GPUTexture[][][] randomChunkTextures = new GPUTexture[64][64][64];
         GPUShader[][][] randomChunkShaders = new GPUShader[64][64][64];
         for(int x = 0; x < randomChunkModels.length; x++){
             for(int y=0; y<randomChunkModels[x].length; y++){
