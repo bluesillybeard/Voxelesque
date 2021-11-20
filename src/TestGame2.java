@@ -1,5 +1,6 @@
 import engine.gl33.GL33Render;
 import engine.multiplatform.Render;
+import engine.multiplatform.gpu.GPUModel;
 import engine.multiplatform.gpu.GPUShader;
 import engine.multiplatform.gpu.GPUTexture;
 import engine.multiplatform.model.CPUMesh;
@@ -35,13 +36,13 @@ public class TestGame2 {
         CPUModel[] voxels = render.generateImageAtlas(new CPUModel[]{grassVoxel, stoneVoxel});
 
         GPUTexture gpuChunkTexture = render.readTexture(voxels[0].texture);
-        int gpuGrassVoxel = render.loadGPUModel(grassVoxel);
-        int gpuStoneVoxel = render.loadGPUModel(stoneVoxel);
-        int gpuGrassVoxelAtlas = render.loadGPUModel(voxels[0]);
-        int gpuStoneVoxelAtlas = render.loadGPUModel(voxels[1]);
+        GPUModel gpuGrassVoxel = render.loadGPUModel(grassVoxel);
+        GPUModel gpuStoneVoxel = render.loadGPUModel(stoneVoxel);
+        GPUModel gpuGrassVoxelAtlas = render.loadGPUModel(voxels[0]);
+        GPUModel gpuStoneVoxelAtlas = render.loadGPUModel(voxels[1]);
 
         CPUModel grassBlock = render.loadEntityModel("VMFModels/test2.vemf0");
-        int gpuGrassBlock = render.loadGPUModel(grassBlock);
+        GPUModel gpuGrassBlock = render.loadGPUModel(grassBlock);
 
 
 

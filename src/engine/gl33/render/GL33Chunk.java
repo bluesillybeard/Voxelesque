@@ -129,7 +129,7 @@ public class GL33Chunk {
                         chunkModels.add(new CPUMeshBuilder(this.size * this.size * this.size * 10, true));//todo: test optimal factor (currently 10)
                     }
                     //cloning, index removal, and vertex position modification done within the BlockMeshBuilder
-                    chunkModels.get(shaderTextureIndex).addBlockMeshToChunk(block, x, y, z, /*this.getBlockedFaces(x, y, z)*/(byte)0);
+                    chunkModels.get(shaderTextureIndex).addBlockMeshToChunk(block, x, y, z, this.getBlockedFaces(x, y, z));
                     if(Thread.interrupted()){
                         return;
                     }
@@ -142,7 +142,6 @@ public class GL33Chunk {
 
     //blockedFaces: [top (+y), bottom(-y), (-z / +z), -x, +x]
     private byte getBlockedFaces(int x, int y, int z){
-        //exclude the blocks at the edges
         byte blockedFaces = 0;
 
         for(int i=0; i < 5; i++){
@@ -171,11 +170,10 @@ public class GL33Chunk {
             if(zM<0 || zM>this.size-1)continue;//skip it if it's outside the border (and assume it's blocked)
 
             CPUMesh mesh = this.data[xM][yM][zM];
-            assert mesh != null; //mesh should never be null.
-            if(mesh.blockedFaces == 0)continue; //skip if that mesh doesn't block faces
+            if(mesh==null || mesh.blockedFaces == 0)continue; //skip if that mesh doesn't block faces
             blockedFaces |= (mesh.blockedFaces & (1 << i)); //add the blocked face to the bit field.
         }
-        return blockedFaces;
+        return blockedFaces;//blockedFaces;
     }
 
 

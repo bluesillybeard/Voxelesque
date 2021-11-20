@@ -75,7 +75,6 @@ public class GL33Render implements Render {
     private final SlottedArrayList<GL33TextEntity> textEntities = new SlottedArrayList<>();
     private final Set<GL33Shader> shaderPrograms = new HashSet<>();
     private final SlottedArrayList<GL33Chunk> chunks = new SlottedArrayList<>();
-
     private final ExecutorService chunkBuildExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()/2);
     private final ArrayList<GL33Chunk> deletedChunks = new ArrayList<>();
     private final ArrayList<GL33Chunk> newChunks = new ArrayList<>();
