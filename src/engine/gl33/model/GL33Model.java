@@ -1,11 +1,14 @@
 package engine.gl33.model;
 
+import engine.multiplatform.gpu.GPUMesh;
+import engine.multiplatform.gpu.GPUModel;
+import engine.multiplatform.gpu.GPUTexture;
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
 
 import java.awt.image.BufferedImage;
 
-public class GL33Model {
+public class GL33Model implements GPUModel {
     public final GL33Mesh mesh;
     public final GL33Texture texture;
 
@@ -26,4 +29,26 @@ public class GL33Model {
         mesh.render();
     }
 
+    @Override
+    public GPUMesh getMesh() {
+        return mesh;
+    }
+
+    @Override
+    public GPUTexture getTexture() {
+        return texture;
+    }
+
+    /**
+     * tells what render backend this came from.
+     * supported render APIs:
+     * 0:unknown (for when
+     * 1:GL33
+     *
+     * @return the render backend ID
+     */
+    @Override
+    public int getRenderType() {
+        return 1;
+    }
 }

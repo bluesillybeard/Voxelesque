@@ -1,5 +1,6 @@
 package engine.gl33.model;
 
+import engine.multiplatform.gpu.GPUMesh;
 import engine.multiplatform.model.CPUMesh;
 import org.lwjgl.system.MemoryUtil;
 
@@ -11,7 +12,7 @@ import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
 
-public class GL33Mesh {
+public class GL33Mesh implements GPUMesh {
 
     private final int vaoId;
     private final int posVboId;
@@ -81,5 +82,18 @@ public class GL33Mesh {
 
         // Delete the VAO
         glDeleteVertexArrays(this.vaoId);
+    }
+
+    /**
+     * tells what render backend this came from.
+     * supported render APIs:
+     * 0:unknown (for when
+     * 1:GL33
+     *
+     * @return the render backend ID
+     */
+    @Override
+    public int getRenderType() {
+        return 1;
     }
 }

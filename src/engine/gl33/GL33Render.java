@@ -9,6 +9,8 @@ import engine.multiplatform.Render;
 import engine.multiplatform.Util.AtlasGenerator;
 import engine.multiplatform.Util.SlottedArrayList;
 import engine.multiplatform.Util.Utils;
+import engine.multiplatform.gpu.GPUMesh;
+import engine.multiplatform.gpu.GPUModel;
 import engine.multiplatform.gpu.GPUShader;
 import engine.multiplatform.gpu.GPUTexture;
 import engine.multiplatform.model.CPUMesh;
@@ -72,8 +74,6 @@ public class GL33Render implements Render {
     private final SlottedArrayList<GL33Entity> renderableEntities = new SlottedArrayList<>();
     private final SlottedArrayList<GL33TextEntity> textEntities = new SlottedArrayList<>();
     private final Set<GL33Shader> shaderPrograms = new HashSet<>();
-    private final SlottedArrayList<GL33Mesh> meshes = new SlottedArrayList<>();
-    private final SlottedArrayList<GL33Model> models = new SlottedArrayList<>();
     private final SlottedArrayList<GL33Chunk> chunks = new SlottedArrayList<>();
 
     private final ExecutorService chunkBuildExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()/2);
@@ -323,8 +323,13 @@ public class GL33Render implements Render {
      * @return the reference to the GPU mesh.
      */
     @Override
-    public int loadGPUMesh(CPUMesh mesh) {
-        return meshes.add(new GL33Mesh(mesh));
+    public GPUMesh loadGPUMesh(CPUMesh mesh) {
+        return new GL33Mesh(mesh);
+    }
+
+    @Override
+    public void deleteGPUMesh(GPUMesh mesh){
+        ((GL33Mesh)mesh).cleanUp();
     }
 
     /**
@@ -369,8 +374,8 @@ public class GL33Render implements Render {
      * @return a reference to the model.
      */
     @Override
-    public int loadGPUModel(CPUModel model) {
-        return models.add(new GL33Model(model));
+    public GPUModel loadGPUModel(CPUModel model) {
+        return new GL33Model(model);
     }
 
     /**
@@ -381,8 +386,8 @@ public class GL33Render implements Render {
      * @return a reference to the model
      */
     @Override
-    public int loadGPUModel(BufferedImage image, CPUMesh mesh) {
-        return models.add(new GL33Model(mesh, image));
+    public GPUModel loadGPUModel(BufferedImage image, CPUMesh mesh) {
+        return new GL33Model(mesh, image);
     }
 
     /**
@@ -393,8 +398,8 @@ public class GL33Render implements Render {
      * @return ta reference to the resulting model.
      */
     @Override
-    public int loadGPUModel(GPUTexture texture, int mesh) {
-        return models.add(new GL33Model(meshes.get(mesh), (GL33Texture)(texture)));
+    public GPUModel loadGPUModel(GPUTexture texture, GPUMesh mesh) {
+        return new GL33Model((GL33Mesh)(mesh), (GL33Texture)(texture));
     }
 
     /**
@@ -404,9 +409,10 @@ public class GL33Render implements Render {
      * @param model the GPU model to delete
      */
     @Override
-    public void deleteGPUModel(int model) {
-        models.get(model).mesh.cleanUp();
-        models.get(model).texture.cleanUp();
+    public void deleteGPUModel(GPUModel model) {
+        GL33Model glModel = (GL33Model)model;
+        glModel.mesh.cleanUp();
+        glModel.texture.cleanUp();
     }
 
     /**
@@ -443,8 +449,8 @@ public class GL33Render implements Render {
     }
 
     @Override
-    public int createEntity(int model, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
-        GL33Entity entity = new GL33Entity(models.get(model), (GL33Shader)(shader));
+    public int createEntity(GPUModel model, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
+        GL33Entity entity = new GL33Entity((GL33Model)(model), (GL33Shader)(shader));
         entity.setPosition(xPos, yPos, zPos);
         entity.setRotation(xRotation, yRotation, zRotation);
         entity.setScale(xScale, yScale, zScale);
@@ -452,8 +458,8 @@ public class GL33Render implements Render {
     }
 
     @Override
-    public int createEntity(GPUTexture texture, int mesh, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
-        GL33Entity entity = new GL33Entity(meshes.get(mesh), (GL33Shader)(shader), (GL33Texture)(texture));
+    public int createEntity(GPUTexture texture, GPUMesh mesh, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
+        GL33Entity entity = new GL33Entity((GL33Mesh)(mesh), (GL33Shader)(shader), (GL33Texture)(texture));
         entity.setPosition(xPos, yPos, zPos);
         entity.setRotation(xRotation, yRotation, zRotation);
         entity.setScale(xScale, yScale, zScale);

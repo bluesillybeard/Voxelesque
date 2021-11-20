@@ -1,5 +1,7 @@
 package engine.multiplatform;
 
+import engine.multiplatform.gpu.GPUMesh;
+import engine.multiplatform.gpu.GPUModel;
 import engine.multiplatform.gpu.GPUShader;
 import engine.multiplatform.gpu.GPUTexture;
 import engine.multiplatform.model.CPUMesh;
@@ -153,7 +155,9 @@ public interface Render {
      * @param mesh The source mesh
      * @return the reference to the GPU mesh.
      */
-    int loadGPUMesh(CPUMesh mesh);
+    GPUMesh loadGPUMesh(CPUMesh mesh);
+
+    void deleteGPUMesh(GPUMesh mesh);
 
     //models
     //IMPORTANT: similar to models, only methods not provided by the CPUModel constructor are provided.
@@ -180,7 +184,7 @@ public interface Render {
      * @param model the model to make renderable
      * @return a reference to the model.
      */
-    int loadGPUModel(CPUModel model);
+    GPUModel loadGPUModel(CPUModel model);
 
     /**
      * creates a model that can be rendered from an image and a CPUMesh
@@ -188,7 +192,7 @@ public interface Render {
      * @param mesh the mesh
      * @return a reference to the model
      */
-    int loadGPUModel(BufferedImage image, CPUMesh mesh);
+    GPUModel loadGPUModel(BufferedImage image, CPUMesh mesh);
 
     /**
      * combines a texture and mesh that has already been sent to the GPU and turns them into a model.
@@ -196,14 +200,14 @@ public interface Render {
      * @param mesh the mesh.
      * @return ta reference to the resulting model.
      */
-    int loadGPUModel(GPUTexture texture, int mesh);
+    GPUModel loadGPUModel(GPUTexture texture, GPUMesh mesh);
 
     /**
      * deletes a model from the GPU
      * Note that the internal texture and mesh are deleted as well, so be careful.
      * @param model the GPU model to delete
      */
-    void deleteGPUModel(int model);
+    void deleteGPUModel(GPUModel model);
 
     //shaders
 
@@ -225,9 +229,9 @@ public interface Render {
 
     //entities
 
-    int createEntity(int model, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
+    int createEntity(GPUModel model, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
-    int createEntity(GPUTexture texture, int mesh, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
+    int createEntity(GPUTexture texture, GPUMesh mesh, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
     void setEntityPos(int entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
