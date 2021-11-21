@@ -22,11 +22,9 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_DOWN;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_UP;
+import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
 public class GL33Render implements Render {
@@ -73,7 +71,9 @@ public class GL33Render implements Render {
     private final SlottedArrayList<GL33TextEntity> textEntities = new SlottedArrayList<>();
     private final Set<GL33Shader> shaderPrograms = new HashSet<>();
     private final Map<Vector3i, GL33Chunk> chunks = new HashMap<>();
-    private final ExecutorService chunkBuildExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()/2);
+    private final ExecutorService chunkBuildExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors()-1, Runtime.getRuntime().availableProcessors()-1,
+            0L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<>());
     private final ArrayList<GL33Chunk> deletedChunks = new ArrayList<>();
     private final ArrayList<GL33Chunk> newChunks = new ArrayList<>();
     private final VMFLoader vmfLoader = new VMFLoader();
@@ -115,7 +115,8 @@ public class GL33Render implements Render {
 
 
             this.GL33Window.init();
-            debug.println("initialized render and " + Runtime.getRuntime().availableProcessors()/2 + " chunk build worker threads");
+            debug.println("initialized OpenGL 3.3 Render Backend and " + Runtime.getRuntime().availableProcessors() + " chunk build worker threads");
+            warn.println("This is a pre-alpha version of the Voxelesque Rendering Backend, proceed with caution!");
             return true;
         } catch(Exception e){
             e.printStackTrace(err);
@@ -602,6 +603,7 @@ public class GL33Render implements Render {
         }
         GL33Chunk chunk = new GL33Chunk(size, blocks, GL33Textures, gpuShaders, x, y, z);
         newChunks.add(chunk);
+        updateAdjacentChunks(chunk.getPosition());
         chunks.put(new Vector3i(x, y, z), chunk);
         return chunk;
     }
@@ -629,6 +631,7 @@ public class GL33Render implements Render {
         GL33Chunk chunk1 = (GL33Chunk)(chunk);
         chunk1.setData(blocks, GL33Textures, gpuShaders);
         if(!newChunks.contains(chunk1))newChunks.add(chunk1);
+        updateAdjacentChunks(chunk1.getPosition());
     }
 
     /**
@@ -642,6 +645,7 @@ public class GL33Render implements Render {
         GL33Chunk chunk1 = (GL33Chunk)(chunk);
         chunk1.setBlock(block, (GL33Texture)(texture), (GL33Shader)(shader), x, y, z);
         if(!newChunks.contains(chunk1))newChunks.add(chunk1);
+        updateAdjacentChunks(chunk1.getPosition());
     }
 
     /**
@@ -846,12 +850,8 @@ public class GL33Render implements Render {
     @Override
     public double render() {
         readyToRender = false;
-        if (GL33Window.getKey(GLFW_KEY_UP) == 2) {
-            System.out.println(chunks);
-            System.out.println(deletedChunks);
-        }
-        if (GL33Window.getKey(GLFW_KEY_DOWN) == 2) {
-            System.out.println("stop");
+        if (GL33Window.getKey(GLFW_KEY_END) == 2) {
+            debug.println("stop");
         }
         double startTime = getTime();
         Iterator<GL33Chunk> iter = deletedChunks.iterator();
@@ -868,14 +868,7 @@ public class GL33Render implements Render {
                 c.taskRunning = true;
                 Vector3i pos = c.getPosition();
                 //The chunk being built needs to know the state of the chunks adjacent to it so the faces on the chunk borders can be culled as well.
-                chunkBuildExecutor.submit(()->{c.build(new GL33Chunk[]{
-                        chunks.get(new Vector3i(pos.x-1, pos.y+0, pos.z+0)), //(-1, 0, 0)
-                        chunks.get(new Vector3i(pos.x+0, pos.y-1, pos.z+0)), //(0, -1, 0) //the +0 is intentional to make it more readable. They probably get compiled into oblivion, so I don't expect any change in performance.
-                        chunks.get(new Vector3i(pos.x+0, pos.y+0, pos.z-1)), //(0, 0, -1)
-                        chunks.get(new Vector3i(pos.x+1, pos.y+0, pos.z+0)), //(+1, 0, 0)
-                        chunks.get(new Vector3i(pos.x+0, pos.y+1, pos.z+0)), //(0, +1, 0)
-                        chunks.get(new Vector3i(pos.x+0, pos.y+0, pos.z+1)), //(0, 0, +1)
-                });}); //what a pile of ending characters!
+                chunkBuildExecutor.submit(()-> c.build(chunks)); //what a pile of ending characters!
             }
         }
         if (GL33Window.isResized()) {
@@ -914,5 +907,37 @@ public class GL33Render implements Render {
         for(GL33Entity textEntity: textEntities){
             textEntity.render();
         }
+    }
+
+    /**
+     * schedules all the chunks adjacent to the chunk at a position to be re-built.
+     * @param pos the chunk position to update the adjacent chunks.
+     */
+    private void updateAdjacentChunks(Vector3i pos){
+        GL33Chunk c;
+
+        //(-1, 0, 0)
+        c = chunks.get(new Vector3i(pos.x-1, pos.y, pos.z));
+        if(c!=null && !newChunks.contains(c))newChunks.add(c);
+
+        //(0, -1, 0)
+        c = chunks.get(new Vector3i(pos.x, pos.y-1, pos.z));
+        if(c!=null && !newChunks.contains(c))newChunks.add(c);
+
+        //(0, 0, -1)
+        c = chunks.get(new Vector3i(pos.x, pos.y, pos.z-1));
+        if(c!=null && !newChunks.contains(c))newChunks.add(c);
+
+        //(+1, 0, 0)
+        c = chunks.get(new Vector3i(pos.x+1, pos.y, pos.z));
+        if(c!=null && !newChunks.contains(c))newChunks.add(c);
+
+        //(0, +1, 0)
+        c = chunks.get(new Vector3i(pos.x, pos.y+1, pos.z));
+        if(c!=null && !newChunks.contains(c))newChunks.add(c);
+
+        //(0, 0, +1)
+        c = chunks.get(new Vector3i(pos.x, pos.y, pos.z+1));
+        if(c!=null && !newChunks.contains(c))newChunks.add(c);
     }
 }

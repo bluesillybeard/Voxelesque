@@ -6,8 +6,10 @@ import engine.multiplatform.Util.CPUMeshBuilder;
 import engine.multiplatform.gpu.GPUChunk;
 import engine.multiplatform.model.CPUMesh;
 import org.joml.Vector3i;
+import org.lwjgl.system.CallbackI;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class GL33Chunk implements GPUChunk{
     private final Vector3i pos;
@@ -102,9 +104,9 @@ public class GL33Chunk implements GPUChunk{
 
     /**
      *
-     * @param adjacentChunks this being (0, 0, 0), [(-1, 0, 0), (0, -1, 0), (0, 0, -1), (+1, 0, 0), (0, +1, 0), (0, 0, +1)]
+     * @param chunks the map of chunk positions to chunk objects to get adjacent chunks from
      */
-    public void build(GL33Chunk[] adjacentChunks) {
+    public void build(Map<Vector3i, GL33Chunk> chunks) {
         /*
         an overview of how chunk building works:
         initialize a list of shaders and models
@@ -134,7 +136,7 @@ public class GL33Chunk implements GPUChunk{
                         chunkModels.add(new CPUMeshBuilder(this.size * this.size * this.size * 10, true));//todo: test optimal factor (currently 10)
                     }
                     //cloning, index removal, and vertex position modification done within the BlockMeshBuilder
-                    chunkModels.get(shaderTextureIndex).addBlockMeshToChunk(block, x, y, z, this.getBlockedFaces(x, y, z, adjacentChunks));
+                    chunkModels.get(shaderTextureIndex).addBlockMeshToChunk(block, x, y, z, this.getBlockedFaces(x, y, z, chunks));
                     if(Thread.interrupted()){
                         return; //so the game can close if a chunk is still rendering
                     }
@@ -146,8 +148,7 @@ public class GL33Chunk implements GPUChunk{
 
 
     //blockedFaces: [top (+y), bottom(-y), (-z / +z), -x, +x]
-    private byte getBlockedFaces(int x, int y, int z, GL33Chunk[] adjacentChunks){
-        if(adjacentChunks.length != 6)throw new IllegalStateException("adjacentChunks not length 6! Either the laws of geometry has changed so a cube doesn't have 6 faces, or some idiot made a mistake.");
+    private byte getBlockedFaces(int x, int y, int z, Map<Vector3i, GL33Chunk> chunks){
         byte blockedFaces = 0;
 
         for(int i=0; i < 5; i++){
@@ -174,38 +175,37 @@ public class GL33Chunk implements GPUChunk{
 
             //[(-1, 0, 0), (0, -1, 0), (0, 0, -1), (+1, 0, 0), (0, +1, 0), (0, 0, +1)]
             if(xM<0){ //-1, 0, 0
-                toUse = adjacentChunks[0];
+                toUse = chunks.get(new Vector3i(pos.x-1, pos.y, pos.z));
                 xM = size-1;
             }
             else if(xM>this.size-1){//+1, 0, 0
-                toUse = adjacentChunks[3];
+                toUse = chunks.get(new Vector3i(pos.x+1, pos.y, pos.z));
                 xM = 1;
             }
             else if(yM<0) {//0, -1, 0
-                toUse = adjacentChunks[1];
+                toUse = chunks.get(new Vector3i(pos.x, pos.y-1, pos.z));;
                 yM  = size-1;
             }
-            else if(yM>this.size-1){ //0, 1, 0
-                toUse = adjacentChunks[4];
+            else if(yM>this.size-1){ //0, +1, 0
+                toUse = chunks.get(new Vector3i(pos.x, pos.y+1, pos.z));
                 yM  = 1;
             }
             else if(zM<0) { //0, 0, -1
-                toUse = adjacentChunks[2];
+                toUse = chunks.get(new Vector3i(pos.x, pos.y, pos.z-1));
                 zM = size-1;
             }
-            else if(zM>this.size-1){
-                toUse = adjacentChunks[5];
+            else if(zM>this.size-1){ //0, 0, +1
+                toUse = chunks.get(new Vector3i(pos.x, pos.y, pos.z+1));
                 zM = 1;
             }
-            if(toUse == null)continue;
-            try {
-                CPUMesh mesh = toUse.getBlock(xM, yM, zM);
-
-                if (mesh == null || mesh.blockedFaces == 0) continue; //skip if that mesh doesn't block faces
-                blockedFaces |= (mesh.blockedFaces & (1 << i)); //add the blocked face to the bit field.
-            }catch(Exception e){
-                e.printStackTrace();
+            if(toUse == null){
+                blockedFaces |= (1 << i); //if the chunk doesn't exist yet, assume it's blocked
+                continue;
             }
+            CPUMesh mesh = toUse.getBlock(xM, yM, zM);
+
+            if (mesh == null || mesh.blockedFaces == 0) continue; //skip if that mesh doesn't block faces
+            blockedFaces |= (mesh.blockedFaces & (1 << i)); //add the blocked face to the bit field.
         }
         return blockedFaces;//blockedFaces;
     }
