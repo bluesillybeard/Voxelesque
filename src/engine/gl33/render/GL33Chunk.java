@@ -5,6 +5,7 @@ import engine.gl33.model.GL33Texture;
 import engine.multiplatform.Util.CPUMeshBuilder;
 import engine.multiplatform.gpu.GPUChunk;
 import engine.multiplatform.model.CPUMesh;
+import org.joml.Vector3f;
 import org.joml.Vector3i;
 import org.lwjgl.system.CallbackI;
 
@@ -20,8 +21,8 @@ public class GL33Chunk implements GPUChunk{
     private GL33Entity[] chunkModel;
     private boolean canRender;
 
-    private ArrayList<CPUMeshBuilder> chunkModels = new ArrayList<>();
-    private ArrayList<ShaderTexture> shaderTextures = new ArrayList<>();
+    private final ArrayList<CPUMeshBuilder> chunkModels = new ArrayList<>();
+    private final ArrayList<ShaderTexture> shaderTextures = new ArrayList<>();
 
     public boolean taskRunning;
 
@@ -106,7 +107,7 @@ public class GL33Chunk implements GPUChunk{
      *
      * @param chunks the map of chunk positions to chunk objects to get adjacent chunks from
      */
-    public void build(Map<Vector3i, GL33Chunk> chunks) {
+    public void build(Map<Vector3i, GL33Chunk> chunks, Vector3f cameraPosition) {
         /*
         an overview of how chunk building works:
         initialize a list of shaders and models
@@ -133,7 +134,7 @@ public class GL33Chunk implements GPUChunk{
                     if (shaderTextureIndex == -1) {
                         shaderTextureIndex = chunkModels.size();
                         shaderTextures.add(new ShaderTexture(program, texture));
-                        chunkModels.add(new CPUMeshBuilder(this.size * this.size * this.size * 10, true));//todo: test optimal factor (currently 10)
+                        chunkModels.add(new CPUMeshBuilder());
                     }
                     //cloning, index removal, and vertex position modification done within the BlockMeshBuilder
                     chunkModels.get(shaderTextureIndex).addBlockMeshToChunk(block, x, y, z, this.getBlockedFaces(x, y, z, chunks));
@@ -175,31 +176,38 @@ public class GL33Chunk implements GPUChunk{
 
             //[(-1, 0, 0), (0, -1, 0), (0, 0, -1), (+1, 0, 0), (0, +1, 0), (0, 0, +1)]
             if(xM<0){ //-1, 0, 0
-                toUse = chunks.get(new Vector3i(pos.x-1, pos.y, pos.z));
+                if(chunks != null)toUse = chunks.get(new Vector3i(pos.x-1, pos.y, pos.z));
+                else toUse = null;
                 xM = size-1;
             }
             else if(xM>this.size-1){//+1, 0, 0
-                toUse = chunks.get(new Vector3i(pos.x+1, pos.y, pos.z));
+                if(chunks != null)toUse = chunks.get(new Vector3i(pos.x+1, pos.y, pos.z));
+                else toUse = null;
+
                 xM = 1;
             }
             else if(yM<0) {//0, -1, 0
-                toUse = chunks.get(new Vector3i(pos.x, pos.y-1, pos.z));;
+                if(chunks != null)toUse = chunks.get(new Vector3i(pos.x, pos.y-1, pos.z));
+                else toUse = null;
                 yM  = size-1;
             }
             else if(yM>this.size-1){ //0, +1, 0
-                toUse = chunks.get(new Vector3i(pos.x, pos.y+1, pos.z));
+                if(chunks != null)toUse = chunks.get(new Vector3i(pos.x, pos.y+1, pos.z));
+                else toUse = null;
                 yM  = 1;
             }
             else if(zM<0) { //0, 0, -1
-                toUse = chunks.get(new Vector3i(pos.x, pos.y, pos.z-1));
+                if(chunks != null)toUse = chunks.get(new Vector3i(pos.x, pos.y, pos.z-1));
+                else toUse = null;
                 zM = size-1;
             }
             else if(zM>this.size-1){ //0, 0, +1
-                toUse = chunks.get(new Vector3i(pos.x, pos.y, pos.z+1));
+                if(chunks != null)toUse = chunks.get(new Vector3i(pos.x, pos.y, pos.z+1));
+                else toUse = null;
                 zM = 1;
             }
             if(toUse == null){
-                blockedFaces |= (1 << i); //if the chunk doesn't exist yet, assume it's blocked
+                if(chunks != null)blockedFaces |= (1 << i); //if the chunk doesn't exist yet, assume it's blocked, unless it wasn't given adjacent chunks, in which case assume it isn't blocked.
                 continue;
             }
             CPUMesh mesh = toUse.getBlock(xM, yM, zM);

@@ -15,14 +15,14 @@ import static game.misc.StaticUtils.getChunkPos;
 import static game.misc.StaticUtils.getChunkWorldPos;
 
 public class World {
-    private final Chunk emptyChunk;
+    private static Chunk emptyChunk;
     private final Map<Vector3i, Chunk> chunks;
     private final LinkedList<Vector3i> chunksToUnload;
     private final PerlinNoise noise;
     private static final int CHUNK_SIZE = 64; //MUST BE A POWER OF 2! If this is changed to a non-power of 2, many things would have to be reworked.
 
     public World() {
-        noise = new PerlinNoise((int) ((Math.random()*2-1)*Integer.MAX_VALUE), 1, 0.1, 10, 1);
+        noise = new PerlinNoise(9, 1, 0.1, 10, 1);
         emptyChunk = new Chunk(CHUNK_SIZE, -1, -1, -1);
         chunks = new HashMap<>();
         chunksToUnload = new LinkedList<>();

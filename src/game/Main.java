@@ -27,7 +27,7 @@ public class Main {
             }
             resourcesPath = System.getProperty("user.dir") + "/resources";
             render.setResourcesPath(GlobalBits.resourcesPath);
-            renderDistance = 100f;
+            renderDistance = 150f;
             tempV3f = new Vector3f();
             playerPosition = new Vector3f(0, 1, 0);
             playerRotation = new Vector3f(0, 0, 0);

@@ -868,7 +868,7 @@ public class GL33Render implements Render {
                 c.taskRunning = true;
                 Vector3i pos = c.getPosition();
                 //The chunk being built needs to know the state of the chunks adjacent to it so the faces on the chunk borders can be culled as well.
-                chunkBuildExecutor.submit(()-> c.build(chunks)); //what a pile of ending characters!
+                chunkBuildExecutor.submit(()-> c.build(chunks, cameraPosition)); //what a pile of ending characters!
             }
         }
         if (GL33Window.isResized()) {
