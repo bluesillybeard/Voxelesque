@@ -9,14 +9,12 @@ import engine.multiplatform.Render;
 import engine.multiplatform.Util.AtlasGenerator;
 import engine.multiplatform.Util.SlottedArrayList;
 import engine.multiplatform.Util.Utils;
-import engine.multiplatform.gpu.GPUMesh;
-import engine.multiplatform.gpu.GPUModel;
-import engine.multiplatform.gpu.GPUShader;
-import engine.multiplatform.gpu.GPUTexture;
+import engine.multiplatform.gpu.*;
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.joml.Vector3i;
 import org.joml.Vector4f;
 
 import javax.imageio.ImageIO;
@@ -74,7 +72,7 @@ public class GL33Render implements Render {
     private final SlottedArrayList<GL33Entity> renderableEntities = new SlottedArrayList<>();
     private final SlottedArrayList<GL33TextEntity> textEntities = new SlottedArrayList<>();
     private final Set<GL33Shader> shaderPrograms = new HashSet<>();
-    private final SlottedArrayList<GL33Chunk> chunks = new SlottedArrayList<>();
+    private final Map<Vector3i, GL33Chunk> chunks = new HashMap<>();
     private final ExecutorService chunkBuildExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()/2);
     private final ArrayList<GL33Chunk> deletedChunks = new ArrayList<>();
     private final ArrayList<GL33Chunk> newChunks = new ArrayList<>();
@@ -589,7 +587,7 @@ public class GL33Render implements Render {
      * @return the ID of the new chunk.
      */
     @Override
-    public int spawnChunk(int size, CPUMesh[][][] blocks, GPUTexture[][][] textures, GPUShader[][][] shaders, int x, int y, int z) {
+    public GPUChunk spawnChunk(int size, CPUMesh[][][] blocks, GPUTexture[][][] textures, GPUShader[][][] shaders, int x, int y, int z) {
         //oh boy, this translation layer between the general GPU texture index
         // and the GPU texture object is starting to become a nuisance
         GL33Texture[][][] GL33Textures = new GL33Texture[textures.length][textures[0].length][textures[0][0].length];
@@ -604,7 +602,8 @@ public class GL33Render implements Render {
         }
         GL33Chunk chunk = new GL33Chunk(size, blocks, GL33Textures, gpuShaders, x, y, z);
         newChunks.add(chunk);
-        return chunks.add(chunk);
+        chunks.put(new Vector3i(x, y, z), chunk);
+        return chunk;
     }
 
     /**
@@ -614,7 +613,7 @@ public class GL33Render implements Render {
      * @param blocks a 3D array of blockModel IDs that represent that chunk's block data.
      */
     @Override
-    public void setChunkData(int chunk, CPUMesh[][][] blocks, GPUTexture[][][] textures, GPUShader[][][] shaders) {
+    public void setChunkData(GPUChunk chunk, CPUMesh[][][] blocks, GPUTexture[][][] textures, GPUShader[][][] shaders) {
         //oh boy, this translation layer between the general GPU texture index
         // and the GPU texture object is starting to become a nuisance
         GL33Texture[][][] GL33Textures = new GL33Texture[textures.length][textures[0].length][textures[0][0].length];
@@ -627,7 +626,7 @@ public class GL33Render implements Render {
                 }
             }
         }
-        GL33Chunk chunk1 = chunks.get(chunk);
+        GL33Chunk chunk1 = (GL33Chunk)(chunk);
         chunk1.setData(blocks, GL33Textures, gpuShaders);
         if(!newChunks.contains(chunk1))newChunks.add(chunk1);
     }
@@ -639,8 +638,8 @@ public class GL33Render implements Render {
      * @param block the blockModel to be used
      */
     @Override
-    public void setChunkBlock(int chunk, CPUMesh block, GPUTexture texture, GPUShader shader, int x, int y, int z) {
-        GL33Chunk chunk1 = chunks.get(chunk);
+    public void setChunkBlock(GPUChunk chunk, CPUMesh block, GPUTexture texture, GPUShader shader, int x, int y, int z) {
+        GL33Chunk chunk1 = (GL33Chunk)(chunk);
         chunk1.setBlock(block, (GL33Texture)(texture), (GL33Shader)(shader), x, y, z);
         if(!newChunks.contains(chunk1))newChunks.add(chunk1);
     }
@@ -651,9 +650,9 @@ public class GL33Render implements Render {
      * @param chunk the ID of the chunk to remove
      */
     @Override
-    public void deleteChunk(int chunk) {
-        deletedChunks.add(chunks.get(chunk));
-        chunks.remove(chunk);
+    public void deleteChunk(GPUChunk chunk) {
+        deletedChunks.add((GL33Chunk)(chunk));
+        chunks.remove(((GL33Chunk)chunk).getPosition());
     }
 
     @Override
@@ -663,7 +662,7 @@ public class GL33Render implements Render {
 
     @Override
     public int getNumChunkSlots() {
-        return chunks.capacity();
+        return chunks.size();
     }
 
     private void updateCameraViewMatrix(){
@@ -867,7 +866,16 @@ public class GL33Render implements Render {
             GL33Chunk c = newChunks.remove(newChunks.size() - 1);
             if (!c.taskRunning) {
                 c.taskRunning = true;
-                chunkBuildExecutor.submit(c::build);
+                Vector3i pos = c.getPosition();
+                //The chunk being built needs to know the state of the chunks adjacent to it so the faces on the chunk borders can be culled as well.
+                chunkBuildExecutor.submit(()->{c.build(new GL33Chunk[]{
+                        chunks.get(new Vector3i(pos.x-1, pos.y+0, pos.z+0)), //(-1, 0, 0)
+                        chunks.get(new Vector3i(pos.x+0, pos.y-1, pos.z+0)), //(0, -1, 0) //the +0 is intentional to make it more readable. They probably get compiled into oblivion, so I don't expect any change in performance.
+                        chunks.get(new Vector3i(pos.x+0, pos.y+0, pos.z-1)), //(0, 0, -1)
+                        chunks.get(new Vector3i(pos.x+1, pos.y+0, pos.z+0)), //(+1, 0, 0)
+                        chunks.get(new Vector3i(pos.x+0, pos.y+1, pos.z+0)), //(0, +1, 0)
+                        chunks.get(new Vector3i(pos.x+0, pos.y+0, pos.z+1)), //(0, 0, +1)
+                });}); //what a pile of ending characters!
             }
         }
         if (GL33Window.isResized()) {
@@ -898,7 +906,8 @@ public class GL33Render implements Render {
             GL33Entity.render();
         }
         //render each chunk
-        for (GL33Chunk chunk: chunks){
+        for (Map.Entry<Vector3i, GL33Chunk> chunkEntry: chunks.entrySet()){
+            GL33Chunk chunk = chunkEntry.getValue();
             chunk.render();
             chunk.sendToGPU();
         }

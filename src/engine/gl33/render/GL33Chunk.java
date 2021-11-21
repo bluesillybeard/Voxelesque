@@ -3,11 +3,14 @@ package engine.gl33.render;
 import engine.gl33.model.GL33Mesh;
 import engine.gl33.model.GL33Texture;
 import engine.multiplatform.Util.CPUMeshBuilder;
+import engine.multiplatform.gpu.GPUChunk;
 import engine.multiplatform.model.CPUMesh;
+import org.joml.Vector3i;
+
 import java.util.ArrayList;
 
-public class GL33Chunk {
-    private final int xPos, yPos, zPos;
+public class GL33Chunk implements GPUChunk{
+    private final Vector3i pos;
     private CPUMesh[][][] data;
     private GL33Texture[][][] textures;
     private GL33Shader[][][] shaders;
@@ -31,9 +34,7 @@ public class GL33Chunk {
         this.canRender = false;
         taskRunning = false;
         this.size = size;
-        this.xPos = xPos;
-        this.yPos = yPos;
-        this.zPos = zPos;
+        this.pos = new Vector3i(xPos, yPos, zPos);
     }
 
     public void setData(CPUMesh[][][] data, GL33Texture[][][] textures, GL33Shader[][][] shaders){
@@ -84,7 +85,7 @@ public class GL33Chunk {
             GL33Entity[] model = new GL33Entity[shaderTextures.size()];
             for (int i = 0; i < model.length; i++) {
                 GL33Entity entity = new GL33Entity(new GL33Mesh(chunkModels.get(i).getMesh()), shaderTextures.get(i).shader, shaderTextures.get(i).texture);
-                entity.setPosition(this.xPos * this.size * 0.288675134595f, this.yPos * this.size * 0.5f, this.zPos * this.size * 0.5f);
+                entity.setPosition(this.pos.x * this.size * 0.288675134595f, this.pos.y * this.size * 0.5f, this.pos.z * this.size * 0.5f);
                 entity.setScale(1, 1, 1);
                 model[i] = entity;
             }
@@ -99,7 +100,11 @@ public class GL33Chunk {
         return false;
     }
 
-    public void build() {
+    /**
+     *
+     * @param adjacentChunks this being (0, 0, 0), [(-1, 0, 0), (0, -1, 0), (0, 0, -1), (+1, 0, 0), (0, +1, 0), (0, 0, +1)]
+     */
+    public void build(GL33Chunk[] adjacentChunks) {
         /*
         an overview of how chunk building works:
         initialize a list of shaders and models
@@ -129,9 +134,9 @@ public class GL33Chunk {
                         chunkModels.add(new CPUMeshBuilder(this.size * this.size * this.size * 10, true));//todo: test optimal factor (currently 10)
                     }
                     //cloning, index removal, and vertex position modification done within the BlockMeshBuilder
-                    chunkModels.get(shaderTextureIndex).addBlockMeshToChunk(block, x, y, z, this.getBlockedFaces(x, y, z));
+                    chunkModels.get(shaderTextureIndex).addBlockMeshToChunk(block, x, y, z, this.getBlockedFaces(x, y, z, adjacentChunks));
                     if(Thread.interrupted()){
-                        return;
+                        return; //so the game can close if a chunk is still rendering
                     }
                 }
             }
@@ -141,7 +146,8 @@ public class GL33Chunk {
 
 
     //blockedFaces: [top (+y), bottom(-y), (-z / +z), -x, +x]
-    private byte getBlockedFaces(int x, int y, int z){
+    private byte getBlockedFaces(int x, int y, int z, GL33Chunk[] adjacentChunks){
+        if(adjacentChunks.length != 6)throw new IllegalStateException("adjacentChunks not length 6! Either the laws of geometry has changed so a cube doesn't have 6 faces, or some idiot made a mistake.");
         byte blockedFaces = 0;
 
         for(int i=0; i < 5; i++){
@@ -160,20 +166,69 @@ public class GL33Chunk {
 
             int zM;
             if (i == 2) {
-                zM = (z + x & 1) * -2 + 1 + z;
+                zM = (z + x & 1) * -2 + 1 + z; //I don't know how I figured this out, but I did.
             } else {
                 zM = z;
             }
+            GL33Chunk toUse = this;
 
-            if(xM<0 || xM>this.size-1)continue;
-            if(yM<0 || yM>this.size-1)continue;
-            if(zM<0 || zM>this.size-1)continue;//skip it if it's outside the border (and assume it's blocked)
+            //[(-1, 0, 0), (0, -1, 0), (0, 0, -1), (+1, 0, 0), (0, +1, 0), (0, 0, +1)]
+            if(xM<0){ //-1, 0, 0
+                toUse = adjacentChunks[0];
+                xM = size-1;
+            }
+            else if(xM>this.size-1){//+1, 0, 0
+                toUse = adjacentChunks[3];
+                xM = 1;
+            }
+            else if(yM<0) {//0, -1, 0
+                toUse = adjacentChunks[1];
+                yM  = size-1;
+            }
+            else if(yM>this.size-1){ //0, 1, 0
+                toUse = adjacentChunks[4];
+                yM  = 1;
+            }
+            else if(zM<0) { //0, 0, -1
+                toUse = adjacentChunks[2];
+                zM = size-1;
+            }
+            else if(zM>this.size-1){
+                toUse = adjacentChunks[5];
+                zM = 1;
+            }
+            if(toUse == null)continue;
+            try {
+                CPUMesh mesh = toUse.getBlock(xM, yM, zM);
 
-            CPUMesh mesh = this.data[xM][yM][zM];
-            if(mesh==null || mesh.blockedFaces == 0)continue; //skip if that mesh doesn't block faces
-            blockedFaces |= (mesh.blockedFaces & (1 << i)); //add the blocked face to the bit field.
+                if (mesh == null || mesh.blockedFaces == 0) continue; //skip if that mesh doesn't block faces
+                blockedFaces |= (mesh.blockedFaces & (1 << i)); //add the blocked face to the bit field.
+            }catch(Exception e){
+                e.printStackTrace();
+            }
         }
         return blockedFaces;//blockedFaces;
+    }
+
+    /**
+     * tells what render backend this came from.
+     * supported render APIs:
+     * 0:unknown (This should absolutely under no circumstances ever happen. Not in all time and space should this value ever be returned by this function)
+     * 1:GL33
+     *
+     * @return the render backend ID
+     */
+    @Override
+    public int getRenderType() {
+        return 1;
+    }
+
+    public Vector3i getPosition(){
+        return this.pos;
+    }
+
+    public CPUMesh getBlock(int x, int y, int z){
+        return this.data[x][y][z];
     }
 
 
@@ -206,6 +261,6 @@ public class GL33Chunk {
         }
     }
     public String toString(){
-        return "chunk:(" + xPos + "," + yPos + "," + zPos + ") s:" + taskRunning + " r:" + canRender;
+        return "chunk:" + pos + " s:" + taskRunning + " r:" + canRender;
     }
 }

@@ -1,9 +1,6 @@
 package engine.multiplatform;
 
-import engine.multiplatform.gpu.GPUMesh;
-import engine.multiplatform.gpu.GPUModel;
-import engine.multiplatform.gpu.GPUShader;
-import engine.multiplatform.gpu.GPUTexture;
+import engine.multiplatform.gpu.*;
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
 import org.joml.Matrix4f;
@@ -290,27 +287,27 @@ public interface Render {
      * @param z the Z position of the chunk
      * @return the ID of the new chunk.
      */
-    int spawnChunk(int size, CPUMesh[][][] blocks, GPUTexture[][][] textures, GPUShader[][][] shaders, int x, int y, int z);
+    GPUChunk spawnChunk(int size, CPUMesh[][][] blocks, GPUTexture[][][] textures, GPUShader[][][] shaders, int x, int y, int z);
 
     /**
      * sets the block data of a chunk.
      * @param blocks a 3D array of blockModel IDs that represent that chunk's block data.
      * @param chunk the chunk whose data will be set.
      */
-    void setChunkData(int chunk, CPUMesh[][][] blocks, GPUTexture[][][] textures, GPUShader[][][] shaders);
+    void setChunkData(GPUChunk chunk, CPUMesh[][][] blocks, GPUTexture[][][] textures, GPUShader[][][] shaders);
 
     /**
      * sets a specific block [z, y, x] of a chunk.
      * @param chunk the chunk whose block will be modified
      * @param block the blockModel to be used
      */
-    void setChunkBlock(int chunk, CPUMesh block, GPUTexture texture, GPUShader shader, int x, int y, int z);
+    void setChunkBlock(GPUChunk chunk, CPUMesh block, GPUTexture texture, GPUShader shader, int x, int y, int z);
 
     /**
      * deletes a chunk so it is no longer rendered.
      * @param chunk the ID of the chunk to remove
      */
-    void deleteChunk(int chunk);
+    void deleteChunk(GPUChunk chunk);
 
     int getNumChunks();
 

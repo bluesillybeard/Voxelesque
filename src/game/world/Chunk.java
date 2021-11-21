@@ -1,5 +1,6 @@
 package game.world;
 
+import engine.multiplatform.gpu.GPUChunk;
 import engine.multiplatform.gpu.GPUShader;
 import engine.multiplatform.gpu.GPUTexture;
 import engine.multiplatform.model.CPUMesh;
@@ -18,7 +19,8 @@ public class Chunk {
     private final Map<Block, Integer> idMappings;
 
     private int numMappings;
-    private final int handle, xPos, yPos, zPos;
+    private final GPUChunk handle;
+    private final int xPos, yPos, zPos;
 
     public Chunk(int size, int[][][] blocks, NBTElement[][][] nbt, Map<Integer, Block> blockMappings, int x, int y, int z){
         this.xPos = x;
@@ -187,7 +189,7 @@ public class Chunk {
         GlobalBits.render.deleteChunk(handle);
     }
 
-    private int sendToRender() {
+    private GPUChunk sendToRender() {
         CPUMesh[][][] modelData = new CPUMesh[this.size][this.size][this.size];
         GPUTexture[][][] textureData = new GPUTexture[this.size][this.size][this.size];
         GPUShader[][][] shaderData = new GPUShader[this.size][this.size][this.size];
