@@ -19,8 +19,8 @@ public class GL33Chunk implements GPUChunk{
     private GL33Entity[] chunkModel;
     private boolean canRender;
 
-    private final ArrayList<CPUMeshBuilder> chunkModels = new ArrayList<>();
-    private final ArrayList<ShaderTexture> shaderTextures = new ArrayList<>();
+    private ArrayList<CPUMeshBuilder> chunkModels;
+    private ArrayList<ShaderTexture> shaderTextures;
 
     public boolean taskRunning;
 
@@ -67,7 +67,7 @@ public class GL33Chunk implements GPUChunk{
     public boolean sendToGPU(){
         if(taskRunning){
             return false;
-        } else if(chunkModels.size() > 0){
+        } else if(chunkModels != null && chunkModels.size() > 0){
             int modelsAdded = 0;
             if(canRender)clearFromGPU();
             ArrayList<GL33Entity> model = new ArrayList<>();
@@ -81,8 +81,8 @@ public class GL33Chunk implements GPUChunk{
                     model.add(entity);
                 }
             }
-            chunkModels.clear();
-            shaderTextures.clear();
+            chunkModels = null;
+            shaderTextures = null;
             this.chunkModel = model.toArray(new GL33Entity[0]);
             this.canRender = true;
             return modelsAdded > 0;
@@ -108,6 +108,8 @@ public class GL33Chunk implements GPUChunk{
            add that block model to the chunk model
 
          */
+        chunkModels = new ArrayList<>();
+        shaderTextures = new ArrayList<>();
         ShaderTexture TSP = new ShaderTexture();
 
         for (int x = 0; x < blocks.length; x++) {

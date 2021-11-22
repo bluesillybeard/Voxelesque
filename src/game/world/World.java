@@ -22,6 +22,8 @@ public class World {
     private final PerlinNoise noise;
     public static final int CHUNK_SIZE = 64; //MUST BE A POWER OF 2! If this is changed to a non-power of 2, many things would have to be reworked.
 
+    private static final Vector3i temp = new Vector3i();
+
     public World() {
         noise = new PerlinNoise(9, 1, 0.005, 50, 5);
         emptyChunk = new Chunk(CHUNK_SIZE, -1, -1, -1);
@@ -63,7 +65,7 @@ public class World {
             for(int y=playerChunk.y-(int)(renderDistance/31)-1; y<playerChunk.y+(int)(renderDistance/31)+1; y++){
                 for(int z=playerChunk.z-(int)(renderDistance/31)-1; z<playerChunk.z+(int)(renderDistance/31)+1; z++){
                     //System.out.println(x + ", " + y + ", " + z);
-                    if(!chunks.containsKey(new BetterVector3i(x, y, z)) && getChunkWorldPos(new BetterVector3i(x, y, z)).distance(GlobalBits.playerPosition) < renderDistance) {
+                    if(!chunks.containsKey(temp.set(x, y, z)) && getChunkWorldPos(temp).distance(GlobalBits.playerPosition) < renderDistance) {
                         loadChunk(x, y, z);
                     }
                     if((GlobalBits.render.getTime() - startTime) > targetTime)
@@ -109,7 +111,6 @@ public class World {
     }
 
     private Chunk generateChunk(Map<String, Block> blocks, int x, int y, int z){
-        Vector3i temp = new Vector3i();
         Block[][][] blocksg = new Block[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
         Block grassBlock = blocks.get("voxelesque:grassBlock");
         Block stoneBlock = Block.VOID_BLOCK;
