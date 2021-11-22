@@ -39,6 +39,8 @@ public class GL33Render implements Render {
     private boolean readyToRender;
     private float FOV;
     private String resourcesPath;
+    private double targetFrameTime;
+
     private final BufferedImage errorImage = new BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB);
     private final CPUMesh errorMesh = new CPUMesh(new float[]{
             -1, -1, 0,
@@ -75,7 +77,7 @@ public class GL33Render implements Render {
             0L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<>());
     private final ArrayList<GL33Chunk> deletedChunks = new ArrayList<>();
-    private final ArrayList<GL33Chunk> newChunks = new ArrayList<>();
+    private final LinkedList<GL33Chunk> newChunks = new LinkedList<>();
     private final VMFLoader vmfLoader = new VMFLoader();
 
     private PrintStream warn;
@@ -96,7 +98,7 @@ public class GL33Render implements Render {
      * @return false if something went wrong, true if all is good.
      */
     @Override
-    public boolean init(String title, int width, int height, String resourcesPath, boolean VSync, PrintStream warning, PrintStream error, PrintStream debug, float fov) {
+    public boolean init(String title, int width, int height, String resourcesPath, boolean VSync, PrintStream warning, PrintStream error, PrintStream debug, float fov, double targetFrameTime) {
         try {
             this.GL33Window = new GL33Window(title, width, height, VSync);
             this.resourcesPath = resourcesPath;
@@ -105,6 +107,7 @@ public class GL33Render implements Render {
             this.err = error;
             this.debug = debug;
             this.readyToRender = true;
+            this.targetFrameTime = targetFrameTime;
             updateCameraProjectionMatrix();
             updateCameraViewMatrix();
 
@@ -827,6 +830,7 @@ public class GL33Render implements Render {
     @Override
     public double render() {
         readyToRender = false;
+
         if (GL33Window.getKey(GLFW_KEY_END) == 2) {
             debug.println("stop");
         }
@@ -839,13 +843,16 @@ public class GL33Render implements Render {
                 c.clearFromGPU();
             }
         }
-        if(!newChunks.isEmpty()){
-            GL33Chunk c = newChunks.remove(newChunks.size() - 1);
+        Iterator<GL33Chunk> iterator = newChunks.iterator();
+        while (iterator.hasNext()) {
+            GL33Chunk c = iterator.next();
             if (!c.taskRunning) {
                 c.taskRunning = true;
-                Vector3i pos = c.getPosition();
-                //The chunk being built needs to know the state of the chunks adjacent to it so the faces on the chunk borders can be culled as well.
-                chunkBuildExecutor.submit(()-> c.build(chunks, cameraPosition)); //what a pile of ending characters!
+                chunkBuildExecutor.submit(() -> c.build(chunks, cameraPosition));
+                iterator.remove();
+            }
+            if ((getTime() - startTime) > targetFrameTime) {
+                break; //if the frame has taken too long, skip submitting chunks.
             }
         }
         if (GL33Window.isResized()) {
@@ -854,7 +861,7 @@ public class GL33Render implements Render {
             updateCameraProjectionMatrix();
         }
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        renderFrame();
+        renderFrame(startTime);
         GL33Window.update();
 
         double time = getTime() - startTime;
@@ -863,7 +870,7 @@ public class GL33Render implements Render {
 
     }
 
-    private void renderFrame(){
+    private void renderFrame(double startTime){
         //update shader uniforms
         for(GL33Shader shaderProgram: shaderPrograms) {
             shaderProgram.bind();
@@ -878,8 +885,10 @@ public class GL33Render implements Render {
         //render each chunk
         for (Map.Entry<Vector3i, GL33Chunk> chunkEntry: chunks.entrySet()){
             GL33Chunk chunk = chunkEntry.getValue();
+            if (!((getTime() - startTime) > targetFrameTime)) {
+                chunk.sendToGPU();
+            }
             chunk.render();
-            chunk.sendToGPU();
         }
         for(GL33Entity textEntity: textEntities){
             textEntity.render();

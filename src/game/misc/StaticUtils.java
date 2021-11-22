@@ -1,6 +1,7 @@
 package game.misc;
 
 import game.data.nbt.NBTElement;
+import game.world.World;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
@@ -9,11 +10,11 @@ import java.nio.charset.StandardCharsets;
 
 public class StaticUtils {
     public static Vector3i getChunkPos(Vector3f worldPos){
-        return new Vector3i((int)Math.round(worldPos.x/18.4752086141-0.5), (int)Math.round(worldPos.y/32.-0.5), (int)Math.round(worldPos.z/32.-0.5));
+        return new Vector3i((int)Math.round(worldPos.x/(World.CHUNK_SIZE*0.288675134595)-0.5), (int)Math.round(worldPos.y/(World.CHUNK_SIZE*0.5)-0.5), (int)Math.round(worldPos.z/(World.CHUNK_SIZE*0.5)-0.5));
     }
 
     public static Vector3f getChunkWorldPos(Vector3i chunkPos){
-        return new Vector3f((chunkPos.x+0.5f)*18.4752086141f, (chunkPos.y+0.5f)*32f, (chunkPos.z+0.5f)*32f);
+        return new Vector3f((chunkPos.x+0.5f)*(World.CHUNK_SIZE*0.288675134595f), (chunkPos.y+0.5f)*(World.CHUNK_SIZE*0.5f), (chunkPos.z+0.5f)*(World.CHUNK_SIZE*0.5f));
     }
 
     public static Vector3i getBlockPos(Vector3f worldPos){

@@ -3,6 +3,7 @@ package game;
 import engine.gl33.GL33Render;
 import game.misc.StaticUtils;
 import game.world.World;
+import game.world.block.Block;
 import game.world.block.SimpleBlock;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
@@ -21,13 +22,13 @@ public class Main {
     public static void main(String[] args) {
         try {
             render = new GL33Render();
-            if (!render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(90))) {
+            if (!render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(90), 1/30.)) {
                 System.err.println("Unable to initialize Voxelesque engine");
                 System.exit(-1);
             }
             resourcesPath = System.getProperty("user.dir") + "/resources";
             render.setResourcesPath(GlobalBits.resourcesPath);
-            renderDistance = 300f;
+            renderDistance = 150f;
             tempV3f = new Vector3f();
             playerPosition = new Vector3f(36, 72, 25);
             playerRotation = new Vector3f(0, 0, 0);
@@ -40,30 +41,27 @@ public class Main {
             World world = new World();
             debugTextEntity = render.createTextEntity(render.readTexture(render.readImage("Textures/ASCII-Extended.png")), "", false, false, guiShader, -1f, 1f - guiScale, 0f, 0f, 0f, 0f, guiScale, guiScale, 0f);
             do {
-                updateWorld(world);
+                double worldTime = world.updateChunks(1/30.);
                 updateCameraPos();
-                render.render();
+                double time = render.render();
+                Runtime runtime = Runtime.getRuntime();
+                Vector3i blockPos = StaticUtils.getBlockPos(playerPosition);
+                render.setTextEntityText(debugTextEntity,
+                        "Memory:" + (runtime.totalMemory() - runtime.freeMemory()) / 1048576 + " / " + runtime.totalMemory() / 1048576 +
+                                "\nEntities: " + render.getNumEntities() + " / " + render.getNumEntitySlots() +
+                                "\nChunks: " + render.getNumChunks() + " / " + render.getNumChunkSlots() +
+                                "\npos: " + StaticUtils.betterVectorToString(playerPosition, 3) + ", rot: (" + StaticUtils.FloatToStringSigFigs(playerRotation.x, 3) + ", " + StaticUtils.FloatToStringSigFigs(playerRotation.y, 3) + ")" +
+                                "\nchunkPos: " + StaticUtils.getChunkPos(playerPosition) +
+                                "\nblock: " + world.getBlock(blockPos.x, blockPos.y, blockPos.z) +
+                                "\nframe: " + StaticUtils.FloatToStringSigFigs((float)(time), 10) +
+                                "\nworld: " + StaticUtils.FloatToStringSigFigs((float)worldTime, 10),
+                        false, false);
             } while (!render.shouldClose());
             render.close();
         } catch(Exception e){
             e.printStackTrace();
             render.close();
         }
-    }
-
-    private static void updateWorld(World world) {
-        world.updateChunks();
-        Runtime runtime = Runtime.getRuntime();
-        Vector3i blockPos = StaticUtils.getBlockPos(playerPosition);
-        render.setTextEntityText(debugTextEntity,
-                "Memory:" + (runtime.totalMemory() - runtime.freeMemory()) / 1048576 + " / " + runtime.totalMemory() / 1048576 +
-                        "\nEntities: " + render.getNumEntities() + " / " + render.getNumEntitySlots() +
-                        "\nChunks: " + render.getNumChunks() + " / " + render.getNumChunkSlots() +
-                        "\npos: " + StaticUtils.betterVectorToString(playerPosition, 3) + ", rot: (" + StaticUtils.FloatToStringSigFigs(playerRotation.x, 3) + ", " + StaticUtils.FloatToStringSigFigs(playerRotation.y, 3) + ")" +
-                        "\nchunkPos: " + StaticUtils.getChunkPos(playerPosition) +
-                        "\nblock: " + world.getBlock(blockPos.x, blockPos.y, blockPos.z).getID(),
-                false, false);
-
     }
 
     private static void updateCameraPos(){

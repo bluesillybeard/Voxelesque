@@ -8,7 +8,6 @@ import engine.multiplatform.gpu.GPUChunk;
 import engine.multiplatform.model.CPUMesh;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
-import org.lwjgl.system.CallbackI;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -69,19 +68,24 @@ public class GL33Chunk implements GPUChunk{
         if(taskRunning){
             return false;
         } else if(chunkModels.size() > 0){
+            int modelsAdded = 0;
             if(canRender)clearFromGPU();
-            GL33Entity[] model = new GL33Entity[shaderTextures.size()];
-            for (int i = 0; i < model.length; i++) {
-                GL33Entity entity = new GL33Entity(new GL33Mesh(chunkModels.get(i).getMesh()), shaderTextures.get(i).shader, shaderTextures.get(i).texture);
-                entity.setPosition(this.pos.x * this.size * 0.288675134595f, this.pos.y * this.size * 0.5f, this.pos.z * this.size * 0.5f);
-                entity.setScale(1, 1, 1);
-                model[i] = entity;
+            ArrayList<GL33Entity> model = new ArrayList<>();
+            for (int i = 0; i < shaderTextures.size(); i++) {
+                CPUMesh mesh = chunkModels.get(i).getMesh();
+                if(mesh.indices.length > 0) {
+                    modelsAdded++;
+                    GL33Entity entity = new GL33Entity(new GL33Mesh(mesh), shaderTextures.get(i).shader, shaderTextures.get(i).texture);
+                    entity.setPosition(this.pos.x * this.size * 0.288675134595f, this.pos.y * this.size * 0.5f, this.pos.z * this.size * 0.5f);
+                    entity.setScale(1, 1, 1);
+                    model.add(entity);
+                }
             }
             chunkModels.clear();
             shaderTextures.clear();
-            this.chunkModel = model;
+            this.chunkModel = model.toArray(new GL33Entity[0]);
             this.canRender = true;
-            return true;
+            return modelsAdded > 0;
         }
         return false;
     }
@@ -122,6 +126,8 @@ public class GL33Chunk implements GPUChunk{
                     //cloning, index removal, and vertex position modification done within the BlockMeshBuilder
                     chunkModels.get(shaderTextureIndex).addBlockMeshToChunk(block.getMesh(), x, y, z, this.getBlockedFaces(x, y, z, chunks));
                     if(Thread.interrupted()){
+                        chunkModels.clear();
+                        taskRunning = false;
                         return; //so the game can close if a chunk is still rendering
                     }
                 }

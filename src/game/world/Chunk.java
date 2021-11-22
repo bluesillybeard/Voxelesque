@@ -14,6 +14,7 @@ public class Chunk {
     private int numMappings;
     private final GPUChunk handle;
     private final int xPos, yPos, zPos;
+    boolean empty;
 
     public Chunk(int size, Block[][][] blocks, NBTElement[][][] nbt, int x, int y, int z){
         this.xPos = x;
@@ -70,4 +71,5 @@ public class Chunk {
     private GPUChunk sendToRender() {
         return GlobalBits.render.spawnChunk(this.size, this.blocks, this.xPos, this.yPos, this.zPos);
     }
+
 }

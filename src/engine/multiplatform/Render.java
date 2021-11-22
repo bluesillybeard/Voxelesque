@@ -25,7 +25,7 @@ public interface Render {
      * @param fov           the field of view in radians
      * @return false if something went wrong, true if all is good.
      */
-    boolean init(String title, int width, int height, String resourcesPath, boolean VSync, PrintStream warning, PrintStream error, PrintStream debug, float fov);
+    boolean init(String title, int width, int height, String resourcesPath, boolean VSync, PrintStream warning, PrintStream error, PrintStream debug, float fov, double targetFrameTime);
 
     void close();
     //settings

@@ -20,7 +20,7 @@ public class World {
     private final Map<Vector3i, Chunk> chunks;
     private final LinkedList<Vector3i> chunksToUnload;
     private final PerlinNoise noise;
-    private static final int CHUNK_SIZE = 64; //MUST BE A POWER OF 2! If this is changed to a non-power of 2, many things would have to be reworked.
+    public static final int CHUNK_SIZE = 64; //MUST BE A POWER OF 2! If this is changed to a non-power of 2, many things would have to be reworked.
 
     public World() {
         noise = new PerlinNoise(9, 1, 0.005, 50, 5);
@@ -30,7 +30,10 @@ public class World {
     }
 
     public Block getBlock(int x, int y, int z){
-        return getChunk(x, y, z).getBlock(x&(CHUNK_SIZE-1), y&(CHUNK_SIZE-1), z&(CHUNK_SIZE-1));
+        Chunk c = getChunk(x, y, z);
+        if(c != null)
+            return c.getBlock(x&(CHUNK_SIZE-1), y&(CHUNK_SIZE-1), z&(CHUNK_SIZE-1));
+        else return null;
     }
     public void setBlock(int x, int y, int z, Block block){
         Chunk c = getChunk(x, y, z);
@@ -51,7 +54,10 @@ public class World {
         return chunks.get(StaticUtils.getChunkPos(StaticUtils.getBlockWorldPos(new BetterVector3i(x, y, z))));
     }
 
-    public void updateChunks(){
+    public double updateChunks(double targetTime){
+        double startTime = GlobalBits.render.getTime();
+
+
         Vector3i playerChunk = getChunkPos(GlobalBits.playerPosition);
         for(int x=playerChunk.x-(int)(renderDistance/17)-1; x<playerChunk.x+(int)(renderDistance/17)+1; x++){
             for(int y=playerChunk.y-(int)(renderDistance/31)-1; y<playerChunk.y+(int)(renderDistance/31)+1; y++){
@@ -60,19 +66,26 @@ public class World {
                     if(!chunks.containsKey(new BetterVector3i(x, y, z)) && getChunkWorldPos(new BetterVector3i(x, y, z)).distance(GlobalBits.playerPosition) < renderDistance) {
                         loadChunk(x, y, z);
                     }
+                    if((GlobalBits.render.getTime() - startTime) > targetTime)
+                        break;
                 }
+                if((GlobalBits.render.getTime() - startTime) > targetTime)
+                    break;
+            }
+            if((GlobalBits.render.getTime() - startTime) > targetTime)
+                break;
+        }
+        for (Vector3i pos : chunks.keySet()) {
+            if (getChunkWorldPos(pos).distance(GlobalBits.playerPosition) > renderDistance) {
+                chunksToUnload.add(pos);
             }
         }
-        chunks.forEach((key, value) -> {
-            if (getChunkWorldPos(key).distance(GlobalBits.playerPosition) > renderDistance) {
-                chunksToUnload.add(key);
-            }
-        });
         Iterator<Vector3i> chunkIterator = chunksToUnload.iterator();
         while(chunkIterator.hasNext()){
             unloadChunk(chunkIterator.next());
             chunkIterator.remove();
         }
+        return GlobalBits.render.getTime() - startTime;
     }
 
     public void unloadChunk(Vector3i chunk){
