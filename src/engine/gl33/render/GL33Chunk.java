@@ -3,6 +3,7 @@ package engine.gl33.render;
 import engine.gl33.model.GL33Mesh;
 import engine.gl33.model.GL33Texture;
 import engine.multiplatform.Util.CPUMeshBuilder;
+import engine.multiplatform.gpu.GPUBlock;
 import engine.multiplatform.gpu.GPUChunk;
 import engine.multiplatform.model.CPUMesh;
 import org.joml.Vector3f;
@@ -14,9 +15,7 @@ import java.util.Map;
 
 public class GL33Chunk implements GPUChunk{
     private final Vector3i pos;
-    private CPUMesh[][][] data;
-    private GL33Texture[][][] textures;
-    private GL33Shader[][][] shaders;
+    private GPUBlock[][][] blocks;
     private final int size;
     private GL33Entity[] chunkModel;
     private boolean canRender;
@@ -26,41 +25,27 @@ public class GL33Chunk implements GPUChunk{
 
     public boolean taskRunning;
 
-    public GL33Chunk(int size, CPUMesh[][][] data, GL33Texture[][][] textures, GL33Shader[][][] shaders, int xPos, int yPos, int zPos){
-        if(data.length != size || data[0].length != size || data[0][0].length != size){
+    public GL33Chunk(int size, GPUBlock[][][] blocks, int xPos, int yPos, int zPos){
+        if(blocks.length != size || blocks[0].length != size || blocks[0][0].length != size){
             throw new IllegalStateException("a chunk's data cannot be any other size than " + size + "," +
-                    "\n but the data given to the constructor has dimensions (" + data.length + ", " + data[0].length + ", " + data[0][0].length + ")");
+                    "\n but the data given to the constructor has dimensions (" + blocks.length + ", " + blocks[0].length + ", " + blocks[0][0].length + ")");
         }
-        this.data = data;
-        this.textures = textures;
-        this.shaders = shaders;
+        this.blocks = blocks;
         this.canRender = false;
         taskRunning = false;
         this.size = size;
         this.pos = new Vector3i(xPos, yPos, zPos);
     }
 
-    public void setData(CPUMesh[][][] data, GL33Texture[][][] textures, GL33Shader[][][] shaders){
-        if(data != null && (data.length != this.size || data[0].length != this.size || data[0][0].length != this.size)){
+    public void setData(GPUBlock[][][] blocks){
+        if(blocks != null && (blocks.length != this.size || blocks[0].length != this.size || blocks[0][0].length != this.size)){
             throw new IllegalStateException("a chunk's data cannot be any other size than " + this.size + "," +
-                    " but the data given to the constructor has dimensions (" + data.length + ", " + data[0].length + ", " + data[0][0].length + ")");
+                    " but the data given to the constructor has dimensions (" + blocks.length + ", " + blocks[0].length + ", " + blocks[0][0].length + ")");
         }
-        if(textures != null && (textures.length != this.size || textures[0].length != this.size || textures[0][0].length != this.size)){
-            throw new IllegalStateException("a chunk's data cannot be any other size than " + this.size + "," +
-                    " but the data given to the constructor has dimensions (" + textures.length + ", " + textures[0].length + ", " + textures[0][0].length + ")");
-        }
-        if(shaders != null && (shaders.length != this.size || shaders[0].length != this.size || shaders[0][0].length != this.size)){
-            throw new IllegalStateException("a chunk's data cannot be any other size than " + this.size + "," +
-                    " but the data given to the constructor has dimensions (" + shaders.length + ", " + shaders[0].length + ", " + shaders[0][0].length + ")");
-        }
-        this.data = data;
-        this.textures = textures;
-        this.shaders = shaders;
+        this.blocks = blocks;
     }
-    public void setBlock(CPUMesh block, GL33Texture texture, GL33Shader shader, int x, int y, int z){
-        data[x][y][z] = block;
-        textures[x][y][z] = texture;
-        shaders[x][y][z] = shader;
+    public void setBlock(GPUBlock block, int x, int y, int z){
+        blocks[x][y][z] = block;
     }
     public void render(){
         if(!canRender) return; //don't render if it can't
@@ -94,8 +79,6 @@ public class GL33Chunk implements GPUChunk{
             }
             chunkModels.clear();
             shaderTextures.clear();
-            //chunkModels = new ArrayList<>();
-            //shaderTextures = new ArrayList<>();
             this.chunkModel = model;
             this.canRender = true;
             return true;
@@ -123,13 +106,13 @@ public class GL33Chunk implements GPUChunk{
          */
         ShaderTexture TSP = new ShaderTexture();
 
-        for (int x = 0; x < data.length; x++) {
-            for (int y = 0; y < data[x].length; y++) {
-                for (int z = 0; z < data[x][y].length; z++) {
-                    CPUMesh block = data[x][y][z];
-                    if (block == null) continue; //skip rendering this block if it is null (void)
-                    GL33Shader program = shaders[x][y][z];
-                    GL33Texture texture = textures[x][y][z];
+        for (int x = 0; x < blocks.length; x++) {
+            for (int y = 0; y < blocks[x].length; y++) {
+                for (int z = 0; z < blocks[x][y].length; z++) {
+                    GPUBlock block = blocks[x][y][z];
+                    if (block == null || block.getTexture() == null || block.getShader() == null) continue; //skip rendering this block if it is null (void)
+                    GL33Shader program = (GL33Shader)block.getShader();
+                    GL33Texture texture = (GL33Texture)block.getTexture();
                     int shaderTextureIndex = shaderTextures.indexOf(TSP.s(program).t(texture));
                     if (shaderTextureIndex == -1) {
                         shaderTextureIndex = chunkModels.size();
@@ -137,7 +120,7 @@ public class GL33Chunk implements GPUChunk{
                         chunkModels.add(new CPUMeshBuilder());
                     }
                     //cloning, index removal, and vertex position modification done within the BlockMeshBuilder
-                    chunkModels.get(shaderTextureIndex).addBlockMeshToChunk(block, x, y, z, this.getBlockedFaces(x, y, z, chunks));
+                    chunkModels.get(shaderTextureIndex).addBlockMeshToChunk(block.getMesh(), x, y, z, this.getBlockedFaces(x, y, z, chunks));
                     if(Thread.interrupted()){
                         return; //so the game can close if a chunk is still rendering
                     }
@@ -210,7 +193,7 @@ public class GL33Chunk implements GPUChunk{
                 if(chunks != null)blockedFaces |= (1 << i); //if the chunk doesn't exist yet, assume it's blocked, unless it wasn't given adjacent chunks, in which case assume it isn't blocked.
                 continue;
             }
-            CPUMesh mesh = toUse.getBlock(xM, yM, zM);
+            CPUMesh mesh = toUse.getBlock(xM, yM, zM).getMesh();
 
             if (mesh == null || mesh.blockedFaces == 0) continue; //skip if that mesh doesn't block faces
             blockedFaces |= (mesh.blockedFaces & (1 << i)); //add the blocked face to the bit field.
@@ -235,8 +218,8 @@ public class GL33Chunk implements GPUChunk{
         return this.pos;
     }
 
-    public CPUMesh getBlock(int x, int y, int z){
-        return this.data[x][y][z];
+    public GPUBlock getBlock(int x, int y, int z){
+        return this.blocks[x][y][z];
     }
 
 

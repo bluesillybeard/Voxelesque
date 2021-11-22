@@ -7,6 +7,7 @@ import game.world.generation.PerlinNoise;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 import Math.BetterVector3i;
+import org.lwjgl.system.CallbackI;
 
 import java.util.*;
 
@@ -22,7 +23,7 @@ public class World {
     private static final int CHUNK_SIZE = 64; //MUST BE A POWER OF 2! If this is changed to a non-power of 2, many things would have to be reworked.
 
     public World() {
-        noise = new PerlinNoise(9, 1, 0.1, 10, 1);
+        noise = new PerlinNoise(9, 1, 0.005, 50, 5);
         emptyChunk = new Chunk(CHUNK_SIZE, -1, -1, -1);
         chunks = new HashMap<>();
         chunksToUnload = new LinkedList<>();
@@ -95,18 +96,19 @@ public class World {
     }
 
     private Chunk generateChunk(Map<String, Block> blocks, int x, int y, int z){
+        Vector3i temp = new Vector3i();
         Block[][][] blocksg = new Block[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
         Block grassBlock = blocks.get("voxelesque:grassBlock");
         Block stoneBlock = Block.VOID_BLOCK;
 
         for(int xp = 0; xp < CHUNK_SIZE; xp++){
             for(int zp = 0; zp < CHUNK_SIZE; zp++){
-                Vector3f pos = StaticUtils.getBlockWorldPos(new Vector3i(CHUNK_SIZE*x+xp, 0, CHUNK_SIZE*z+zp));
+                Vector3f pos = StaticUtils.getBlockWorldPos(temp.set(CHUNK_SIZE*x+xp, 0, CHUNK_SIZE*z+zp));
                 double height = noise.getHeight(pos.x, pos.z);
                 for(int yp = 0; yp < CHUNK_SIZE; yp++){
-                    pos = StaticUtils.getBlockWorldPos(new Vector3i(CHUNK_SIZE*x+xp, CHUNK_SIZE * y+yp, CHUNK_SIZE*z+zp));
+                    pos = StaticUtils.getBlockWorldPos(temp.set(CHUNK_SIZE*x+xp, CHUNK_SIZE * y+yp, CHUNK_SIZE*z+zp));
                     blocksg[xp][yp][zp] = stoneBlock;
-                    if(pos.y < height) {
+                    if(pos.y < Math.max(height, -100)) {
                         //don't print here, ruins world gen for unexplained reasons
                         //seriously - it's really creepy
                         blocksg[xp][yp][zp] = grassBlock;

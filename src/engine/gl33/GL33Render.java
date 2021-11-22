@@ -588,20 +588,8 @@ public class GL33Render implements Render {
      * @return the ID of the new chunk.
      */
     @Override
-    public GPUChunk spawnChunk(int size, CPUMesh[][][] blocks, GPUTexture[][][] textures, GPUShader[][][] shaders, int x, int y, int z) {
-        //oh boy, this translation layer between the general GPU texture index
-        // and the GPU texture object is starting to become a nuisance
-        GL33Texture[][][] GL33Textures = new GL33Texture[textures.length][textures[0].length][textures[0][0].length];
-        GL33Shader[][][] gpuShaders = new GL33Shader[shaders.length][shaders[0].length][shaders[0][0].length];
-        for(int xp=0; xp<textures.length; xp++){
-            for(int yp=0; yp < textures[xp].length; yp++){
-                for(int zp=0; zp<textures[xp][yp].length; zp++){
-                    GL33Textures[xp][yp][zp] = (GL33Texture)(textures[xp][yp][zp]);
-                    gpuShaders[xp][yp][zp] = (GL33Shader)(shaders[xp][yp][zp]);
-                }
-            }
-        }
-        GL33Chunk chunk = new GL33Chunk(size, blocks, GL33Textures, gpuShaders, x, y, z);
+    public GPUChunk spawnChunk(int size, GPUBlock[][][] blocks, int x, int y, int z) {
+        GL33Chunk chunk = new GL33Chunk(size, blocks, x, y, z);
         newChunks.add(chunk);
         updateAdjacentChunks(chunk.getPosition());
         chunks.put(new Vector3i(x, y, z), chunk);
@@ -615,21 +603,10 @@ public class GL33Render implements Render {
      * @param blocks a 3D array of blockModel IDs that represent that chunk's block data.
      */
     @Override
-    public void setChunkData(GPUChunk chunk, CPUMesh[][][] blocks, GPUTexture[][][] textures, GPUShader[][][] shaders) {
-        //oh boy, this translation layer between the general GPU texture index
-        // and the GPU texture object is starting to become a nuisance
-        GL33Texture[][][] GL33Textures = new GL33Texture[textures.length][textures[0].length][textures[0][0].length];
-        GL33Shader[][][] gpuShaders = new GL33Shader[shaders.length][shaders[0].length][shaders[0][0].length];
-        for(int xp=0; xp<textures.length; xp++){
-            for(int yp=0; yp < textures[xp].length; yp++){
-                for(int zp=0; zp<textures[xp][yp].length; zp++){
-                    GL33Textures[xp][yp][zp] = (GL33Texture)(textures[xp][yp][zp]);
-                    gpuShaders[xp][yp][zp] = (GL33Shader)(shaders[xp][yp][zp]);
-                }
-            }
-        }
+    public void setChunkData(GPUChunk chunk, GPUBlock[][][] blocks) {
+
         GL33Chunk chunk1 = (GL33Chunk)(chunk);
-        chunk1.setData(blocks, GL33Textures, gpuShaders);
+        chunk1.setData(blocks);
         if(!newChunks.contains(chunk1))newChunks.add(chunk1);
         updateAdjacentChunks(chunk1.getPosition());
     }
@@ -641,9 +618,9 @@ public class GL33Render implements Render {
      * @param block the blockModel to be used
      */
     @Override
-    public void setChunkBlock(GPUChunk chunk, CPUMesh block, GPUTexture texture, GPUShader shader, int x, int y, int z) {
+    public void setChunkBlock(GPUChunk chunk, GPUBlock block, int x, int y, int z) {
         GL33Chunk chunk1 = (GL33Chunk)(chunk);
-        chunk1.setBlock(block, (GL33Texture)(texture), (GL33Shader)(shader), x, y, z);
+        chunk1.setBlock(block, x, y, z);
         if(!newChunks.contains(chunk1))newChunks.add(chunk1);
         updateAdjacentChunks(chunk1.getPosition());
     }

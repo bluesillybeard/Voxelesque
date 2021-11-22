@@ -35,6 +35,6 @@ public class VoidBlock implements Block{
 
     @Override
     public GPUShader getShader() {
-        return GlobalBits.defaultShader;
+        return null;
     }
 }

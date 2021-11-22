@@ -1,11 +1,12 @@
 package game.world.block;
 
+import engine.multiplatform.gpu.GPUBlock;
 import engine.multiplatform.gpu.GPUShader;
 import engine.multiplatform.gpu.GPUTexture;
 import engine.multiplatform.model.CPUMesh;
 import game.world.World;
 
-public interface Block {
+public interface Block extends GPUBlock {
     Block VOID_BLOCK = new VoidBlock();
     /*
     NOTE: each Block object is not a block within the world - it is a block type.
