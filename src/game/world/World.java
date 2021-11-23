@@ -7,7 +7,6 @@ import game.world.generation.PerlinNoise;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 import Math.BetterVector3i;
-import org.lwjgl.system.CallbackI;
 
 import java.util.*;
 
@@ -16,7 +15,6 @@ import static game.misc.StaticUtils.getChunkPos;
 import static game.misc.StaticUtils.getChunkWorldPos;
 
 public class World {
-    private static Chunk emptyChunk;
     private final Map<Vector3i, Chunk> chunks;
     private final LinkedList<Vector3i> chunksToUnload;
     private final PerlinNoise noise;
@@ -26,7 +24,6 @@ public class World {
 
     public World() {
         noise = new PerlinNoise(9, 1, 0.005, 50, 5);
-        emptyChunk = new Chunk(CHUNK_SIZE, -1, -1, -1);
         chunks = new HashMap<>();
         chunksToUnload = new LinkedList<>();
     }

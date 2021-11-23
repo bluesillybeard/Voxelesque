@@ -9,9 +9,12 @@ import engine.multiplatform.Render;
 import engine.multiplatform.Util.AtlasGenerator;
 import engine.multiplatform.Util.SlottedArrayList;
 import engine.multiplatform.Util.Utils;
+import engine.multiplatform.Util.threads.DistanceRunnable;
+import engine.multiplatform.Util.threads.PriorityThreadPoolExecutor;
 import engine.multiplatform.gpu.*;
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
+import game.world.World;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
@@ -22,7 +25,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.*;
-import java.util.concurrent.*;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -73,9 +75,13 @@ public class GL33Render implements Render {
     private final SlottedArrayList<GL33TextEntity> textEntities = new SlottedArrayList<>();
     private final Set<GL33Shader> shaderPrograms = new HashSet<>();
     private final Map<Vector3i, GL33Chunk> chunks = new HashMap<>();
-    private final ExecutorService chunkBuildExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors()-1, Runtime.getRuntime().availableProcessors()-1,
+    private final PriorityThreadPoolExecutor<DistanceRunnable> chunkBuildExecutor = new PriorityThreadPoolExecutor<>(DistanceRunnable.inOrder, Runtime.getRuntime().availableProcessors());
+
+            /*new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors()-1, Runtime.getRuntime().availableProcessors()-1,
             0L, TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<>());
+            new PriorityBlockingQueue<>());
+             */
+
     private final ArrayList<GL33Chunk> deletedChunks = new ArrayList<>();
     private final LinkedList<GL33Chunk> newChunks = new LinkedList<>();
     private final VMFLoader vmfLoader = new VMFLoader();
@@ -129,7 +135,7 @@ public class GL33Render implements Render {
 
     @Override
     public void close() {
-        chunkBuildExecutor.shutdownNow();
+        chunkBuildExecutor.stop();
     }
 
     @Override
@@ -592,7 +598,7 @@ public class GL33Render implements Render {
      */
     @Override
     public GPUChunk spawnChunk(int size, GPUBlock[][][] blocks, int x, int y, int z) {
-        GL33Chunk chunk = new GL33Chunk(size, blocks, x, y, z);
+        GL33Chunk chunk = new GL33Chunk(size, blocks, x, y, z, cameraPosition);
         newChunks.add(chunk);
         updateAdjacentChunks(chunk.getPosition());
         chunks.put(new Vector3i(x, y, z), chunk);
@@ -848,7 +854,7 @@ public class GL33Render implements Render {
             GL33Chunk c = iterator.next();
             if (!c.taskRunning) {
                 c.taskRunning = true;
-                chunkBuildExecutor.submit(() -> c.build(chunks, cameraPosition));
+                chunkBuildExecutor.submit(new DistanceRunnable(()  -> c.build(chunks), getChunkWorldPos(c.getPosition()), cameraPosition));
                 iterator.remove();
             }
             if ((getTime() - startTime) > targetFrameTime) {
@@ -925,5 +931,10 @@ public class GL33Render implements Render {
         //(0, 0, +1)
         c = chunks.get(new Vector3i(pos.x, pos.y, pos.z+1));
         if(c!=null && !newChunks.contains(c))newChunks.add(c);
+    }
+
+
+    public static Vector3f getChunkWorldPos(Vector3i chunkPos){
+        return new Vector3f((chunkPos.x+0.5f)*(World.CHUNK_SIZE*0.288675134595f), (chunkPos.y+0.5f)*(World.CHUNK_SIZE*0.5f), (chunkPos.z+0.5f)*(World.CHUNK_SIZE*0.5f));
     }
 }

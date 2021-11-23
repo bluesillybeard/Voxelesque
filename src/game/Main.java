@@ -3,7 +3,6 @@ package game;
 import engine.gl33.GL33Render;
 import game.misc.StaticUtils;
 import game.world.World;
-import game.world.block.Block;
 import game.world.block.SimpleBlock;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
@@ -17,18 +16,16 @@ public class Main {
 
     private static final Vector3f cameraInc = new Vector3f(0, 0, 0);
 
-    private static int debugTextEntity;
-    private static float textScale;
     public static void main(String[] args) {
         try {
             render = new GL33Render();
-            if (!render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(90), 1/30.)) {
+            if (!render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(90), 1/60.)) {
                 System.err.println("Unable to initialize Voxelesque engine");
                 System.exit(-1);
             }
             resourcesPath = System.getProperty("user.dir") + "/resources";
             render.setResourcesPath(GlobalBits.resourcesPath);
-            renderDistance = 200f;
+            renderDistance = 150f;
             tempV3f = new Vector3f();
             playerPosition = new Vector3f(36, 72, 25);
             playerRotation = new Vector3f(0, 0, 0);
@@ -36,16 +33,24 @@ public class Main {
             defaultShader = render.loadShaderProgram("Shaders/", "");
             guiShader = render.loadShaderProgram("Shaders/", "gui");
             blocks = SimpleBlock.generateBlocks(GlobalBits.resourcesPath, "BlockRegistry/voxelesque/blocks.yaml", "voxelesque");
-            System.out.println(blocks);
+            assert blocks != null;
+            System.out.println(blocks.keySet());
             guiScale = 0.03f;
             World world = new World();
-            debugTextEntity = render.createTextEntity(render.readTexture(render.readImage("Textures/ASCII-Extended.png")), "", false, false, guiShader, -1f, 1f - guiScale, 0f, 0f, 0f, 0f, guiScale, guiScale, 0f);
+            int debugTextEntity = render.createTextEntity(render.readTexture(render.readImage("Textures/ASCII-Extended.png")), "", false, false, guiShader, -1f, 1f - guiScale, 0f, 0f, 0f, 0f, guiScale, guiScale, 0f);
             do {
-                double worldTime = world.updateChunks(1/30.);
+                double worldTime = world.updateChunks(1/60.);
+
+
                 updateCameraPos();
                 double time = render.render();
                 Runtime runtime = Runtime.getRuntime();
                 Vector3i blockPos = StaticUtils.getBlockPos(playerPosition);
+
+                if(render.getKey(GLFW_KEY_P) == 2){
+                    world.setBlock(blockPos.x, blockPos.y, blockPos.z, blocks.get("voxelesque:stoneBlock"));
+                }
+
                 render.setTextEntityText(debugTextEntity,
                         "Memory:" + (runtime.totalMemory() - runtime.freeMemory()) / 1048576 + " / " + runtime.totalMemory() / 1048576 +
                                 "\nEntities: " + render.getNumEntities() + " / " + render.getNumEntitySlots() +
