@@ -26,7 +26,8 @@ public class Main {
             resourcesPath = System.getProperty("user.dir") + "/resources";
             render.setResourcesPath(GlobalBits.resourcesPath);
             renderDistance = 150f;
-            tempV3f = new Vector3f();
+            tempV3f0 = new Vector3f();
+            tempV3f1 = new Vector3f();
             playerPosition = new Vector3f(36, 72, 25);
             playerRotation = new Vector3f(0, 0, 0);
             sensitivity = 1;
@@ -38,6 +39,7 @@ public class Main {
             guiScale = 0.03f;
             World world = new World();
             int debugTextEntity = render.createTextEntity(render.readTexture(render.readImage("Textures/ASCII-Extended.png")), "", false, false, guiShader, -1f, 1f - guiScale, 0f, 0f, 0f, 0f, guiScale, guiScale, 0f);
+            double placementDistance = 5;
             do {
                 double worldTime = world.updateChunks(1/60.);
 
@@ -47,8 +49,8 @@ public class Main {
                 Runtime runtime = Runtime.getRuntime();
                 Vector3i blockPos = StaticUtils.getBlockPos(playerPosition);
 
-                if(render.getKey(GLFW_KEY_P) == 2){
-                    world.setBlock(blockPos.x, blockPos.y, blockPos.z, blocks.get("voxelesque:stoneBlock"));
+                if(render.getKey(GLFW_KEY_F) >= 2){
+                    world.setBlock(StaticUtils.getBlockPos(tempV3f0.set(playerPosition).add(tempV3f1.set(Math.sin(playerRotation.y)*Math.cos(playerRotation.x), -Math.sin(playerRotation.x), -Math.cos(playerRotation.y)*Math.cos(playerRotation.x)).mul((float) placementDistance))), blocks.get("voxelesque:stoneBlock"));
                 }
 
                 render.setTextEntityText(debugTextEntity,

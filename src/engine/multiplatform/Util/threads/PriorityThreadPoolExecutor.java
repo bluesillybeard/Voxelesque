@@ -1,12 +1,9 @@
 package engine.multiplatform.Util.threads;
 
-import org.lwjgl.system.CallbackI;
-
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 //I genuinely don't believe Java doesn't already have a built-in version of this.
@@ -23,7 +20,7 @@ public class PriorityThreadPoolExecutor<R extends Runnable> {
         runners = new Thread[threads];
         this.comparator = comparator;
         for(int i=0; i<threads; ++i){
-            runners[i] = new KillableThread<R>(tasks);
+            runners[i] = new KillablePoolThread<R>(tasks);
             runners[i].start();
         }
     }
@@ -42,10 +39,10 @@ public class PriorityThreadPoolExecutor<R extends Runnable> {
     }
 
 
-    private static class KillableThread<T extends Runnable> extends Thread{
+    private static class KillablePoolThread<T extends Runnable> extends Thread{
         private final AtomicBoolean running;
         private final List<T> queue;
-        public KillableThread(List<T> queue){
+        public KillablePoolThread(List<T> queue){
             this.queue = queue;
             running = new AtomicBoolean(false);
         }

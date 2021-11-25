@@ -41,6 +41,10 @@ public class World {
         //TODO: create a system that keeps track of blocks placed into nonexistent chunks
     }
 
+    public void setBlock(Vector3i pos, Block block){
+        setBlock(pos.x, pos.y, pos.z, block);
+    }
+
     /**
      * Gets the chunk that contains the block coordinates.
      * If the chunk does not exist, it will return null

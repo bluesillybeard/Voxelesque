@@ -16,7 +16,8 @@ public class GlobalBits {
     //technical bits
     public static String resourcesPath;
     public static Render render;
-    public static Vector3f tempV3f;
+    public static Vector3f tempV3f0;
+    public static Vector3f tempV3f1;
     public static GPUShader defaultShader;
     public static GPUShader guiShader;
     //player bits

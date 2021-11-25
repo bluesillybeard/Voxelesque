@@ -4,6 +4,9 @@ import org.joml.Vector3f;
 
 import java.util.Comparator;
 
+/**
+ * This class is intended to be used in the PriorityThreadPoolExecutor.
+ */
 public class DistanceRunnable extends Number implements Runnable{
     public static final Comparator<DistanceRunnable> inOrder = Comparator.comparingInt(DistanceRunnable::intValue);
 
