@@ -323,6 +323,10 @@ public interface Render {
 
     //input & sensing
 
+    void lockMousePos();
+
+    void unlockMousePos();
+
     /**
      * Tells weather a mesh would appear on a part of the screen if it were to be rendered.
      *

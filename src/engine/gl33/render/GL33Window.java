@@ -22,6 +22,7 @@ public class GL33Window {
     private final int[] mouseButtons;
     private double scrolls;
     private double cursorXPos, cursorYPos;
+    private boolean cursorPosLocked;
 
     private static final int numKeys = 348; //there are 348 keys supported by GLFW
     private static final int numMouseButtons = 5; //there are 5 mouse buttons supported by GLFW
@@ -126,8 +127,8 @@ public class GL33Window {
     public int getKey(int key) {
         int keyValue = keys[key];
         if     (keys[key] == 0) keys[key] = 1;
-        else if(keys[key] == 2) keys[key] = 3; //when was the Switch statement added? I thought for sure it exists in version 11...
-        return keyValue; //I'm using a slightly older version of Java for compatibility reasons. Considering 11 came out just last year, it's actually not that old.
+        else if(keys[key] == 2) keys[key] = 3;
+        return keyValue;
     }
 
     public int getMouseButton(int button) {
@@ -145,16 +146,8 @@ public class GL33Window {
         glfwSetWindowTitle(windowHandle, title);
     }
 
-    public long getWindowHandle(){
-        return windowHandle;
-    }
-
     public boolean windowShouldClose() {
         return glfwWindowShouldClose(windowHandle);
-    }
-
-    public String getTitle() {
-        return title;
     }
 
     public int getWidth() {
@@ -190,6 +183,11 @@ public class GL33Window {
     }
 
     public void update() {
+        if(cursorPosLocked) {
+            glfwSetCursorPos(windowHandle, width / 2., height / 2.);
+            cursorXPos = 0;
+            cursorYPos = 0;
+        }
         glfwSwapBuffers(windowHandle);
         glfwPollEvents();
     }
@@ -200,5 +198,13 @@ public class GL33Window {
 
     public double getCursorYPos(){
         return cursorYPos;
+    }
+
+    public void lockMousePos(){
+        cursorPosLocked = true;
+    }
+
+    public void unlockMousePos(){
+        cursorPosLocked = false;
     }
 }

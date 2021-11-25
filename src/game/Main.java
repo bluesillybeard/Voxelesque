@@ -3,6 +3,7 @@ package game;
 import engine.gl33.GL33Render;
 import game.misc.StaticUtils;
 import game.world.World;
+import game.world.block.Block;
 import game.world.block.SimpleBlock;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
@@ -11,8 +12,6 @@ import static game.GlobalBits.*;
 import static org.lwjgl.glfw.GLFW.*;
 //todo: Main class is awful, fix this atrocity.
 public class Main {
-    private static double lastMouseYPos = 0;
-    private static double lastMouseXPos = 0;
 
     private static final Vector3f cameraInc = new Vector3f(0, 0, 0);
 
@@ -25,10 +24,10 @@ public class Main {
             }
             resourcesPath = System.getProperty("user.dir") + "/resources";
             render.setResourcesPath(GlobalBits.resourcesPath);
-            renderDistance = 150f;
+            renderDistance = 100f;
             tempV3f0 = new Vector3f();
             tempV3f1 = new Vector3f();
-            playerPosition = new Vector3f(36, 72, 25);
+            playerPosition = new Vector3f(2048, 72, 25);
             playerRotation = new Vector3f(0, 0, 0);
             sensitivity = 1;
             defaultShader = render.loadShaderProgram("Shaders/", "");
@@ -40,6 +39,8 @@ public class Main {
             World world = new World();
             int debugTextEntity = render.createTextEntity(render.readTexture(render.readImage("Textures/ASCII-Extended.png")), "", false, false, guiShader, -1f, 1f - guiScale, 0f, 0f, 0f, 0f, guiScale, guiScale, 0f);
             double placementDistance = 5;
+            render.lockMousePos();
+            boolean locked = true;
             do {
                 double worldTime = world.updateChunks(1/60.);
 
@@ -49,14 +50,66 @@ public class Main {
                 Runtime runtime = Runtime.getRuntime();
                 Vector3i blockPos = StaticUtils.getBlockPos(playerPosition);
 
-                if(render.getKey(GLFW_KEY_F) >= 2){
-                    world.setBlock(StaticUtils.getBlockPos(tempV3f0.set(playerPosition).add(tempV3f1.set(Math.sin(playerRotation.y)*Math.cos(playerRotation.x), -Math.sin(playerRotation.x), -Math.cos(playerRotation.y)*Math.cos(playerRotation.x)).mul((float) placementDistance))), blocks.get("voxelesque:stoneBlock"));
+                if(render.getKey(GLFW_KEY_C) == 0){
+                    if(locked){
+                        render.unlockMousePos();
+                        locked = false;
+                    }
+                    else {
+                        render.lockMousePos();
+                        locked = true;
+                    }
+                }
+
+                if(render.getMouseButton(GLFW_MOUSE_BUTTON_RIGHT) == 2){
+                    double step = 0.001f;
+                    for(double d=0; d<placementDistance; d+=step){
+                        double cosx = Math.cos(playerRotation.x);
+                        Vector3i pos = StaticUtils.getBlockPos(tempV3f0.set(
+                                playerPosition.x + Math.sin(playerRotation.y)*cosx*d,
+                                playerPosition.y - Math.sin(playerRotation.x)*d,
+                                playerPosition.z - Math.cos(playerRotation.y)*cosx*d));
+                        Block b = world.getBlock(pos);
+                        if(b == null){
+                            System.err.println("chunk hasn't loaded yet!");
+                            break;
+                        }
+                        if(b != Block.VOID_BLOCK){
+                            d -= step;
+                            pos = StaticUtils.getBlockPos(tempV3f0.set(
+                                    playerPosition.x + Math.sin(playerRotation.y)*cosx*d,
+                                    playerPosition.y - Math.sin(playerRotation.x)*d,
+                                    playerPosition.z - Math.cos(playerRotation.y)*cosx*d));
+                            world.setBlock(pos, blocks.get("voxelesque:stoneBlock"));
+                            break;
+                        }
+                    }
+                }
+
+                if(render.getMouseButton(GLFW_MOUSE_BUTTON_LEFT) == 2){
+                    double step = 0.001f;
+                    for(double d=0; d<placementDistance; d+=step){
+                        double cosx = Math.cos(playerRotation.x);
+                        Vector3i pos = StaticUtils.getBlockPos(tempV3f0.set(
+                                playerPosition.x + Math.sin(playerRotation.y)*cosx*d,
+                                playerPosition.y - Math.sin(playerRotation.x)*d,
+                                playerPosition.z - Math.cos(playerRotation.y)*cosx*d));
+                        Block b = world.getBlock(pos);
+                        if(b == null){
+                            System.err.println("chunk hasn't loaded yet!");
+                            break;
+                        }
+                        if(b != Block.VOID_BLOCK){
+                            world.setBlock(pos, Block.VOID_BLOCK);
+                            break;
+                        }
+                    }
                 }
 
                 render.setTextEntityText(debugTextEntity,
                         "Memory:" + (runtime.totalMemory() - runtime.freeMemory()) / 1048576 + " / " + runtime.totalMemory() / 1048576 +
                                 "\nEntities: " + render.getNumEntities() + " / " + render.getNumEntitySlots() +
-                                "\nChunks: " + render.getNumChunks() + " / " + render.getNumChunkSlots() +
+                                "\nRenderChunks: " + render.getNumChunks() + " / " + render.getNumChunkSlots() +
                                 "\npos: " + StaticUtils.betterVectorToString(playerPosition, 3) + ", rot: (" + StaticUtils.FloatToStringSigFigs(playerRotation.x, 3) + ", " + StaticUtils.FloatToStringSigFigs(playerRotation.y, 3) + ")" +
                                 "\nchunkPos: " + StaticUtils.getChunkPos(playerPosition) +
                                 "\nblock: " + world.getBlock(blockPos.x, blockPos.y, blockPos.z) +
@@ -71,55 +124,43 @@ public class Main {
         }
     }
 
-    private static void updateCameraPos(){
-        cameraInc.set(0, 0, 0);
-        boolean cameraUpdated = false;
+    private static void updateCameraPos() {
         cameraInc.set(0, 0, 0);
         if (render.getKey(GLFW_KEY_W) >= 2) {
             cameraInc.z = -1;
-            cameraUpdated = true;
         } else if (render.getKey(GLFW_KEY_S) >= 2) {
             cameraInc.z = 1;
-            cameraUpdated = true;
         }
         if (render.getKey(GLFW_KEY_A) >= 2) {
             cameraInc.x = -1;
-            cameraUpdated = true;
         } else if (render.getKey(GLFW_KEY_D) >= 2) {
             cameraInc.x = 1;
-            cameraUpdated = true;
         }
         if (render.getKey(GLFW_KEY_Z) >= 2) {
             cameraInc.y = -1;
-            cameraUpdated = true;
         } else if (render.getKey(GLFW_KEY_X) >= 2) {
             cameraInc.y = 1;
-            cameraUpdated = true;
         }
         // Update camera position
-        double CAMERA_POS_STEP = 1/3d;
-        if ( cameraInc.z != 0 ) {
-            playerPosition.x += (float)Math.sin(playerRotation.y) * -1.0f * cameraInc.z * CAMERA_POS_STEP;
-            playerPosition.z += (float)Math.cos(playerRotation.y) * cameraInc.z * CAMERA_POS_STEP;
+        double CAMERA_POS_STEP = 1 / 3d;
+        if(render.getKey(GLFW_KEY_LEFT_CONTROL) >= 2) CAMERA_POS_STEP = 1.;
+        if (cameraInc.z != 0) {
+            playerPosition.x += (float) Math.sin(playerRotation.y) * -1.0f * cameraInc.z * CAMERA_POS_STEP;
+            playerPosition.z += (float) Math.cos(playerRotation.y) * cameraInc.z * CAMERA_POS_STEP;
         }
-        if ( cameraInc.x != 0) {
-            playerPosition.x += (float)Math.sin(playerRotation.y - 1.57) * -1.0f * cameraInc.x * CAMERA_POS_STEP;
-            playerPosition.z += (float)Math.cos(playerRotation.y - 1.57) * cameraInc.x * CAMERA_POS_STEP;
+        if (cameraInc.x != 0) {
+            playerPosition.x += (float) Math.sin(playerRotation.y - 1.57) * -1.0f * cameraInc.x * CAMERA_POS_STEP;
+            playerPosition.z += (float) Math.cos(playerRotation.y - 1.57) * cameraInc.x * CAMERA_POS_STEP;
         }
         playerPosition.y += cameraInc.y * CAMERA_POS_STEP;
 
         // Update camera based on mouse
 
-        if (render.getMouseButton(GLFW_MOUSE_BUTTON_RIGHT) >= 2) {
-            playerRotation.x += (render.getMouseYPos() - lastMouseYPos) * sensitivity;
-            playerRotation.y += (render.getMouseXPos() - lastMouseXPos) * sensitivity;
-            cameraUpdated = true;
-        }
-        lastMouseYPos = render.getMouseYPos();
-        lastMouseXPos = render.getMouseXPos();
+
+        playerRotation.x += (render.getMouseYPos()) * sensitivity;
+        playerRotation.y += (render.getMouseXPos()) * sensitivity;
+
         //send the camera position to Render
-        if(cameraUpdated){
-            render.setCameraPos(playerPosition.x, playerPosition.y, playerPosition.z, playerRotation.x, playerRotation.y, playerRotation.z);
-        }
+        render.setCameraPos(playerPosition.x, playerPosition.y, playerPosition.z, playerRotation.x, playerRotation.y, playerRotation.z);
     }
 }

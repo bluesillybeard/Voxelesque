@@ -5,24 +5,54 @@ import game.world.World;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
+
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
+import math.BetterVector3i;
 public class StaticUtils {
+
+    //if I were using C or C++ I could use stack allocated objects, but Java has no such thing so in order to save memory I gotta do this madness.
+    //I'm using Java because it's a much better programming experience - soooo much easier than C or C++.
+    private static final Vector3f[] tempsf = new Vector3f[]{new Vector3f(), new Vector3f(), new Vector3f(), new Vector3f(), new Vector3f(), new Vector3f(), new Vector3f(), new Vector3f(), };
+    private static final BetterVector3i[] tempsi = new BetterVector3i[]{new BetterVector3i(), new BetterVector3i(), new BetterVector3i(), new BetterVector3i(), new BetterVector3i(), new BetterVector3i(), new BetterVector3i(), new BetterVector3i(), };
+    private static int tempfIndex;
+    private static int tempiIndex;
+
+    /**
+     * converts a world position into a chunk position.
+     * @param worldPos the world pos to get the chunk pos of.
+     * @return the chunk pos. Note: this value may change unexpectedly, it is recommended to create a new copy of it if it will be needed for something later.
+     */
     public static Vector3i getChunkPos(Vector3f worldPos){
-        return new Vector3i((int)Math.round(worldPos.x/(World.CHUNK_SIZE*0.288675134595)-0.5), (int)Math.round(worldPos.y/(World.CHUNK_SIZE*0.5)-0.5), (int)Math.round(worldPos.z/(World.CHUNK_SIZE*0.5)-0.5));
+        return tempsi[tempiIndex = (tempiIndex+1)%tempsi.length].set((int)Math.round(worldPos.x/(World.CHUNK_SIZE*0.288675134595)-0.5), (int)Math.round(worldPos.y/(World.CHUNK_SIZE*0.5)-0.5), (int)Math.round(worldPos.z/(World.CHUNK_SIZE*0.5)-0.5));
     }
 
+    /**
+     * gets the world pos of the center of a chunk, given its pos.
+     * @param chunkPos the chunk pos to find the world pos of.
+     * @return the world pos of the chunk. Note: this value may change unexpectedly, it is recommended to create a new copy of it if it will be needed for something later.
+     */
     public static Vector3f getChunkWorldPos(Vector3i chunkPos){
-        return new Vector3f((chunkPos.x+0.5f)*(World.CHUNK_SIZE*0.288675134595f), (chunkPos.y+0.5f)*(World.CHUNK_SIZE*0.5f), (chunkPos.z+0.5f)*(World.CHUNK_SIZE*0.5f));
+        return tempsf[tempfIndex = (tempfIndex+1)%tempsf.length].set((chunkPos.x+0.5f)*(World.CHUNK_SIZE*0.288675134595f), (chunkPos.y+0.5f)*(World.CHUNK_SIZE*0.5f), (chunkPos.z+0.5f)*(World.CHUNK_SIZE*0.5f));
     }
 
+    /**
+     * gets the block position given a world position.
+     * @param worldPos the world position to get the block position from
+     * @return the block position. Note: this value may change unexpectedly, it is recommended to create a new copy of it if it will be needed for something later.
+     */
     public static Vector3i getBlockPos(Vector3f worldPos){
-        return new Vector3i((int)Math.round(worldPos.x/0.288675134595-0.5), (int)Math.round(worldPos.y/0.5-0.5), (int)Math.round(worldPos.z/0.5-0.5));
+        return tempsi[tempiIndex = (tempiIndex+1)%tempsi.length].set((int)Math.round(worldPos.x/0.288675134595-0.5), (int)Math.round(worldPos.y/0.5-0.5), (int)Math.round(worldPos.z/0.5-0.5));
     }
 
+    /**
+     * gets the world position of the center of a block, given its block position.
+     * @param blockPos the block position
+     * @return the world position of that block. Note: this value may change unexpectedly, it is recommended to create a new copy of it if it will be needed for something later.
+     */
     public static Vector3f getBlockWorldPos(Vector3i blockPos){
-        return new Vector3f((blockPos.x+0.5f)*0.288675134595f, (blockPos.y+0.5f)*0.5f, (blockPos.z+0.5f)*0.5f);
+        return tempsf[tempfIndex = (tempfIndex+1)%tempsf.length].set((blockPos.x+0.5f)*0.288675134595f, (blockPos.y+0.5f)*0.5f, (blockPos.z+0.5f)*0.5f);
     }
 
     public static byte[] getFourBytes(int i){

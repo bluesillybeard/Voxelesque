@@ -1,12 +1,13 @@
 package game.world;
 
 import game.GlobalBits;
+import game.misc.HashComparator;
 import game.misc.StaticUtils;
 import game.world.block.Block;
 import game.world.generation.PerlinNoise;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
-import Math.BetterVector3i;
+import math.BetterVector3i;
 
 import java.util.*;
 
@@ -24,7 +25,7 @@ public class World {
 
     public World() {
         noise = new PerlinNoise(9, 1, 0.005, 50, 5);
-        chunks = new HashMap<>();
+        chunks = new TreeMap<>(new HashComparator());
         chunksToUnload = new LinkedList<>();
     }
 
@@ -34,6 +35,11 @@ public class World {
             return c.getBlock(x&(CHUNK_SIZE-1), y&(CHUNK_SIZE-1), z&(CHUNK_SIZE-1));
         else return null;
     }
+
+    public Block getBlock(Vector3i pos){
+        return getBlock(pos.x, pos.y, pos.z);
+    }
+
     public void setBlock(int x, int y, int z, Block block){
         Chunk c = getChunk(x, y, z);
         if(c != null)c.setBlock(x&(CHUNK_SIZE-1), y&(CHUNK_SIZE-1), z&(CHUNK_SIZE-1), block);
@@ -102,13 +108,13 @@ public class World {
      * note: uses xyz chunk coordinates
      */
     public void loadChunk(int x, int y, int z){
-        if(chunks.containsKey(new Vector3i(x, y, z))){
+        if(chunks.containsKey(new BetterVector3i(x, y, z))){
             return;
         }
         //todo: world saves
         Chunk chunk = generateChunk(GlobalBits.blocks, x, y, z);
 
-        chunks.put(new Vector3i(x, y, z), chunk);
+        chunks.put(new BetterVector3i(x, y, z), chunk);
     }
 
     private Chunk generateChunk(Map<String, Block> blocks, int x, int y, int z){

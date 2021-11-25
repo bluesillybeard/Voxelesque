@@ -682,6 +682,16 @@ public class GL33Render implements Render {
         return projectionMatrix;
     }
 
+    @Override
+    public void lockMousePos() {
+        GL33Window.lockMousePos();
+    }
+
+    @Override
+    public void unlockMousePos() {
+        GL33Window.unlockMousePos();
+    }
+
     /**
      * Tells weather a mesh would appear on a part of the screen if it were to be rendered.
      *

@@ -6,15 +6,13 @@ import game.data.nbt.NBTElement;
 import game.world.block.Block;
 
 
-public class Chunk {
+public class Chunk implements Comparable<Chunk>{
     private final int size;
     private final Block[][][] blocks;
     private final NBTElement[][][] nbt;
 
-    private int numMappings;
     private final GPUChunk handle;
     private final int xPos, yPos, zPos;
-    boolean empty;
 
     public Chunk(int size, Block[][][] blocks, NBTElement[][][] nbt, int x, int y, int z){
         this.xPos = x;
@@ -71,5 +69,16 @@ public class Chunk {
     private GPUChunk sendToRender() {
         return GlobalBits.render.spawnChunk(this.size, this.blocks, this.xPos, this.yPos, this.zPos);
     }
+    @Override
+    public int compareTo(Chunk o) {
+        return this.hashCode() - o.hashCode();
+    }
 
+    public int HashCode(){
+        int out = this.xPos;
+        out ^= this.yPos >> 5;
+        out ^= this.zPos << 7;
+        out ^= this.xPos >> 17;
+        return out;
+    }
 }

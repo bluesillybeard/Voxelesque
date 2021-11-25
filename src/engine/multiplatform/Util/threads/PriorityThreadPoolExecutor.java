@@ -69,12 +69,12 @@ public class PriorityThreadPoolExecutor<R extends Runnable> {
         public void run() {
             running.set(true);
             do {
-
-                if (!queue.isEmpty()) {
-                    try {
+                try {
+                    if (!queue.isEmpty()) {
                         queue.remove(0).run();
-                    } catch(Exception ignored){}
-                }
+                    }
+                    Thread.sleep(100);
+                } catch (Exception ignored){}
             } while (!Thread.interrupted() && running.get());
             running.set(false);
         }

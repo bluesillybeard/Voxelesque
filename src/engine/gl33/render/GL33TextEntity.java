@@ -17,6 +17,7 @@ public class GL33TextEntity extends GL33Entity {
     public void setText(String text, boolean centerX, boolean centerY){
         if(!this.text.equals(text)){
             this.text = text;
+            super.getModel().mesh.cleanUp();
             super.setModel(new GL33Model(new GL33Mesh(Utils.generateTextMesh(text, centerX, centerY)), super.getModel().texture));
         }
     }

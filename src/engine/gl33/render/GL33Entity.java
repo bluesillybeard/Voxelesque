@@ -96,6 +96,8 @@ public class GL33Entity {
     }
 
     public void setModel(GL33Mesh mesh, GL33Texture texture){
+
+
         if(this.model.mesh != mesh || this.model.texture != texture) { //if the model or mesh are different
             this.model = new GL33Model(mesh, texture);
         }
