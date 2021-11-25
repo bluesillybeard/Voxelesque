@@ -10,7 +10,7 @@ import java.text.NumberFormat;
  * The only difference between this class and the original Vector3i class is the ToString method.
  * Everything else is exactly identical.
  */
-public class BetterVector3i extends Vector3i implements Comparable<BetterVector3i>{
+public class BetterVector3i extends Vector3i{
     /**
      * Create a new {@link Vector3i} of <code>(0, 0, 0)</code>.
      */
@@ -205,10 +205,5 @@ public class BetterVector3i extends Vector3i implements Comparable<BetterVector3
 
     public String toString() {
         return this.toString(NumberFormat.getIntegerInstance());
-    }
-
-    @Override
-    public int compareTo(BetterVector3i o) {
-        return this.hashCode() - o.hashCode();
     }
 }

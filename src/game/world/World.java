@@ -16,8 +16,8 @@ import static game.misc.StaticUtils.getChunkPos;
 import static game.misc.StaticUtils.getChunkWorldPos;
 
 public class World {
-    private final Map<Vector3i, Chunk> chunks;
-    private final LinkedList<Vector3i> chunksToUnload;
+    private Map<Vector3i, Chunk> chunks;
+    private LinkedList<Vector3i> chunksToUnload;
     private final PerlinNoise noise;
     public static final int CHUNK_SIZE = 64; //MUST BE A POWER OF 2! If this is changed to a non-power of 2, many things would have to be reworked.
 
@@ -27,6 +27,14 @@ public class World {
         noise = new PerlinNoise(9, 1, 0.005, 50, 5);
         chunks = new TreeMap<>(new HashComparator());
         chunksToUnload = new LinkedList<>();
+    }
+
+    public void reset(){
+        for(Map.Entry<Vector3i, Chunk> entry: chunks.entrySet()){
+            entry.getValue().unload();
+        }
+        chunksToUnload = new LinkedList<>();
+        chunks = new TreeMap<>(new HashComparator());
     }
 
     public Block getBlock(int x, int y, int z){

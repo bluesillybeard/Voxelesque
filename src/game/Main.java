@@ -42,6 +42,7 @@ public class Main {
             render.lockMousePos();
             boolean locked = true;
             do {
+                if(render.getKey(GLFW_KEY_R) == 2) world.reset();
                 double worldTime = world.updateChunks(1/60.);
 
 

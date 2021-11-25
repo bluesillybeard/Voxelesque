@@ -11,8 +11,8 @@ public class DistanceRunnable extends Number implements Runnable{
     public static final Comparator<DistanceRunnable> inOrder = Comparator.comparingInt(DistanceRunnable::intValue);
 
     private final Runnable run;
-    private final Vector3f a;
-    private final Vector3f b;
+    public final Vector3f a;
+    public final Vector3f b;
 
     public DistanceRunnable(Runnable r, Vector3f a, Vector3f b){
         this.run = r;
@@ -77,5 +77,17 @@ public class DistanceRunnable extends Number implements Runnable{
     @Override
     public double doubleValue() {
         return a.distance(b);
+    }
+
+    public boolean equals(Object o){
+        if(o == this){
+            return true;
+        } else if(o == null){
+            return false;
+        } else if(o instanceof DistanceRunnable) {
+            return this.a.equals(((DistanceRunnable)o).a);
+        } else {
+            return false;
+        }
     }
 }

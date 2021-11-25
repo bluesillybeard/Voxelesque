@@ -14,6 +14,7 @@ import engine.multiplatform.Util.threads.PriorityThreadPoolExecutor;
 import engine.multiplatform.gpu.*;
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
+import game.misc.HashComparator;
 import game.world.World;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -37,7 +38,7 @@ public class GL33Render implements Render {
     Vector4f tempv4f3 = new Vector4f();
     Vector3f tempv3f1 = new Vector3f();
 
-    private GL33Window GL33Window;
+    private GL33Window window;
     private boolean readyToRender;
     private float FOV;
     private String resourcesPath;
@@ -74,13 +75,8 @@ public class GL33Render implements Render {
     private final SlottedArrayList<GL33Entity> renderableEntities = new SlottedArrayList<>();
     private final SlottedArrayList<GL33TextEntity> textEntities = new SlottedArrayList<>();
     private final Set<GL33Shader> shaderPrograms = new HashSet<>();
-    private final Map<Vector3i, GL33Chunk> chunks = new HashMap<>();
+    private final Map<Vector3i, GL33Chunk> chunks = new TreeMap<>(new HashComparator());
     private final PriorityThreadPoolExecutor<DistanceRunnable> chunkBuildExecutor = new PriorityThreadPoolExecutor<>(DistanceRunnable.inOrder, Runtime.getRuntime().availableProcessors());
-
-            /*new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors()-1, Runtime.getRuntime().availableProcessors()-1,
-            0L, TimeUnit.MILLISECONDS,
-            new PriorityBlockingQueue<>());
-             */
 
     private final ArrayList<GL33Chunk> deletedChunks = new ArrayList<>();
     private final LinkedList<GL33Chunk> newChunks = new LinkedList<>();
@@ -106,7 +102,7 @@ public class GL33Render implements Render {
     @Override
     public boolean init(String title, int width, int height, String resourcesPath, boolean VSync, PrintStream warning, PrintStream error, PrintStream debug, float fov, double targetFrameTime) {
         try {
-            this.GL33Window = new GL33Window(title, width, height, VSync);
+            this.window = new GL33Window(title, width, height, VSync);
             this.resourcesPath = resourcesPath;
             this.FOV = fov;
             this.warn = warning;
@@ -123,7 +119,7 @@ public class GL33Render implements Render {
             errorImage.setRGB(1, 1, 0xff00ff);
 
 
-            this.GL33Window.init();
+            this.window.init();
             debug.println("initialized OpenGL 3.3 Render Backend and " + Runtime.getRuntime().availableProcessors() + " chunk build worker threads");
             warn.println("This is a pre-alpha version of the Voxelesque Rendering Backend, proceed with caution!");
             return true;
@@ -145,7 +141,7 @@ public class GL33Render implements Render {
 
     @Override
     public void setVSync(boolean sync) {
-        GL33Window.setVSync(sync);
+        window.setVSync(sync);
     }
 
     @Override
@@ -170,12 +166,12 @@ public class GL33Render implements Render {
 
     @Override
     public int getWindowHeight() {
-        return GL33Window.getHeight();
+        return window.getHeight();
     }
 
     @Override
     public int getWindowWidth() {
-        return GL33Window.getWidth();
+        return window.getWidth();
     }
 
     /**
@@ -187,7 +183,7 @@ public class GL33Render implements Render {
      */
     @Override
     public boolean setWindowSize(int width, int height) {
-        GL33Window.setSize(width, height);
+        window.setSize(width, height);
         return true;
     }
 
@@ -662,7 +658,7 @@ public class GL33Render implements Render {
     }
 
     private void updateCameraProjectionMatrix(){
-        projectionMatrix.setPerspective(FOV, (float) GL33Window.getWidth() / GL33Window.getHeight(), 1/256f, 1 << 20);
+        projectionMatrix.setPerspective(FOV, (float) window.getWidth() / window.getHeight(), 1/256f, 1 << 20);
     }
 
     @Override
@@ -684,12 +680,12 @@ public class GL33Render implements Render {
 
     @Override
     public void lockMousePos() {
-        GL33Window.lockMousePos();
+        window.lockMousePos();
     }
 
     @Override
     public void unlockMousePos() {
-        GL33Window.unlockMousePos();
+        window.unlockMousePos();
     }
 
     /**
@@ -787,7 +783,7 @@ public class GL33Render implements Render {
      */
     @Override
     public int getKey(int key) {
-        return GL33Window.getKey(key);
+        return window.getKey(key);
     }
 
     /**
@@ -798,7 +794,7 @@ public class GL33Render implements Render {
      */
     @Override
     public int getMouseButton(int button) {
-        return GL33Window.getMouseButton(button);
+        return window.getMouseButton(button);
     }
 
     /**
@@ -806,7 +802,7 @@ public class GL33Render implements Render {
      */
     @Override
     public double getMouseXPos() {
-        return GL33Window.getCursorXPos();
+        return window.getCursorXPos();
     }
 
     /**
@@ -814,7 +810,7 @@ public class GL33Render implements Render {
      */
     @Override
     public double getMouseYPos() {
-        return GL33Window.getCursorYPos();
+        return window.getCursorYPos();
     }
 
     /**
@@ -827,7 +823,7 @@ public class GL33Render implements Render {
 
     @Override
     public boolean shouldClose(){
-        return GL33Window.windowShouldClose();
+        return window.windowShouldClose();
     }
 
     /**
@@ -847,13 +843,14 @@ public class GL33Render implements Render {
     public double render() {
         readyToRender = false;
 
-        if (GL33Window.getKey(GLFW_KEY_END) == 2) {
+        if (window.getKey(GLFW_KEY_END) == 2) {
             debug.println("stop");
         }
         double startTime = getTime();
         Iterator<GL33Chunk> iter = deletedChunks.iterator();
         while (iter.hasNext()) {
             GL33Chunk c = iter.next();
+            chunkBuildExecutor.remove(new DistanceRunnable(null, getChunkWorldPos(c.getPosition()), cameraPosition));
             if (!c.taskRunning) {
                 iter.remove();
                 c.clearFromGPU();
@@ -871,14 +868,14 @@ public class GL33Render implements Render {
                 break; //if the frame has taken too long, skip submitting chunks.
             }
         }
-        if (GL33Window.isResized()) {
-            GL33Window.setResized(false);
-            glViewport(0, 0, GL33Window.getWidth(), GL33Window.getHeight());
+        if (window.isResized()) {
+            window.setResized(false);
+            glViewport(0, 0, window.getWidth(), window.getHeight());
             updateCameraProjectionMatrix();
         }
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         renderFrame(startTime);
-        GL33Window.update();
+        window.update();
 
         double time = getTime() - startTime;
         readyToRender = true;

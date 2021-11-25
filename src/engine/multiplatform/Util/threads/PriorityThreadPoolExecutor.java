@@ -38,6 +38,10 @@ public class PriorityThreadPoolExecutor<R extends Runnable> {
         }
     }
 
+    public boolean remove(R item){
+        return tasks.remove(item);
+    }
+
 
     private static class KillablePoolThread<T extends Runnable> extends Thread{
         private final AtomicBoolean running;
