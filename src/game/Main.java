@@ -24,10 +24,10 @@ public class Main {
             }
             resourcesPath = System.getProperty("user.dir") + "/resources";
             render.setResourcesPath(GlobalBits.resourcesPath);
-            renderDistance = 100f;
+            renderDistance = 150f;
             tempV3f0 = new Vector3f();
             tempV3f1 = new Vector3f();
-            playerPosition = new Vector3f(0, 72, 25);
+            playerPosition = new Vector3f(0, 72, 0);
             playerRotation = new Vector3f(0, 0, 0);
             sensitivity = 1;
             defaultShader = render.loadShaderProgram("Shaders/", "");

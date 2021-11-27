@@ -314,7 +314,7 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
         }
     }
     public String toString(){
-        return "chunk:" + pos + " s:" + taskRunning + " r:" + canRender;
+        return pos + " b:" + taskRunning + " s:" + taskScheduled + " r:" + canRender;
     }
 
 }

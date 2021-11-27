@@ -24,7 +24,7 @@ public class World {
     private static final Vector3i temp = new Vector3i();
 
     public World() {
-        noise = new PerlinNoise(9, 1, 0.005, 50, 5);
+        noise = new PerlinNoise(-1, 1, 0.005, 50, 5);
         chunks = new TreeMap<>(new HashComparator());
         chunksToUnload = new LinkedList<>();
     }
