@@ -312,7 +312,6 @@ public interface Render {
     int getNumChunks();
 
     int getNumChunkSlots();
-
     //camera
     void setCameraPos(float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation);
 
@@ -392,8 +391,4 @@ public interface Render {
      * @return the time it took to render the frame in seconds.
      */
     double render();
-
-
-
-
 }

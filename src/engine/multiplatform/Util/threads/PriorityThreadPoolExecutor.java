@@ -38,8 +38,8 @@ public class PriorityThreadPoolExecutor<R extends Runnable> {
         }
     }
 
-    public boolean remove(R item){
-        return tasks.remove(item);
+    public List<R> getTasks (){
+        return tasks;
     }
 
 

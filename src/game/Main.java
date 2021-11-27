@@ -27,7 +27,7 @@ public class Main {
             renderDistance = 100f;
             tempV3f0 = new Vector3f();
             tempV3f1 = new Vector3f();
-            playerPosition = new Vector3f(2048, 72, 25);
+            playerPosition = new Vector3f(0, 72, 25);
             playerRotation = new Vector3f(0, 0, 0);
             sensitivity = 1;
             defaultShader = render.loadShaderProgram("Shaders/", "");
@@ -110,7 +110,7 @@ public class Main {
                 render.setTextEntityText(debugTextEntity,
                         "Memory:" + (runtime.totalMemory() - runtime.freeMemory()) / 1048576 + " / " + runtime.totalMemory() / 1048576 +
                                 "\nEntities: " + render.getNumEntities() + " / " + render.getNumEntitySlots() +
-                                "\nRenderChunks: " + render.getNumChunks() + " / " + render.getNumChunkSlots() +
+                                "\nRC:: " + render.getNumChunks() + " / " + render.getNumChunkSlots() + "|GC: " + world.getChunks().size() +
                                 "\npos: " + StaticUtils.betterVectorToString(playerPosition, 3) + ", rot: (" + StaticUtils.FloatToStringSigFigs(playerRotation.x, 3) + ", " + StaticUtils.FloatToStringSigFigs(playerRotation.y, 3) + ")" +
                                 "\nchunkPos: " + StaticUtils.getChunkPos(playerPosition) +
                                 "\nblock: " + world.getBlock(blockPos.x, blockPos.y, blockPos.z) +

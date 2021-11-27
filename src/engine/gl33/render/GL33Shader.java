@@ -102,7 +102,7 @@ public class GL33Shader implements GPUShader {
         setUniform1i(textureSamplerUniform, value);
     }
 
-    public void setGameTime(){setUniform1f(timeInSecondsUniform, System.nanoTime() / 1_000_000_000f);}
+    public void setGameTime(double time){setUniform1f(timeInSecondsUniform, (float)time);}
 
 
     public void bind() {

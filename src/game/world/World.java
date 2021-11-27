@@ -37,6 +37,10 @@ public class World {
         chunks = new TreeMap<>(new HashComparator());
     }
 
+    public Map<Vector3i, Chunk> getChunks(){
+        return chunks;
+    }
+
     public Block getBlock(int x, int y, int z){
         Chunk c = getChunk(x, y, z);
         if(c != null)

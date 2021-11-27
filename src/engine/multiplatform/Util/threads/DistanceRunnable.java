@@ -79,13 +79,17 @@ public class DistanceRunnable extends Number implements Runnable{
         return a.distance(b);
     }
 
-    public boolean equals(Object o){
-        if(o == this){
+    public boolean equals(Object o) {
+        if (o == this) {
             return true;
-        } else if(o == null){
+        } else if (o == null) {
             return false;
-        } else if(o instanceof DistanceRunnable) {
-            return this.a.equals(((DistanceRunnable)o).a);
+        } else if (o instanceof DistanceRunnable) {
+            if (this.a.equals(((DistanceRunnable) o).a)) {
+                return true;
+            } else {
+                return false;
+            }
         } else {
             return false;
         }

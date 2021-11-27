@@ -25,6 +25,7 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
     private ArrayList<ShaderTexture> shaderTextures;
 
     public boolean taskRunning;
+    public boolean taskScheduled;
 
     public GL33Chunk(int size, GPUBlock[][][] blocks, int xPos, int yPos, int zPos, Vector3f cameraPos){
         if(blocks.length != size || blocks[0].length != size || blocks[0][0].length != size){
@@ -33,7 +34,8 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
         }
         this.blocks = blocks;
         this.canRender = false;
-        taskRunning = false;
+        this.taskRunning = false;
+        this.taskScheduled = false;
         this.size = size;
         this.pos = new Vector3i(xPos, yPos, zPos);
         this.cameraPos = cameraPos;
@@ -68,7 +70,7 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
     }
 
     public boolean sendToGPU(){
-        if(taskRunning){
+        if(taskRunning || taskScheduled){
             return false;
         } else if(chunkModels != null && chunkModels.size() > 0){
             int modelsAdded = 0;
@@ -98,6 +100,11 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
      * @param chunks the map of chunk positions to chunk objects to get adjacent chunks from
      */
     public void build(Map<Vector3i, GL33Chunk> chunks) {
+        if(taskRunning) {
+            System.err.println("Chunk attempted to build multiple times at once:" + this);
+            return;
+        }
+        taskRunning = true;
         /*
         an overview of how chunk building works:
         initialize a list of shaders and models
@@ -130,14 +137,10 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
                     }
                     //cloning, index removal, and vertex position modification done within the BlockMeshBuilder
                     chunkModels.get(shaderTextureIndex).addBlockMeshToChunk(block.getMesh(), x, y, z, this.getBlockedFaces(x, y, z, chunks));
-                    if(Thread.interrupted()){
-                        chunkModels.clear();
-                        taskRunning = false;
-                        return; //so the game can close if a chunk is still rendering
-                    }
                 }
             }
         }
+        taskScheduled = false;
         this.taskRunning = false;
     }
 
