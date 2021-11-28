@@ -395,29 +395,14 @@ public interface Render {
      */
     double render();
 
-    /**
-     * allows the ability to get the matrix transform of a block position, for use with meshOnScreen()
-     *
-     * @param dest the mesh that wil be translated.
-     * @param x the X block pos
-     * @param y the Y block pos
-     * @param z the Z block pos
-     * @return the matrix transform of the block
-     */
-    static Matrix4f getBlockTransform(Matrix4f dest, int x, int y, int z, int chunkSize){
-        Vector3f temp = new Vector3f();
-        float mirror = ((x + z) & 1) - 0.5f; //it's upside down or not (-0.5 if it needs to be mirrored on the Z axis)
 
-        int chunkX = (int)Math.round(((x+0.5)/chunkSize)-0.5); //what on earth is this insanity?!?!?!
-        int chunkY = (int)Math.round(((y+0.5)/chunkSize)-0.5); //this is the correct equation, I just don't know *why* it's correct.
-        int chunkZ = (int)Math.round(((z+0.5)/chunkSize)-0.5);
+    static Matrix4f getBlockTransform(Matrix4f dest, int cx, int cy, int cz, int bx, int by, int bz, int chunkSize){
+        float mirror = ((bx + bz) & 1) - 0.5f; //it's upside down or not (-0.5 if it needs to be mirrored on the Z axis)
 
-        int blockX = x&(chunkSize-1);
-        int blockY = y&(chunkSize-1);
-        int blockZ = z&(chunkSize-1);
 
-        return dest.scale(0.5f ,  0.5f, mirror)
-                .translate(blockX * 0.288675134595f, blockY * 0.5f, blockZ * 0.5f)
-                .translate(chunkX * chunkSize * 0.288675134595f, chunkY * chunkSize * 0.5f , chunkZ * chunkSize * 0.5f);
+        return dest
+                .translate(cx * chunkSize * 0.288675134595f, cy * chunkSize * 0.5f , cz * chunkSize * 0.5f)
+                .translate(bx * 0.288675134595f, by * 0.5f, bz * 0.5f)
+                .scale(0.5f ,  0.5f, mirror);
     }
 }

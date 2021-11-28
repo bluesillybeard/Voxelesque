@@ -864,7 +864,7 @@ public class GL33Render implements Render {
         iter = modifiedChunks.iterator();
         while (iter.hasNext()) {
             GL33Chunk c = iter.next();
-            if(!chunkBuildExecutor.getTasks().contains(new DistanceRunnable(null, getChunkWorldPos(c.getPosition()), cameraPosition))){
+            if(!c.taskScheduled && !c.taskRunning){
                 c.taskScheduled = true;
                 //copy the result from GetChunkWorldPos since it returns a temporary variable
                 chunkBuildExecutor.submit(new DistanceRunnable(()->c.build(chunks), new Vector3f(getChunkWorldPos(c.getPosition())), cameraPosition));
@@ -876,7 +876,7 @@ public class GL33Render implements Render {
         iter = newChunks.iterator();
         while (iter.hasNext()) {
             GL33Chunk c = iter.next();
-            if(!chunkBuildExecutor.getTasks().contains(new DistanceRunnable(null, getChunkWorldPos(c.getPosition()), cameraPosition))){
+            if(!c.taskScheduled && !c.taskRunning){
                 c.taskScheduled = true;
                 //copy the result from GetChunkWorldPos since it returns a temporary variable
                 chunkBuildExecutor.submit(new DistanceRunnable(()->c.build(chunks), new Vector3f(getChunkWorldPos(c.getPosition())), cameraPosition));

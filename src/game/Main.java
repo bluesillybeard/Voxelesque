@@ -75,7 +75,8 @@ public class Main {
                 Chunk chunk = world.getChunks().get(StaticUtils.getChunkPos(playerPosition));
                 Matrix4f temp = new Matrix4f();
 
-                if(chunk != null) {
+                if(chunk != null && render.getMouseButton(GLFW_MOUSE_BUTTON_LEFT)>=2) {
+                    Vector3i cp = chunk.getPos();
                     for (int x = 0; x < World.CHUNK_SIZE; ++x) {
                         for (int y = 0; y < World.CHUNK_SIZE; ++y) {
                             for (int z = 0; z < World.CHUNK_SIZE; ++z) {
@@ -83,8 +84,8 @@ public class Main {
 
                                 if (blockMesh != null && render.meshOnScreen(
                                         blockMesh,
-                                        Render.getBlockTransform(temp, chunk.getPos().x*World.CHUNK_SIZE+x, chunk.getPos().y*World.CHUNK_SIZE+y, chunk.getPos().z*World.CHUNK_SIZE+z, World.CHUNK_SIZE),
-                                        render.getCameraViewMatrix(), render.getCameraProjectionMatrix(), 0.5f, 0.5f
+                                        Render.getBlockTransform(temp.identity(), cp.x, cp.y, cp.z, x, y, z, World.CHUNK_SIZE),
+                                        render.getCameraViewMatrix(), render.getCameraProjectionMatrix(), (float)render.getMouseXPos(), (float)render.getMouseYPos()
                                 )) {
                                     chunk.setBlock(x, y, z, Block.VOID_BLOCK);
                                 }
