@@ -277,11 +277,11 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
      */
     @Override
     public int compareTo(GL33Chunk o) {
-        return (int)(getChunkWorldPos(this.pos).distance(cameraPos) - getChunkWorldPos(o.pos).distance(cameraPos));
+        return (int)(getChunkWorldPos(this.pos, this.size).distance(cameraPos) - getChunkWorldPos(o.pos, o.size).distance(cameraPos));
     }
 
-    public static Vector3f getChunkWorldPos(Vector3i chunkPos){
-        return new Vector3f((chunkPos.x+0.5f)*(World.CHUNK_SIZE*0.288675134595f), (chunkPos.y+0.5f)*(World.CHUNK_SIZE*0.5f), (chunkPos.z+0.5f)*(World.CHUNK_SIZE*0.5f));
+    public static Vector3f getChunkWorldPos(Vector3i chunkPos, int chunkSize){
+        return new Vector3f((chunkPos.x+0.5f)*(chunkSize*0.288675134595f), (chunkPos.y+0.5f)*(chunkSize*0.5f), (chunkPos.z+0.5f)*(chunkSize*0.5f));
     }
 
 

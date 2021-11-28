@@ -56,8 +56,6 @@ public class PriorityThreadPoolExecutor<R extends Runnable> {
             super.interrupt();
         }
 
-
-
         /**
          * When an object implementing interface {@code Runnable} is used
          * to create a thread, starting the thread causes the object's

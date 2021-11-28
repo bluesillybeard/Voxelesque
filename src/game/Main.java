@@ -1,12 +1,18 @@
 package game;
 
 import engine.gl33.GL33Render;
+import engine.multiplatform.Render;
+import engine.multiplatform.model.CPUMesh;
 import game.misc.StaticUtils;
+import game.world.Chunk;
 import game.world.World;
 import game.world.block.Block;
 import game.world.block.SimpleBlock;
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
+
+import java.util.TreeMap;
 
 import static game.GlobalBits.*;
 import static org.lwjgl.glfw.GLFW.*;
@@ -27,6 +33,7 @@ public class Main {
             renderDistance = 150f;
             tempV3f0 = new Vector3f();
             tempV3f1 = new Vector3f();
+            tempV3i0 = new Vector3i();
             playerPosition = new Vector3f(0, 72, 0);
             playerRotation = new Vector3f(0, 0, 0);
             sensitivity = 1;
@@ -62,50 +69,31 @@ public class Main {
                     }
                 }
 
-                if(render.getMouseButton(GLFW_MOUSE_BUTTON_RIGHT) == 2){
-                    double step = 0.001f;
-                    for(double d=0; d<placementDistance; d+=step){
-                        double cosx = Math.cos(playerRotation.x);
-                        Vector3i pos = StaticUtils.getBlockPos(tempV3f0.set(
-                                playerPosition.x + Math.sin(playerRotation.y)*cosx*d,
-                                playerPosition.y - Math.sin(playerRotation.x)*d,
-                                playerPosition.z - Math.cos(playerRotation.y)*cosx*d));
-                        Block b = world.getBlock(pos);
-                        if(b == null){
-                            System.err.println("chunk hasn't loaded yet!");
-                            break;
-                        }
-                        if(b != Block.VOID_BLOCK){
-                            d -= step;
-                            pos = StaticUtils.getBlockPos(tempV3f0.set(
-                                    playerPosition.x + Math.sin(playerRotation.y)*cosx*d,
-                                    playerPosition.y - Math.sin(playerRotation.x)*d,
-                                    playerPosition.z - Math.cos(playerRotation.y)*cosx*d));
-                            world.setBlock(pos, blocks.get("voxelesque:stoneBlock"));
-                            break;
+                //"raycast" to find the blocks the player might interact with
+                //Actually uses a more advanced and flexible system, at the cost of performance and my sanity.
+                TreeMap<Double, Vector3i> blocks = new TreeMap<>(); //K=distance from player, V=block position
+                Chunk chunk = world.getChunks().get(StaticUtils.getChunkPos(playerPosition));
+                Matrix4f temp = new Matrix4f();
+
+                if(chunk != null) {
+                    for (int x = 0; x < World.CHUNK_SIZE; ++x) {
+                        for (int y = 0; y < World.CHUNK_SIZE; ++y) {
+                            for (int z = 0; z < World.CHUNK_SIZE; ++z) {
+                                CPUMesh blockMesh = chunk.getBlock(x, y, z).getMesh();
+
+                                if (blockMesh != null && render.meshOnScreen(
+                                        blockMesh,
+                                        Render.getBlockTransform(temp, chunk.getPos().x*World.CHUNK_SIZE+x, chunk.getPos().y*World.CHUNK_SIZE+y, chunk.getPos().z*World.CHUNK_SIZE+z, World.CHUNK_SIZE),
+                                        render.getCameraViewMatrix(), render.getCameraProjectionMatrix(), 0.5f, 0.5f
+                                )) {
+                                    chunk.setBlock(x, y, z, Block.VOID_BLOCK);
+                                }
+                            }
                         }
                     }
                 }
 
-                if(render.getMouseButton(GLFW_MOUSE_BUTTON_LEFT) == 2){
-                    double step = 0.001f;
-                    for(double d=0; d<placementDistance; d+=step){
-                        double cosx = Math.cos(playerRotation.x);
-                        Vector3i pos = StaticUtils.getBlockPos(tempV3f0.set(
-                                playerPosition.x + Math.sin(playerRotation.y)*cosx*d,
-                                playerPosition.y - Math.sin(playerRotation.x)*d,
-                                playerPosition.z - Math.cos(playerRotation.y)*cosx*d));
-                        Block b = world.getBlock(pos);
-                        if(b == null){
-                            System.err.println("chunk hasn't loaded yet!");
-                            break;
-                        }
-                        if(b != Block.VOID_BLOCK){
-                            world.setBlock(pos, Block.VOID_BLOCK);
-                            break;
-                        }
-                    }
-                }
+
 
                 render.setTextEntityText(debugTextEntity,
                         "Memory:" + (runtime.totalMemory() - runtime.freeMemory()) / 1048576 + " / " + runtime.totalMemory() / 1048576 +

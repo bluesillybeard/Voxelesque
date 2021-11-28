@@ -42,7 +42,7 @@ public class World {
     }
 
     public Block getBlock(int x, int y, int z){
-        Chunk c = getChunk(x, y, z);
+        Chunk c = getBlockChunk(x, y, z);
         if(c != null)
             return c.getBlock(x&(CHUNK_SIZE-1), y&(CHUNK_SIZE-1), z&(CHUNK_SIZE-1));
         else return null;
@@ -53,7 +53,7 @@ public class World {
     }
 
     public void setBlock(int x, int y, int z, Block block){
-        Chunk c = getChunk(x, y, z);
+        Chunk c = getBlockChunk(x, y, z);
         if(c != null)c.setBlock(x&(CHUNK_SIZE-1), y&(CHUNK_SIZE-1), z&(CHUNK_SIZE-1), block);
         else System.err.println("Could not set chunk block!!!");
         //TODO: create a system that keeps track of blocks placed into nonexistent chunks
@@ -71,9 +71,10 @@ public class World {
      * @param z the z coordinate of the block
      * @return the Chunk that contains the block coordinates.
      */
-    public Chunk getChunk(int x, int y, int z){
-        return chunks.get(StaticUtils.getChunkPos(StaticUtils.getBlockWorldPos(new BetterVector3i(x, y, z))));
+    public Chunk getBlockChunk(int x, int y, int z){
+        return chunks.get(new Vector3i((int)Math.round(((x+0.5)/CHUNK_SIZE)-0.5), (int)Math.round(((y+0.5)/CHUNK_SIZE)-0.5), (int)Math.round(((z+0.5)/CHUNK_SIZE)-0.5)));
     }
+
 
     public double updateChunks(double targetTime){
         double startTime = GlobalBits.render.getTime();

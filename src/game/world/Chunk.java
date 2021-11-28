@@ -4,6 +4,8 @@ import engine.multiplatform.gpu.GPUChunk;
 import game.GlobalBits;
 import game.data.nbt.NBTElement;
 import game.world.block.Block;
+import org.joml.Vector3i;
+import org.lwjgl.system.CallbackI;
 
 
 public class Chunk implements Comparable<Chunk>{
@@ -12,12 +14,13 @@ public class Chunk implements Comparable<Chunk>{
     private final NBTElement[][][] nbt;
 
     private final GPUChunk handle;
-    private final int xPos, yPos, zPos;
+    private final Vector3i pos;
 
     public Chunk(int size, Block[][][] blocks, NBTElement[][][] nbt, int x, int y, int z){
-        this.xPos = x;
-        this.yPos = y;
-        this.zPos = z;
+        this.pos = new Vector3i();
+        this.pos.x = x;
+        this.pos.y = y;
+        this.pos.z = z;
         this.size = size;
         this.blocks = blocks;
         this.nbt = nbt;
@@ -28,9 +31,10 @@ public class Chunk implements Comparable<Chunk>{
      * creates an empty chunk.
      */
     public Chunk(int size, int x, int y, int z){
-        this.xPos = x;
-        this.yPos = y;
-        this.zPos = z;
+        this.pos = new Vector3i();
+        this.pos.x = x;
+        this.pos.y = y;
+        this.pos.z = z;
         this.size = size;
         this.blocks = new Block[size][size][size];
         this.nbt = new NBTElement[size][size][size];
@@ -67,7 +71,7 @@ public class Chunk implements Comparable<Chunk>{
     }
 
     private GPUChunk sendToRender() {
-        return GlobalBits.render.spawnChunk(this.size, this.blocks, this.xPos, this.yPos, this.zPos);
+        return GlobalBits.render.spawnChunk(this.size, this.blocks, this.pos.x, this.pos.y, this.pos.z);
     }
     @Override
     public int compareTo(Chunk o) {
@@ -75,10 +79,10 @@ public class Chunk implements Comparable<Chunk>{
     }
 
     public int HashCode(){
-        int out = this.xPos;
-        out ^= this.yPos >> 5;
-        out ^= this.zPos << 7;
-        out ^= this.xPos >> 17;
-        return out;
+        return this.pos.hashCode();
+    }
+
+    public Vector3i getPos(){
+        return pos;
     }
 }

@@ -4,6 +4,9 @@ import engine.multiplatform.gpu.*;
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
+import org.joml.Vector3i;
+import org.lwjgl.system.CallbackI;
 
 import java.awt.image.BufferedImage;
 import java.io.PrintStream;
@@ -391,4 +394,30 @@ public interface Render {
      * @return the time it took to render the frame in seconds.
      */
     double render();
+
+    /**
+     * allows the ability to get the matrix transform of a block position, for use with meshOnScreen()
+     *
+     * @param dest the mesh that wil be translated.
+     * @param x the X block pos
+     * @param y the Y block pos
+     * @param z the Z block pos
+     * @return the matrix transform of the block
+     */
+    static Matrix4f getBlockTransform(Matrix4f dest, int x, int y, int z, int chunkSize){
+        Vector3f temp = new Vector3f();
+        float mirror = ((x + z) & 1) - 0.5f; //it's upside down or not (-0.5 if it needs to be mirrored on the Z axis)
+
+        int chunkX = (int)Math.round(((x+0.5)/chunkSize)-0.5); //what on earth is this insanity?!?!?!
+        int chunkY = (int)Math.round(((y+0.5)/chunkSize)-0.5); //this is the correct equation, I just don't know *why* it's correct.
+        int chunkZ = (int)Math.round(((z+0.5)/chunkSize)-0.5);
+
+        int blockX = x&(chunkSize-1);
+        int blockY = y&(chunkSize-1);
+        int blockZ = z&(chunkSize-1);
+
+        return dest.scale(0.5f ,  0.5f, mirror)
+                .translate(blockX * 0.288675134595f, blockY * 0.5f, blockZ * 0.5f)
+                .translate(chunkX * chunkSize * 0.288675134595f, chunkY * chunkSize * 0.5f , chunkZ * chunkSize * 0.5f);
+    }
 }
