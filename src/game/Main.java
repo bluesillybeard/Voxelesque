@@ -8,11 +8,14 @@ import game.world.Chunk;
 import game.world.World;
 import game.world.block.Block;
 import game.world.block.SimpleBlock;
-import org.joml.Matrix4f;
-import org.joml.Vector3f;
-import org.joml.Vector3i;
+import org.joml.*;
 
+import java.lang.Math;
+import java.lang.Runtime;
+import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.IntFunction;
 
 import static game.GlobalBits.*;
 import static org.lwjgl.glfw.GLFW.*;
@@ -24,17 +27,17 @@ public class Main {
     public static void main(String[] args) {
         try {
             render = new GL33Render();
-            if (!render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(90), 1/60.)) {
+            if (!render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(90), 1 / 60.)) {
                 System.err.println("Unable to initialize Voxelesque engine");
                 System.exit(-1);
             }
             resourcesPath = System.getProperty("user.dir") + "/resources";
             render.setResourcesPath(GlobalBits.resourcesPath);
-            renderDistance = 150f;
+            renderDistance = 100f;
             tempV3f0 = new Vector3f();
             tempV3f1 = new Vector3f();
             tempV3i0 = new Vector3i();
-            playerPosition = new Vector3f(0, 72, 0);
+            playerPosition = new Vector3f(0, 0, 0);
             playerRotation = new Vector3f(0, 0, 0);
             sensitivity = 1;
             defaultShader = render.loadShaderProgram("Shaders/", "");
@@ -49,8 +52,8 @@ public class Main {
             render.lockMousePos();
             boolean locked = true;
             do {
-                if(render.getKey(GLFW_KEY_R) == 2) world.reset();
-                double worldTime = world.updateChunks(1/60.);
+                if (render.getKey(GLFW_KEY_R) == 2) world.reset();
+                double worldTime = world.updateChunks(1 / 60.);
 
 
                 updateCameraPos();
@@ -58,12 +61,11 @@ public class Main {
                 Runtime runtime = Runtime.getRuntime();
                 Vector3i blockPos = StaticUtils.getBlockPos(playerPosition);
 
-                if(render.getKey(GLFW_KEY_C) == 0){
-                    if(locked){
+                if (render.getKey(GLFW_KEY_C) == 0) {
+                    if (locked) {
                         render.unlockMousePos();
                         locked = false;
-                    }
-                    else {
+                    } else {
                         render.lockMousePos();
                         locked = true;
                     }
@@ -71,29 +73,55 @@ public class Main {
 
                 //"raycast" to find the blocks the player might interact with
                 //Actually uses a more advanced and flexible system, at the cost of performance and my sanity.
-                TreeMap<Double, Vector3i> blocks = new TreeMap<>(); //K=distance from player, V=block position
-                Chunk chunk = world.getChunks().get(StaticUtils.getChunkPos(playerPosition));
+                TreeMap<Float, Vector3i> collidedBlocks = new TreeMap<>(); //K=distance from player, V=block position, efficiently sorts the collisions in the right order.
+
+
                 Matrix4f temp = new Matrix4f();
+                CPUMesh blockMesh = blocks.get("voxelesque:grassBlock").getMesh();
+                int xOff = (int) (placementDistance/0.288675134595-0.5);
+                int yzOff = (int) (placementDistance*2-0.5);
+                for (int x = blockPos.x - xOff; x < blockPos.x + xOff; ++x) {
+                    for (int y = blockPos.y - yzOff; y < blockPos.y + yzOff; ++y) {
+                        for (int z = blockPos.z - yzOff; z < blockPos.z + yzOff; ++z) {
+                            //todo: needs optimizations - this 'raycast' algorithm eats up so much CPU the game lags to heck and back
+                            // hint: only test sphere around player
+                            temp = Render.getBlockTransform(temp.identity(), x, y, z, World.CHUNK_SIZE);
 
-                if(chunk != null && render.getMouseButton(GLFW_MOUSE_BUTTON_LEFT)>=2) {
-                    Vector3i cp = chunk.getPos();
-                    for (int x = 0; x < World.CHUNK_SIZE; ++x) {
-                        for (int y = 0; y < World.CHUNK_SIZE; ++y) {
-                            for (int z = 0; z < World.CHUNK_SIZE; ++z) {
-                                CPUMesh blockMesh = chunk.getBlock(x, y, z).getMesh();
-
-                                if (blockMesh != null && render.meshOnScreen(
-                                        blockMesh,
-                                        Render.getBlockTransform(temp.identity(), cp.x, cp.y, cp.z, x, y, z, World.CHUNK_SIZE),
-                                        render.getCameraViewMatrix(), render.getCameraProjectionMatrix(), (float)render.getMouseXPos(), (float)render.getMouseYPos()
-                                )) {
-                                    chunk.setBlock(x, y, z, Block.VOID_BLOCK);
-                                }
+                            Vector3i pos = new Vector3i(x, y, z);
+                            if (render.meshOnScreen(
+                                    blockMesh,
+                                    temp,
+                                    render.getCameraViewMatrix(), render.getCameraProjectionMatrix(), (float) render.getMouseXPos(), (float) render.getMouseYPos()
+                            )) {
+                                collidedBlocks.put(
+                                        new Vector3f(x * 0.288675134595f, y * 0.5f, z * 0.5f).distance(playerPosition),
+                                        pos);
                             }
                         }
                     }
                 }
+                Object[] collidedBlocksSet = collidedBlocks.entrySet().toArray();
+                Vector3i replaceable = null; //first void block followed by a non-void block in the array - this is where a block would be placed
+                Vector3i breakable = null; //first non-void block in the array - this is where a block would be broken
+                Vector3i last = null;
+                for (Object o : collidedBlocksSet) {
+                    Map.Entry<Float, Vector3i> entry = (Map.Entry<Float, Vector3i>) o;
+                    Vector3i val = entry.getValue();
+                    Block block = world.getBlock(val);
+                    if (block != null && block.getMesh() != null) {
+                        //if the block isn't void
+                        replaceable = last;
+                        breakable = val;
+                        break;
+                    }
+                    last = val;
 
+                }
+
+                if (breakable != null && render.getMouseButton(GLFW_MOUSE_BUTTON_LEFT) == 2)
+                    world.setBlock(breakable, Block.VOID_BLOCK);
+                if (replaceable != null && render.getMouseButton(GLFW_MOUSE_BUTTON_RIGHT) == 2)
+                    world.setBlock(replaceable, blocks.get("voxelesque:stoneBlock"));
 
 
                 render.setTextEntityText(debugTextEntity,
@@ -103,12 +131,12 @@ public class Main {
                                 "\npos: " + StaticUtils.betterVectorToString(playerPosition, 3) + ", rot: (" + StaticUtils.FloatToStringSigFigs(playerRotation.x, 3) + ", " + StaticUtils.FloatToStringSigFigs(playerRotation.y, 3) + ")" +
                                 "\nchunkPos: " + StaticUtils.getChunkPos(playerPosition) +
                                 "\nblock: " + world.getBlock(blockPos.x, blockPos.y, blockPos.z) +
-                                "\nframe: " + StaticUtils.FloatToStringSigFigs((float)(time), 10) +
-                                "\nworld: " + StaticUtils.FloatToStringSigFigs((float)worldTime, 10),
+                                "\nframe: " + StaticUtils.FloatToStringSigFigs((float) (time), 10) +
+                                "\nworld: " + StaticUtils.FloatToStringSigFigs((float) worldTime, 10),
                         false, false);
             } while (!render.shouldClose());
             render.close();
-        } catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             render.close();
         }

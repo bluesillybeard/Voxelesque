@@ -72,7 +72,10 @@ public class World {
      * @return the Chunk that contains the block coordinates.
      */
     public Chunk getBlockChunk(int x, int y, int z){
-        return chunks.get(new Vector3i((int)Math.round(((x+0.5)/CHUNK_SIZE)-0.5), (int)Math.round(((y+0.5)/CHUNK_SIZE)-0.5), (int)Math.round(((z+0.5)/CHUNK_SIZE)-0.5)));
+        Vector3i pos = new Vector3i((x & -CHUNK_SIZE)/CHUNK_SIZE, (y & -CHUNK_SIZE)/CHUNK_SIZE, (z & -CHUNK_SIZE)/CHUNK_SIZE);
+        //the '& -CHUNK_SIZE' is required because of a strange issue with integer division and negative numbers.
+        //It is also part of why CHUNK_SIZE must ALWAYS ALWAYS ALWAYS be a power of 2. If it isn't, weird stuff will happen.
+        return chunks.get(pos);
     }
 
 

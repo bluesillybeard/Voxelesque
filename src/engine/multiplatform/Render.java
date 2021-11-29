@@ -397,12 +397,26 @@ public interface Render {
 
 
     static Matrix4f getBlockTransform(Matrix4f dest, int cx, int cy, int cz, int bx, int by, int bz, int chunkSize){
-        float mirror = ((bx + bz) & 1) - 0.5f; //it's upside down or not (-0.5 if it needs to be mirrored on the Z axis)
-
-
+        //pretty simple stuff... That is, compared to the other crazy things I've had to do with this project.
         return dest
-                .translate(cx * chunkSize * 0.288675134595f, cy * chunkSize * 0.5f , cz * chunkSize * 0.5f)
-                .translate(bx * 0.288675134595f, by * 0.5f, bz * 0.5f)
-                .scale(0.5f ,  0.5f, mirror);
+                .translate((cx * chunkSize+bx) * 0.288675134595f, (cy * chunkSize+by) * 0.5f , (cz * chunkSize+bz) * 0.5f)
+                //*after* scaling, the mesh is translated to the right position
+                .scale(0.5f ,  0.5f, ((bx + bz) & 1) - 0.5f);
+                //*before* translating, the mesh is scaled to 1/2 size,
+                // and mirrored on the Z axis if the sum of blockX + blockZ is an odd number
+                //I don't know how I figured out the odd number thing, because I did it like a year ago and forgot.
+    }
+
+    static Matrix4f getBlockTransform(Matrix4f dest, int x, int y, int z, int chunkSize){
+        int cx = (x & -chunkSize)/chunkSize;
+        int cy = (y & -chunkSize)/chunkSize;
+        int cz = (z & -chunkSize)/chunkSize;
+        //' & -chunkSize' avoids strange issues with integer division and negative numbers.
+
+        int bx = x&(chunkSize-1);
+        int by = y&(chunkSize-1);
+        int bz = z&(chunkSize-1);
+        return getBlockTransform(dest, cx, cy, cz, bx, by, bz, chunkSize);
+
     }
 }
