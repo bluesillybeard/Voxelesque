@@ -5,6 +5,7 @@ import engine.multiplatform.gpu.GPUShader;
 import engine.multiplatform.gpu.GPUTexture;
 import engine.multiplatform.model.CPUMesh;
 import game.world.World;
+import org.joml.Vector3i;
 
 public interface Block extends GPUBlock {
     Block VOID_BLOCK = new VoidBlock();
@@ -17,6 +18,8 @@ public interface Block extends GPUBlock {
      */
     void destroy(int x, int y, int z, World world);
     void place(int x, int y, int z, World world);
+    void destroy(Vector3i pos, World world);
+    void place(Vector3i pos, World world);
     String getID();
     CPUMesh getMesh();
     GPUTexture getTexture();

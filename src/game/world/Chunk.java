@@ -53,9 +53,9 @@ public class Chunk implements Comparable<Chunk>{
         return blocks[x][y][z];
     }
 
-    public void setBlock(int x, int y, int z, Block block){
+    public void setBlock(int x, int y, int z, Block block, boolean buildImmediately){
         this.blocks[x][y][z] = block;
-        GlobalBits.render.setChunkBlock(handle, block, x, y, z);
+        GlobalBits.render.setChunkBlock(handle, block, x, y, z, buildImmediately);
     }
 
     public NBTElement getBlockNBT(int x, int y, int z){
@@ -71,7 +71,7 @@ public class Chunk implements Comparable<Chunk>{
     }
 
     private GPUChunk sendToRender() {
-        return GlobalBits.render.spawnChunk(this.size, this.blocks, this.pos.x, this.pos.y, this.pos.z);
+        return GlobalBits.render.spawnChunk(this.size, this.blocks, this.pos.x, this.pos.y, this.pos.z, false);
     }
     @Override
     public int compareTo(Chunk o) {

@@ -119,9 +119,9 @@ public class Main {
                 }
 
                 if (breakable != null && render.getMouseButton(GLFW_MOUSE_BUTTON_LEFT) == 2)
-                    world.setBlock(breakable, Block.VOID_BLOCK);
+                    world.getBlock(breakable).destroy(breakable, world);
                 if (replaceable != null && render.getMouseButton(GLFW_MOUSE_BUTTON_RIGHT) == 2)
-                    world.setBlock(replaceable, blocks.get("voxelesque:stoneBlock"));
+                    blocks.get("voxelesque:stoneBlock").place(replaceable, world);
 
 
                 render.setTextEntityText(debugTextEntity,

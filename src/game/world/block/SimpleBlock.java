@@ -10,6 +10,7 @@ import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
 import game.GlobalBits;
 import game.world.World;
+import org.joml.Vector3i;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -36,12 +37,22 @@ public class SimpleBlock implements Block {
 
     @Override
     public void destroy(int x, int y, int z, World world) {
-        world.setBlock(x, y, z, Block.VOID_BLOCK);
+        world.setBlock(x, y, z, Block.VOID_BLOCK, true);
     }
 
     @Override
     public void place(int x, int y, int z, World world) {
-        world.setBlock(x, y, z, this);
+        world.setBlock(x, y, z, this, true);
+    }
+
+    @Override
+    public void destroy(Vector3i pos, World world) {
+        world.setBlock(pos, Block.VOID_BLOCK, true);
+    }
+
+    @Override
+    public void place(Vector3i pos, World world) {
+        world.setBlock(pos, this, true);
     }
 
     @Override

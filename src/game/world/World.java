@@ -52,15 +52,15 @@ public class World {
         return getBlock(pos.x, pos.y, pos.z);
     }
 
-    public void setBlock(int x, int y, int z, Block block){
+    public void setBlock(int x, int y, int z, Block block, boolean buildImmediately){
         Chunk c = getBlockChunk(x, y, z);
-        if(c != null)c.setBlock(x&(CHUNK_SIZE-1), y&(CHUNK_SIZE-1), z&(CHUNK_SIZE-1), block);
+        if(c != null)c.setBlock(x&(CHUNK_SIZE-1), y&(CHUNK_SIZE-1), z&(CHUNK_SIZE-1), block, buildImmediately);
         else System.err.println("Could not set chunk block!!!");
         //TODO: create a system that keeps track of blocks placed into nonexistent chunks
     }
 
-    public void setBlock(Vector3i pos, Block block){
-        setBlock(pos.x, pos.y, pos.z, block);
+    public void setBlock(Vector3i pos, Block block, boolean buildImmediately){
+        setBlock(pos.x, pos.y, pos.z, block, buildImmediately);
     }
 
     /**

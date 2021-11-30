@@ -594,9 +594,15 @@ public class GL33Render implements Render {
      * @return the ID of the new chunk.
      */
     @Override
-    public GPUChunk spawnChunk(int size, GPUBlock[][][] blocks, int x, int y, int z) {
+    public GPUChunk spawnChunk(int size, GPUBlock[][][] blocks, int x, int y, int z, boolean buildImmediately) {
         GL33Chunk chunk = new GL33Chunk(size, blocks, x, y, z, cameraPosition);
-        newChunks.add(chunk);
+        if(buildImmediately){
+            chunk.taskScheduled = true;
+            chunks.put(chunk.getPosition(), chunk);
+            chunk.build(chunks);
+        } else {
+            newChunks.add(chunk);
+        }
         updateAdjacentChunks(chunk.getPosition());
         return chunk;
     }
@@ -608,11 +614,17 @@ public class GL33Render implements Render {
      * @param blocks a 3D array of blockModel IDs that represent that chunk's block data.
      */
     @Override
-    public void setChunkData(GPUChunk chunk, GPUBlock[][][] blocks) {
+    public void setChunkData(GPUChunk chunk, GPUBlock[][][] blocks, boolean buildImmediately) {
 
         GL33Chunk chunk1 = (GL33Chunk)(chunk);
+
         chunk1.setData(blocks);
-        if(!modifiedChunks.contains(chunk1))modifiedChunks.add(chunk1);
+        if(buildImmediately){
+            chunk1.taskScheduled = true;
+            chunk1.build(chunks);
+        } else {
+            if (!modifiedChunks.contains(chunk1)) modifiedChunks.add(chunk1);
+        }
         updateAdjacentChunks(chunk1.getPosition());
     }
 
@@ -623,10 +635,15 @@ public class GL33Render implements Render {
      * @param block the blockModel to be used
      */
     @Override
-    public void setChunkBlock(GPUChunk chunk, GPUBlock block, int x, int y, int z) {
+    public void setChunkBlock(GPUChunk chunk, GPUBlock block, int x, int y, int z, boolean buildImmediately) {
         GL33Chunk chunk1 = (GL33Chunk)(chunk);
         chunk1.setBlock(block, x, y, z);
-        if(!modifiedChunks.contains(chunk1))modifiedChunks.add(chunk1);
+        if(buildImmediately){
+            chunk1.taskScheduled = true;
+            chunk1.build(chunks);
+        } else {
+            if (!modifiedChunks.contains(chunk1)) modifiedChunks.add(chunk1);
+        }
         updateAdjacentChunks(chunk1.getPosition());
     }
 
