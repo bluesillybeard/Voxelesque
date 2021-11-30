@@ -181,7 +181,7 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
                 if(chunks != null)toUse = chunks.get(new Vector3i(pos.x+1, pos.y, pos.z));
                 else toUse = null;
 
-                xM = 1;
+                xM = 0;
             }
             else if(yM<0) {//0, -1, 0
                 if(chunks != null)toUse = chunks.get(new Vector3i(pos.x, pos.y-1, pos.z));
@@ -191,7 +191,7 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
             else if(yM>this.size-1){ //0, +1, 0
                 if(chunks != null)toUse = chunks.get(new Vector3i(pos.x, pos.y+1, pos.z));
                 else toUse = null;
-                yM  = 1;
+                yM  = 0;
             }
             else if(zM<0) { //0, 0, -1
                 if(chunks != null)toUse = chunks.get(new Vector3i(pos.x, pos.y, pos.z-1));
@@ -201,7 +201,7 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
             else if(zM>this.size-1){ //0, 0, +1
                 if(chunks != null)toUse = chunks.get(new Vector3i(pos.x, pos.y, pos.z+1));
                 else toUse = null;
-                zM = 1;
+                zM = 0;
             }
             if(toUse == null){
                 if(chunks != null)blockedFaces |= (1 << i); //if the chunk doesn't exist yet, assume it's blocked, unless it wasn't given adjacent chunks, in which case assume it isn't blocked.
