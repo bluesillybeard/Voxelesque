@@ -315,6 +315,11 @@ public interface Render {
     int getNumChunks();
 
     int getNumChunkSlots();
+
+    /**
+     * completely resets and rebuilds every chunk, removing any ghost blocks.
+     */
+    void rebuildChunks();
     //camera
     void setCameraPos(float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation);
 

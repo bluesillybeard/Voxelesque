@@ -668,6 +668,23 @@ public class GL33Render implements Render {
         return chunks.size();
     }
 
+    /**
+     * completely resets and rebuilds every chunk, removing any ghost blocks.
+     */
+    @Override
+    public void rebuildChunks() {
+        this.modifiedChunks.clear();
+        this.chunkBuildExecutor.getTasks().clear();
+        Set<Map.Entry<Vector3i, GL33Chunk>> chunkEntries = chunks.entrySet();
+        Iterator<Map.Entry<Vector3i, GL33Chunk>> iterator = chunkEntries.iterator();
+        while(iterator.hasNext()){
+            Map.Entry<Vector3i, GL33Chunk> entry = iterator.next();
+            entry.getValue().clearFromGPU();
+            newChunks.add(entry.getValue());
+            iterator.remove();
+        }
+    }
+
     private void updateCameraViewMatrix(){
         viewMatrix.identity().rotate(cameraRotation.x, tempv3f1.set(1, 0, 0))
                 .rotate(cameraRotation.y, tempv3f1.set(0, 1, 0))
@@ -948,29 +965,30 @@ public class GL33Render implements Render {
      */
     private void updateAdjacentChunks(Vector3i pos){
         GL33Chunk c;
+        Vector3i temp = new Vector3i();
 
         //(-1, 0, 0)
-        c = chunks.get(new Vector3i(pos.x-1, pos.y, pos.z));
+        c = chunks.get(temp.set(pos.x-1, pos.y, pos.z));
         if(c!=null && !modifiedChunks.contains(c))modifiedChunks.add(c);
 
         //(0, -1, 0)
-        c = chunks.get(new Vector3i(pos.x, pos.y-1, pos.z));
+        c = chunks.get(temp.set(pos.x, pos.y-1, pos.z));
         if(c!=null && !modifiedChunks.contains(c))modifiedChunks.add(c);
 
         //(0, 0, -1)
-        c = chunks.get(new Vector3i(pos.x, pos.y, pos.z-1));
+        c = chunks.get(temp.set(pos.x, pos.y, pos.z-1));
         if(c!=null && !modifiedChunks.contains(c))modifiedChunks.add(c);
 
         //(+1, 0, 0)
-        c = chunks.get(new Vector3i(pos.x+1, pos.y, pos.z));
+        c = chunks.get(temp.set(pos.x+1, pos.y, pos.z));
         if(c!=null && !modifiedChunks.contains(c))modifiedChunks.add(c);
 
         //(0, +1, 0)
-        c = chunks.get(new Vector3i(pos.x, pos.y+1, pos.z));
+        c = chunks.get(temp.set(pos.x, pos.y+1, pos.z));
         if(c!=null && !modifiedChunks.contains(c))modifiedChunks.add(c);
 
         //(0, 0, +1)
-        c = chunks.get(new Vector3i(pos.x, pos.y, pos.z+1));
+        c = chunks.get(temp.set(pos.x, pos.y, pos.z+1));
         if(c!=null && !modifiedChunks.contains(c))modifiedChunks.add(c);
     }
 

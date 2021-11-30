@@ -33,7 +33,7 @@ public class Main {
             }
             resourcesPath = System.getProperty("user.dir") + "/resources";
             render.setResourcesPath(GlobalBits.resourcesPath);
-            renderDistance = 100f;
+            renderDistance = 175f;
             tempV3f0 = new Vector3f();
             tempV3f1 = new Vector3f();
             tempV3i0 = new Vector3i();
@@ -52,7 +52,8 @@ public class Main {
             render.lockMousePos();
             boolean locked = true;
             do {
-                if (render.getKey(GLFW_KEY_R) == 2) world.reset();
+                if (render.getKey(GLFW_KEY_T) == 2) world.reset();
+                if(render.getKey(GLFW_KEY_R) == 2) render.rebuildChunks();
                 double worldTime = world.updateChunks(1 / 60.);
 
 
@@ -160,7 +161,7 @@ public class Main {
             cameraInc.y = 1;
         }
         // Update camera position
-        double CAMERA_POS_STEP = 1 / 3d;
+        double CAMERA_POS_STEP = 1 / 6d;
         if(render.getKey(GLFW_KEY_LEFT_CONTROL) >= 2) CAMERA_POS_STEP = 1.;
         if (cameraInc.z != 0) {
             playerPosition.x += (float) Math.sin(playerRotation.y) * -1.0f * cameraInc.z * CAMERA_POS_STEP;
