@@ -20,7 +20,7 @@ The kind of hardware I'm aiming for this game to run on is as follows:
 
 -GT 730 4GB
 
--8GB RAM (only ~500 MB allocated, but I can expand this in the future)
+-8GB RAM (only 1gb allocated, but I can expand this in the future)
 
 I choose this because it is something that Minecraft runs on, and these are actually the specs of my secondary PC, 
 which I will be using to test the performance of Voxelesque.

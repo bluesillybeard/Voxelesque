@@ -2,35 +2,24 @@ package game.world.generation;
 //perlin noise generator from https://github.com/warmwaffles/Noise/blob/master/src/prime/PerlinNoise.java
 /**
  * <p>A Perlin noise generation utility. Construct the PerlinNoise object with
- * the specified parameters and make a call to the {@link #getHeight(double, double)}
+ * the specified parameters and make a call to the {@link #getHeight(float, float)}
  * method.</p>
  *
  * <p>This class does not make use of the <i>Random</i> class.</p>
+ * <p>This is actually a modified version by Bluesillybeard, to accept floats instead of doubles.</p>
  *
- * @author Matthew A. Johnston (WarmWaffles)
+ * @author Matthew A. Johnston (WarmWaffles), Bluesillybeard
  *
  */
 public class PerlinNoise {
     private int    octaves;
-    private double amplitude;
-    private double frequency;
-    private double persistence;
+    private float amplitude;
+    private float frequency;
+    private float persistence;
     private int    seed;
 
-    /**
-     *
-     * @param seed
-     * @param persistence
-     * @param frequency
-     * @param amplitude
-     * @param octaves
-     */
-    public PerlinNoise(int seed, double persistence, double frequency, double amplitude, int octaves) {
+    public PerlinNoise(int seed, float persistence, float frequency, float amplitude, int octaves) {
         set(seed, persistence, frequency, amplitude, octaves);
-    }
-
-    public PerlinNoise() {
-        set(0,0,0,0,0);
     }
 
     /**
@@ -39,7 +28,7 @@ public class PerlinNoise {
      * @return The height of the (x,y) coordinates multiplied by the
      * amplitude
      */
-    public double getHeight(double x, double y) {
+    public float getHeight(float x, float y) {
         return amplitude * total(x,y);
     }
 
@@ -55,15 +44,15 @@ public class PerlinNoise {
         return octaves;
     }
 
-    public double getAmplitude() {
+    public float getAmplitude() {
         return amplitude;
     }
 
-    public double getFrequency() {
+    public float getFrequency() {
         return frequency;
     }
 
-    public double getPersistence() {
+    public float getPersistence() {
         return persistence;
     }
 
@@ -84,7 +73,7 @@ public class PerlinNoise {
      * @param octaves
      *            The octaves of the frequency
      */
-    public final void set(int seed, double persistence, double frequency, double amplitude, int octaves) {
+    public final void set(int seed, float persistence, float frequency, float amplitude, int octaves) {
         this.seed        = 2 + seed * seed;
         this.octaves     = octaves;
         this.amplitude   = amplitude;
@@ -100,15 +89,15 @@ public class PerlinNoise {
         this.octaves = octaves;
     }
 
-    public void setAmplitude(double amplitude) {
+    public void setAmplitude(float amplitude) {
         this.amplitude = amplitude;
     }
 
-    public void setFrequency(double frequency) {
+    public void setFrequency(float frequency) {
         this.frequency = frequency;
     }
 
-    public void setPersistence(double persistence) {
+    public void setPersistence(float persistence) {
         this.persistence = persistence;
     }
 
@@ -116,10 +105,10 @@ public class PerlinNoise {
     // PRIVATE
     // ========================================================================
 
-    private double total(double x, double y) {
-        double t    = 0.0;
-        double amp  = 1;
-        double freq = frequency;
+    private float total(float x, float y) {
+        float t    = 0;
+        float amp  = 1;
+        float freq = frequency;
 
         for(int k = 0; k < octaves; k++) {
             t    += getValue(y * freq + seed, x * freq + seed) * amp;
@@ -130,63 +119,62 @@ public class PerlinNoise {
         return t;
     }
 
-    private double getValue(double x, double y) {
+    private float getValue(float x, float y) {
         int Xint     = (int) x;
         int Yint     = (int) y;
-        double Xfrac = x - Xint;
-        double Yfrac = y - Yint;
+        float Xfrac = x - Xint;
+        float Yfrac = y - Yint;
 
         // noise values
-        double n01 = noise(Xint - 1, Yint - 1);
-        double n02 = noise(Xint + 1, Yint - 1);
-        double n03 = noise(Xint - 1, Yint + 1);
-        double n04 = noise(Xint + 1, Yint + 1);
-        double n05 = noise(Xint - 1, Yint);
-        double n06 = noise(Xint + 1, Yint);
-        double n07 = noise(Xint, Yint - 1);
-        double n08 = noise(Xint, Yint + 1);
-        double n09 = noise(Xint, Yint);
+        float n01 = noise(Xint - 1, Yint - 1);
+        float n02 = noise(Xint + 1, Yint - 1);
+        float n03 = noise(Xint - 1, Yint + 1);
+        float n04 = noise(Xint + 1, Yint + 1);
+        float n05 = noise(Xint - 1, Yint);
+        float n06 = noise(Xint + 1, Yint);
+        float n07 = noise(Xint, Yint - 1);
+        float n08 = noise(Xint, Yint + 1);
+        float n09 = noise(Xint, Yint);
 
-        double n12 = noise(Xint + 2, Yint - 1);
-        double n14 = noise(Xint + 2, Yint + 1);
-        double n16 = noise(Xint + 2, Yint);
+        float n12 = noise(Xint + 2, Yint - 1);
+        float n14 = noise(Xint + 2, Yint + 1);
+        float n16 = noise(Xint + 2, Yint);
 
-        double n23 = noise(Xint - 1, Yint + 2);
-        double n24 = noise(Xint + 1, Yint + 2);
-        double n28 = noise(Xint, Yint + 2);
+        float n23 = noise(Xint - 1, Yint + 2);
+        float n24 = noise(Xint + 1, Yint + 2);
+        float n28 = noise(Xint, Yint + 2);
 
-        double n34 = noise(Xint + 2, Yint + 2);
+        float n34 = noise(Xint + 2, Yint + 2);
 
         // find the noise values of the four corners
-        double x0y0 = 0.0625 * (n01 + n02 + n03 + n04) + 0.125 * (n05 + n06 + n07 + n08) + 0.25 * (n09);
-        double x1y0 = 0.0625 * (n07 + n12 + n08 + n14) + 0.125 * (n09 + n16 + n02 + n04) + 0.25 * (n06);
-        double x0y1 = 0.0625 * (n05 + n06 + n23 + n24) + 0.125 * (n03 + n04 + n09 + n28) + 0.25 * (n08);
-        double x1y1 = 0.0625 * (n09 + n16 + n28 + n34) + 0.125 * (n08 + n14 + n06 + n24) + 0.25 * (n04);
+        float x0y0 = 0.0625f * (n01 + n02 + n03 + n04) + 0.125f * (n05 + n06 + n07 + n08) + 0.25f * (n09);
+        float x1y0 = 0.0625f * (n07 + n12 + n08 + n14) + 0.125f * (n09 + n16 + n02 + n04) + 0.25f * (n06);
+        float x0y1 = 0.0625f * (n05 + n06 + n23 + n24) + 0.125f * (n03 + n04 + n09 + n28) + 0.25f * (n08);
+        float x1y1 = 0.0625f * (n09 + n16 + n28 + n34) + 0.125f * (n08 + n14 + n06 + n24) + 0.25f * (n04);
 
         // interpolate between those values according to the x and y fractions
-        double v1 = interpolate(x0y0, x1y0, Xfrac); // interpolate in x
+        float v1 = interpolate(x0y0, x1y0, Xfrac); // interpolate in x
         // direction (y)
-        double v2 = interpolate(x0y1, x1y1, Xfrac); // interpolate in x
+        float v2 = interpolate(x0y1, x1y1, Xfrac); // interpolate in x
         // direction (y+1)
-        double fin = interpolate(v1, v2, Yfrac);    // interpolate in y direction
 
-        return fin;
+        return interpolate(v1, v2, Yfrac);
     }
 
-    private double interpolate(double x, double y, double a) {
-        double negA = 1.0 - a;
-        double negASqr = negA * negA;
-        double fac1 = 3.0 * (negASqr) - 2.0 * (negASqr * negA);
-        double aSqr = a * a;
-        double fac2 = 3.0 * aSqr - 2.0 * (aSqr * a);
+    private float interpolate(float x, float y, float a) {
+        float negA = 1.0f - a;
+        float negASqr = negA * negA;
+        float fac1 = 3.0f * (negASqr) - 2.0f * (negASqr * negA);
+        float aSqr = a * a;
+        float fac2 = 3.0f * aSqr - 2.0f * (aSqr * a);
 
         return x * fac1 + y * fac2; // add the weighted factors
     }
 
-    private double noise(int x, int y) {
+    private float noise(int x, int y) {
         int n = x + y * 57;
         n = (n << 13) ^ n;
-        int t = (n * (n * n * 15731 + 789221) + 1376312589) & 0x7fffffff;
-        return 1.0 - (double) (t) * 0.931322574615478515625e-9;
+        int t = n^0xaaaaaaaa & 0x7fffffff;
+        return 1.0f - (float) (t) * 0.931322574615478515625e-9f;
     }
 }
