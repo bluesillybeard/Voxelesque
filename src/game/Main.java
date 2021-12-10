@@ -2,9 +2,9 @@ package game;
 
 import engine.gl33.GL33Render;
 import engine.multiplatform.Render;
+import engine.multiplatform.gpu.GPUTextEntity;
 import engine.multiplatform.model.CPUMesh;
 import game.misc.StaticUtils;
-import game.world.Chunk;
 import game.world.World;
 import game.world.block.Block;
 import game.world.block.SimpleBlock;
@@ -13,9 +13,7 @@ import org.joml.*;
 import java.lang.Math;
 import java.lang.Runtime;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
-import java.util.function.IntFunction;
 
 import static game.GlobalBits.*;
 import static org.lwjgl.glfw.GLFW.*;
@@ -47,7 +45,7 @@ public class Main {
             System.out.println(blocks.keySet());
             guiScale = 0.03f;
             World world = new World();
-            int debugTextEntity = render.createTextEntity(render.readTexture(render.readImage("Textures/ASCII-Extended.png")), "", false, false, guiShader, -1f, 1f - guiScale, 0f, 0f, 0f, 0f, guiScale, guiScale, 0f);
+            GPUTextEntity debugTextEntity = render.createTextEntity(render.readTexture(render.readImage("Textures/ASCII-Extended.png")), "", false, false, guiShader, -1f, 1f - guiScale, 0f, 0f, 0f, 0f, guiScale, guiScale, 0f);
             double placementDistance = 5;
             render.lockMousePos();
             boolean locked = true;

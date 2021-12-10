@@ -7,7 +7,6 @@ import engine.gl33.model.GL33Texture;
 import engine.gl33.render.*;
 import engine.multiplatform.Render;
 import engine.multiplatform.Util.AtlasGenerator;
-import engine.multiplatform.Util.SlottedArrayList;
 import engine.multiplatform.Util.Utils;
 import engine.multiplatform.Util.threads.DistanceRunnable;
 import engine.multiplatform.Util.threads.PriorityThreadPoolExecutor;
@@ -72,8 +71,7 @@ public class GL33Render implements Render {
     private final Vector3f cameraRotation = new Vector3f();
 
     //todo: smarter resource management that uses hashes to make sure a GPUTexture, GPUMesh, etc is only created once.
-    private final SlottedArrayList<GL33Entity> renderableEntities = new SlottedArrayList<>();
-    private final SlottedArrayList<GL33TextEntity> textEntities = new SlottedArrayList<>();
+    private final Set<GL33Entity> entities = new TreeSet<>();
     private final Set<GL33Shader> shaderPrograms = new HashSet<>();
     private final Map<Vector3i, GL33Chunk> chunks = new TreeMap<>(new HashComparator());
     private final PriorityThreadPoolExecutor<DistanceRunnable> chunkBuildExecutor = new PriorityThreadPoolExecutor<>(DistanceRunnable.inOrder, Runtime.getRuntime().availableProcessors());
@@ -453,134 +451,136 @@ public class GL33Render implements Render {
     }
 
     @Override
-    public int createEntity(GPUModel model, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
+    public GPUEntity createEntity(GPUModel model, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
         GL33Entity entity = new GL33Entity((GL33Model)(model), (GL33Shader)(shader));
         entity.setPosition(xPos, yPos, zPos);
         entity.setRotation(xRotation, yRotation, zRotation);
         entity.setScale(xScale, yScale, zScale);
-        return renderableEntities.add(entity);
+        entities.add(entity);
+        return entity;
     }
 
     @Override
-    public int createEntity(GPUTexture texture, GPUMesh mesh, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
+    public GPUEntity createEntity(GPUTexture texture, GPUMesh mesh, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
         GL33Entity entity = new GL33Entity((GL33Mesh)(mesh), (GL33Shader)(shader), (GL33Texture)(texture));
         entity.setPosition(xPos, yPos, zPos);
         entity.setRotation(xRotation, yRotation, zRotation);
         entity.setScale(xScale, yScale, zScale);
-        return renderableEntities.add(entity);
+        return entity;
     }
 
     @Override
-    public void setEntityPos(int entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
-        GL33Entity ent = renderableEntities.get(entity);
+    public void setEntityPos(GPUEntity entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
+        GL33Entity ent = (GL33Entity)entity;
         ent.setPosition(xPos, yPos, zPos);
         ent.setRotation(xRotation, yRotation, zRotation);
         ent.setScale(xScale, yScale, zScale);
     }
 
     @Override
-    public void setEntityPos(int entity, float xPos, float yPos, float zPos) {
-        renderableEntities.get(entity).setPosition(xPos, yPos, zPos);
+    public void setEntityPos(GPUEntity entity, float xPos, float yPos, float zPos) {
+        ((GL33Entity)entity).setPosition(xPos, yPos, zPos);
 
     }
 
     @Override
-    public void setEntityRotation(int entity, float xRotation, float yRotation, float zRotation) {
-        renderableEntities.get(entity).setRotation(xRotation, yRotation, zRotation);
+    public void setEntityRotation(GPUEntity entity, float xRotation, float yRotation, float zRotation) {
+        ((GL33Entity)entity).setRotation(xRotation, yRotation, zRotation);
     }
 
     @Override
-    public void setEntityScale(int entity, float xScale, float yScale, float zScale) {
-        renderableEntities.get(entity).setScale(xScale, yScale, zScale);
+    public void setEntityScale(GPUEntity entity, float xScale, float yScale, float zScale) {
+        ((GL33Entity)entity).setScale(xScale, yScale, zScale);
     }
 
     @Override
-    public void setEntityShader(int entity, GPUShader shader) {
-        renderableEntities.get(entity).setShaderProgram((GL33Shader)(shader));
+    public void setEntityShader(GPUEntity entity, GPUShader shader) {
+        ((GL33Entity)entity).setShaderProgram((GL33Shader)(shader));
     }
 
     @Override
-    public Matrix4f getEntityTransform(int entity) {
-        return renderableEntities.get(entity).getModelViewMatrix();
+    public Matrix4f getEntityTransform(GPUEntity entity) {
+        return ((GL33Entity)entity).getModelViewMatrix();
     }
 
     @Override
-    public void deleteEntity(int entity) {
-        renderableEntities.remove(entity);
+    public void deleteEntity(GPUEntity entity) {
+        entities.remove((GL33Entity)entity);
     }
 
     @Override
     public int getNumEntities() {
-        return renderableEntities.size();
+        return entities.size();
     }
 
     @Override
     public int getNumEntitySlots() {
-        return renderableEntities.capacity();
+        return entities.size();
     }
 
     @Override
-    public int createTextEntity(GPUTexture texture, String text, boolean centerX, boolean centerY, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
+    public GPUTextEntity createTextEntity(GPUTexture texture, String text, boolean centerX, boolean centerY, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
         GL33TextEntity ent = new GL33TextEntity(text, (GL33Shader)(shader), (GL33Texture)(texture), centerX, centerY);
         ent.setPosition(xPos, yPos, zPos);
         ent.setRotation(xRotation, yRotation, zRotation);
         ent.setScale(xScale, yScale, zScale);
-        return textEntities.add(ent);
+        entities.add(ent);
+        return ent;
     }
 
     @Override
-    public void setTextEntityPos(int entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
-        GL33TextEntity ent = textEntities.get(entity);
+    public void setTextEntityPos(GPUTextEntity entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
+        GL33TextEntity ent = (GL33TextEntity)entity;
         ent.setPosition(xPos, yPos, zPos);
         ent.setRotation(xRotation, yRotation, zRotation);
         ent.setScale(xScale, yScale, zScale);
     }
 
     @Override
-    public void setTextEntityPos(int entity, float xPos, float yPos, float zPos) {
-        textEntities.get(entity).setPosition(xPos, yPos, zPos);
+    public void setTextEntityPos(GPUTextEntity entity, float xPos, float yPos, float zPos) {
+        ((GL33TextEntity)entity).setPosition(xPos, yPos, zPos);
 
     }
 
     @Override
-    public void setTextEntityRotation(int entity, float xRotation, float yRotation, float zRotation) {
-        textEntities.get(entity).setRotation(xRotation, yRotation, zRotation);
+    public void setTextEntityRotation(GPUTextEntity entity, float xRotation, float yRotation, float zRotation) {
+        ((GL33TextEntity)entity).setRotation(xRotation, yRotation, zRotation);
     }
 
     @Override
-    public void setTextEntityScale(int entity, float xScale, float yScale, float zScale) {
-        textEntities.get(entity).setScale(xScale, yScale, zScale);
+    public void setTextEntityScale(GPUTextEntity entity, float xScale, float yScale, float zScale) {
+        ((GL33TextEntity)entity).setScale(xScale, yScale, zScale);
     }
 
     @Override
-    public void setTextEntityShader(int entity, GPUShader shader) {
-        textEntities.get(entity).setShaderProgram((GL33Shader)(shader));
+    public void setTextEntityShader(GPUTextEntity entity, GPUShader shader) {
+        ((GL33TextEntity)entity).setShaderProgram((GL33Shader)(shader));
     }
 
     @Override
-    public void setTextEntityText(int entity, String text, boolean centerX, boolean centerY) {
-        textEntities.get(entity).setText(text, centerX, centerY);
+    public void setTextEntityText(GPUTextEntity entity, String text, boolean centerX, boolean centerY) {
+        ((GL33TextEntity)entity).setText(text, centerX, centerY);
     }
 
     @Override
-    public Matrix4f getTextEntityTransform(int entity) {
-        return textEntities.get(entity).getModelViewMatrix();
+    public Matrix4f getTextEntityTransform(GPUTextEntity entity) {
+        return ((GL33TextEntity)entity).getModelViewMatrix();
     }
 
     @Override
-    public void deleteTextEntity(int entity) {
-        textEntities.get(entity).getModel().mesh.cleanUp();
-        textEntities.remove(entity);
+    public void deleteTextEntity(GPUTextEntity entity) {
+        ((GL33TextEntity)entity).getModel().mesh.cleanUp(); //clean up the mesh since it isn't being handled by the game.
+        entities.remove((GL33Entity)entity);
     }
 
     @Override
     public int getNumTextEntities() {
-        return textEntities.size();
+        return entities.size();
     }
 
     @Override
     public int getNumTextEntitySlots() {
-        return textEntities.capacity();
+        return entities.size();
     }
 
     /**
@@ -943,7 +943,7 @@ public class GL33Render implements Render {
             shaderProgram.setViewMatrix(viewMatrix);
             shaderProgram.setTextureSampler(0);
         }
-        for (GL33Entity GL33Entity : renderableEntities) {
+        for (GL33Entity GL33Entity : entities) {
             GL33Entity.render();
         }
         //render each chunk
@@ -953,9 +953,6 @@ public class GL33Render implements Render {
                 chunk.sendToGPU();
             }
             chunk.render();
-        }
-        for(GL33Entity textEntity: textEntities){
-            textEntity.render();
         }
     }
 

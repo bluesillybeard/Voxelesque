@@ -229,23 +229,23 @@ public interface Render {
 
     //entities
 
-    int createEntity(GPUModel model, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
+    GPUEntity createEntity(GPUModel model, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
-    int createEntity(GPUTexture texture, GPUMesh mesh, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
+    GPUEntity createEntity(GPUTexture texture, GPUMesh mesh, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
-    void setEntityPos(int entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
+    void setEntityPos(GPUEntity entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
-    void setEntityPos(int entity, float xPos, float yPos, float zPos);
+    void setEntityPos(GPUEntity entity, float xPos, float yPos, float zPos);
 
-    void setEntityRotation(int entity, float xRotation, float yRotation, float zRotation);
+    void setEntityRotation(GPUEntity entity, float xRotation, float yRotation, float zRotation);
 
-    void setEntityScale(int entity, float xScale, float yScale, float zScale);
+    void setEntityScale(GPUEntity entity, float xScale, float yScale, float zScale);
 
-    void setEntityShader(int entity, GPUShader shader);
+    void setEntityShader(GPUEntity entity, GPUShader shader);
 
-    Matrix4f getEntityTransform(int entity);
+    Matrix4f getEntityTransform(GPUEntity entity);
 
-    void deleteEntity(int entity);
+    void deleteEntity(GPUEntity entity);
 
     int getNumEntities();
 
@@ -257,23 +257,23 @@ public interface Render {
      * creates an entity that displays text.
      * @return the text entity ID.
      */
-    int createTextEntity(GPUTexture texture, String text, boolean centerX, boolean centerY, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
+    GPUTextEntity createTextEntity(GPUTexture texture, String text, boolean centerX, boolean centerY, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
-    void setTextEntityPos(int entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
+    void setTextEntityPos(GPUTextEntity entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
-    void setTextEntityPos(int entity, float xPos, float yPos, float zPos);
+    void setTextEntityPos(GPUTextEntity entity, float xPos, float yPos, float zPos);
 
-    void setTextEntityRotation(int entity, float xRotation, float yRotation, float zRotation);
+    void setTextEntityRotation(GPUTextEntity entity, float xRotation, float yRotation, float zRotation);
 
-    void setTextEntityScale(int entity, float xScale, float yScale, float zScale);
+    void setTextEntityScale(GPUTextEntity entity, float xScale, float yScale, float zScale);
 
-    void setTextEntityShader(int entity, GPUShader shader);
+    void setTextEntityShader(GPUTextEntity entity, GPUShader shader);
 
-    void setTextEntityText(int entity, String text, boolean centerX, boolean centerY);
+    void setTextEntityText(GPUTextEntity entity, String text, boolean centerX, boolean centerY);
 
-    Matrix4f getTextEntityTransform(int entity);
+    Matrix4f getTextEntityTransform(GPUTextEntity entity);
 
-    void deleteTextEntity(int entity);
+    void deleteTextEntity(GPUTextEntity entity);
 
     int getNumTextEntities();
 

@@ -3,37 +3,33 @@ package engine.gl33.render;
 import engine.gl33.model.GL33Mesh;
 import engine.gl33.model.GL33Model;
 import engine.gl33.model.GL33Texture;
+import engine.multiplatform.gpu.GPUEntity;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-public class GL33Entity {
+import java.util.Objects;
 
+public class GL33Entity implements GPUEntity, Comparable<GL33Entity> {
+
+    private static int ID;
+    private final int id;
     private final boolean hidden;
 
     private final Vector3f position;
-
     private final Vector3f scale;
-
-    private GL33Shader shaderProgram;
+    private final Vector3f rotation;
 
     private final Matrix4f modelViewMatrix;
 
+    private GL33Shader shaderProgram;
     private GL33Model model;
 
-    private final Vector3f rotation;
-
     public GL33Entity(GL33Mesh mesh, GL33Shader shaderProgram, GL33Texture texture) {
-        this.model = new GL33Model(mesh, texture);
-        this.shaderProgram = shaderProgram;
-        this.position = new Vector3f();
-        this.scale = new Vector3f();
-        this.rotation = new Vector3f();
-        this.modelViewMatrix = new Matrix4f();
-        hidden = false;
-        updateViewMatrix();
+        this(new GL33Model(mesh, texture), shaderProgram);
     }
 
     public GL33Entity(GL33Model model, GL33Shader shaderProgram) {
+        this.id = ID++;
         this.model = model;
         this.shaderProgram = shaderProgram;
         this.position = new Vector3f();
@@ -43,6 +39,7 @@ public class GL33Entity {
         hidden = false;
         updateViewMatrix();
     }
+
 
     public Matrix4f getModelViewMatrix(){
         return modelViewMatrix;
@@ -117,5 +114,31 @@ public class GL33Entity {
 
             this.model.render();
         }
+    }
+
+    /**
+     * tells what render backend this came from.
+     * supported render APIs:
+     * 0:unknown (This should absolutely under no circumstances ever happen. Not in all time and space should this value ever be returned by this function)
+     * 1:GL33
+     *
+     * @return the render backend ID
+     */
+    @Override
+    public int getRenderType() {
+        return 1;
+    }
+
+    public int hashCode(){
+        return Objects.hash(id);
+    }
+
+    /**
+     * @param o the other GL33Entity.
+     * @return this.hashCode() - o.hashCode()
+     */
+    @Override
+    public int compareTo(GL33Entity o) {
+        return this.hashCode() - o.hashCode();
     }
 }
