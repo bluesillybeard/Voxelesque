@@ -13,6 +13,7 @@ import org.joml.*;
 import java.lang.Math;
 import java.lang.Runtime;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import static game.GlobalBits.*;
@@ -99,13 +100,12 @@ public class Main {
                         }
                     }
                 }
-                Object[] collidedBlocksSet = collidedBlocks.entrySet().toArray();
+                Set<Map.Entry<Float, Vector3i>> collidedBlocksSet = collidedBlocks.entrySet();
                 Vector3i replaceable = null; //first void block followed by a non-void block in the array - this is where a block would be placed
                 Vector3i breakable = null; //first non-void block in the array - this is where a block would be broken
                 Vector3i last = null;
-                for (Object o : collidedBlocksSet) {
-                    Map.Entry<Float, Vector3i> entry = (Map.Entry<Float, Vector3i>) o;
-                    Vector3i val = entry.getValue();
+                for (Map.Entry<Float, Vector3i> o : collidedBlocksSet) {
+                    Vector3i val = o.getValue();
                     Block block = world.getBlock(val);
                     if (block != null && block.getMesh() != null) {
                         //if the block isn't void

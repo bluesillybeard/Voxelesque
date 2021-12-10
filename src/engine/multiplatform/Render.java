@@ -4,14 +4,23 @@ import engine.multiplatform.gpu.*;
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
 import org.joml.Matrix4f;
-import org.joml.Vector3f;
-import org.joml.Vector3i;
-import org.lwjgl.system.CallbackI;
 
 import java.awt.image.BufferedImage;
 import java.io.PrintStream;
 import java.util.List;
 
+
+/**
+ *
+ * a Render is something that converts a rendering API (OpenGL 3.3, Vulcan, etc)
+ * and converts it into a more generic OOP form, which follows this interface.
+ *
+ * It also handles the window, and any inputs related to it.
+ * Key Presses, Window Resizing, Cursor Movements, etc. should all be handled by the Render.
+ *
+ * Only one Render should ever exist at once.
+ * if more than one Render object exist at a given moment, then someone failed their job and should be fired immediately.
+ */
 @SuppressWarnings("unused")
 public interface Render {
 
@@ -278,6 +287,7 @@ public interface Render {
     int getNumTextEntities();
 
     int getNumTextEntitySlots();
+
     //chunks
 
     /**
@@ -333,6 +343,28 @@ public interface Render {
     void lockMousePos();
 
     void unlockMousePos();
+
+
+    /**
+     * creates a text box that the user can type into.
+     * Note that a text box is simply a text entity whose text can be modified by the user,
+     * which itself is just an entity that displays text.
+     *
+     * Although a Render it mainly a graphics API conversion, it is also an input handler
+     * which is why text boxes, sliders, etc. are implemented on the Render side and not the game side.
+     * @return the text box object. Pass into
+     */
+    GPUTextBox createTextBox();
+
+    String getTextBoxText(GPUTextBox text);
+
+    GPUTextBox getSelectedTextBox();
+
+    boolean textBoxSelected(GPUTextBox text);
+
+    void deleteTextBox(GPUTextEntity entity);
+
+    int getNumTextBoxes();
 
     /**
      * Tells weather a mesh would appear on a part of the screen if it were to be rendered.

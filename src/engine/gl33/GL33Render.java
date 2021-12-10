@@ -583,6 +583,20 @@ public class GL33Render implements Render {
         return entities.size();
     }
 
+    //todo: actually implement text boxes.
+
+
+
+    @Override
+    public void deleteTextBox(GPUTextEntity entity) {
+
+    }
+
+    @Override
+    public int getNumTextBoxes() {
+        return 0;
+    }
+
     /**
      * creates a chunk at the chunk position [x, y, z]
      *
@@ -720,6 +734,36 @@ public class GL33Render implements Render {
     @Override
     public void unlockMousePos() {
         window.unlockMousePos();
+    }
+
+    /**
+     * creates a text box that the user can type into.
+     * Note that a text box is simply a text entity whose text can be modified by the user,
+     * which itself is just an entity that displays text.
+     * <p>
+     * Although a Render it mainly a graphics API conversion, it is also an input handler
+     * which is why text boxes, sliders, etc. are implemented on the Render side and not the game side.
+     *
+     * @return the text box object. Pass into
+     */
+    @Override
+    public GPUTextBox createTextBox() {
+        return null;
+    }
+
+    @Override
+    public String getTextBoxText(GPUTextBox text) {
+        return null;
+    }
+
+    @Override
+    public GPUTextBox getSelectedTextBox() {
+        return null;
+    }
+
+    @Override
+    public boolean textBoxSelected(GPUTextBox text) {
+        return false;
     }
 
     /**
