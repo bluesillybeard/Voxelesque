@@ -1,10 +1,13 @@
 package game.world.block;
 
+import engine.multiplatform.gpu.GPUBlock;
+import engine.multiplatform.gpu.GPUShader;
+import engine.multiplatform.gpu.GPUTexture;
 import engine.multiplatform.model.CPUMesh;
-import engine.multiplatform.model.CPUModel;
 import game.world.World;
+import org.joml.Vector3i;
 
-public interface Block {
+public interface Block extends GPUBlock {
     Block VOID_BLOCK = new VoidBlock();
     /*
     NOTE: each Block object is not a block within the world - it is a block type.
@@ -15,9 +18,11 @@ public interface Block {
      */
     void destroy(int x, int y, int z, World world);
     void place(int x, int y, int z, World world);
+    void destroy(Vector3i pos, World world);
+    void place(Vector3i pos, World world);
     String getID();
     CPUMesh getMesh();
-    int getTexture();
-    int getShader();
+    GPUTexture getTexture();
+    GPUShader getShader();
 
 }

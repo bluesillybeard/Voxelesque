@@ -1,19 +1,32 @@
 package game.world.block;
 
+import engine.multiplatform.gpu.GPUShader;
+import engine.multiplatform.gpu.GPUTexture;
 import engine.multiplatform.model.CPUMesh;
 import game.GlobalBits;
 import game.world.World;
+import org.joml.Vector3i;
 
 public class VoidBlock implements Block{
 
     @Override
     public void destroy(int x, int y, int z, World world) {
-        world.setBlock(x, y, z, this);
+        world.setBlock(x, y, z, this, true);
     }
 
     @Override
     public void place(int x, int y, int z, World world) {
-        world.setBlock(x, y, z, this);
+        world.setBlock(x, y, z, this, true);
+    }
+
+    @Override
+    public void destroy(Vector3i pos, World world) {
+        world.setBlock(pos, this, true);
+    }
+
+    @Override
+    public void place(Vector3i pos, World world) {
+        world.setBlock(pos, this, true);
     }
 
     @Override
@@ -27,12 +40,12 @@ public class VoidBlock implements Block{
     }
 
     @Override
-    public int getTexture() {
-        return 0; //Since the model is completely empty, it makes no difference what texture is used.
+    public GPUTexture getTexture() {
+        return null;
     }
 
     @Override
-    public int getShader() {
-        return GlobalBits.defaultShader;
+    public GPUShader getShader() {
+        return null;
     }
 }

@@ -1,12 +1,12 @@
 package engine.gl33.render;
 
-import engine.gl33.model.GPUMesh;
-import engine.gl33.model.GPUModel;
-import engine.gl33.model.GPUTexture;
+import engine.gl33.model.GL33Mesh;
+import engine.gl33.model.GL33Model;
+import engine.gl33.model.GL33Texture;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-public class RenderableEntity {
+public class GL33Entity {
 
     private final boolean hidden;
 
@@ -14,16 +14,16 @@ public class RenderableEntity {
 
     private final Vector3f scale;
 
-    private ShaderProgram shaderProgram;
+    private GL33Shader shaderProgram;
 
     private final Matrix4f modelViewMatrix;
 
-    private GPUModel model;
+    private GL33Model model;
 
     private final Vector3f rotation;
 
-    public RenderableEntity(GPUMesh mesh, ShaderProgram shaderProgram, GPUTexture texture) {
-        this.model = new GPUModel(mesh, texture);
+    public GL33Entity(GL33Mesh mesh, GL33Shader shaderProgram, GL33Texture texture) {
+        this.model = new GL33Model(mesh, texture);
         this.shaderProgram = shaderProgram;
         this.position = new Vector3f();
         this.scale = new Vector3f();
@@ -33,7 +33,7 @@ public class RenderableEntity {
         updateViewMatrix();
     }
 
-    public RenderableEntity(GPUModel model, ShaderProgram shaderProgram) {
+    public GL33Entity(GL33Model model, GL33Shader shaderProgram) {
         this.model = model;
         this.shaderProgram = shaderProgram;
         this.position = new Vector3f();
@@ -47,6 +47,7 @@ public class RenderableEntity {
     public Matrix4f getModelViewMatrix(){
         return modelViewMatrix;
     }
+
     private void updateViewMatrix(){
         this.modelViewMatrix.identity().translate(this.position).
                 rotateX(-this.rotation.x).
@@ -54,7 +55,7 @@ public class RenderableEntity {
                 rotateZ(-this.rotation.z).
                 scale(this.scale);
     }
-    public GPUModel getModel() {
+    public GL33Model getModel() {
         return model;
     }
 
@@ -91,17 +92,19 @@ public class RenderableEntity {
         updateViewMatrix();
     }
 
-    public void setModel(GPUModel model){
+    public void setModel(GL33Model model){
         this.model = model;
     }
 
-    public void setModel(GPUMesh mesh, GPUTexture texture){
+    public void setModel(GL33Mesh mesh, GL33Texture texture){
+
+
         if(this.model.mesh != mesh || this.model.texture != texture) { //if the model or mesh are different
-            this.model = new GPUModel(mesh, texture);
+            this.model = new GL33Model(mesh, texture);
         }
     }
 
-    public void setShaderProgram(ShaderProgram program){
+    public void setShaderProgram(GL33Shader program){
         this.shaderProgram = program;
     }
 

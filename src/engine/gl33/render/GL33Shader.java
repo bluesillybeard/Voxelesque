@@ -1,10 +1,11 @@
 package engine.gl33.render;
 
+import engine.multiplatform.gpu.GPUShader;
 import org.joml.Matrix4f;
 import static org.lwjgl.opengl.GL20.*;
 import org.lwjgl.system.MemoryStack;
 
-public class ShaderProgram {
+public class GL33Shader implements GPUShader {
 
     //handles
     private final int programId;
@@ -13,7 +14,7 @@ public class ShaderProgram {
     private final int viewMatrixUniform, modelViewMatrixUniform, projectionMatrixUniform, textureSamplerUniform;
     private final int timeInSecondsUniform;
 
-    public ShaderProgram(String vertexShaderCode, String fragmentShaderCode) throws Exception {
+    public GL33Shader(String vertexShaderCode, String fragmentShaderCode) throws Exception {
 
         this.programId = glCreateProgram();
         if (this.programId == 0) {
@@ -101,7 +102,7 @@ public class ShaderProgram {
         setUniform1i(textureSamplerUniform, value);
     }
 
-    public void setGameTime(){setUniform1f(timeInSecondsUniform, System.nanoTime() / 1_000_000_000f);}
+    public void setGameTime(double time){setUniform1f(timeInSecondsUniform, (float)time);}
 
 
     public void bind() {
@@ -117,5 +118,18 @@ public class ShaderProgram {
         if (programId != 0) {
             glDeleteProgram(programId);
         }
+    }
+
+    /**
+     * tells what render backend this came from.
+     * supported render APIs:
+     * 0:unknown (for when
+     * 1:GL33
+     *
+     * @return the render backend ID
+     */
+    @Override
+    public int getRenderType() {
+        return 1;
     }
 }

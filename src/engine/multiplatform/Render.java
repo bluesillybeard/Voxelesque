@@ -1,8 +1,12 @@
 package engine.multiplatform;
 
+import engine.multiplatform.gpu.*;
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
+import org.joml.Vector3i;
+import org.lwjgl.system.CallbackI;
 
 import java.awt.image.BufferedImage;
 import java.io.PrintStream;
@@ -24,7 +28,7 @@ public interface Render {
      * @param fov           the field of view in radians
      * @return false if something went wrong, true if all is good.
      */
-    boolean init(String title, int width, int height, String resourcesPath, boolean VSync, PrintStream warning, PrintStream error, PrintStream debug, float fov);
+    boolean init(String title, int width, int height, String resourcesPath, boolean VSync, PrintStream warning, PrintStream error, PrintStream debug, float fov, double targetFrameTime);
 
     void close();
     //settings
@@ -70,14 +74,14 @@ public interface Render {
      * @param image the image to texturize
      * @return the texture refference. Use in methods that require a texture.
      */
-    int readTexture(BufferedImage image);
+    GPUTexture readTexture(BufferedImage image);
 
     /**
      * removes a texture from the GPU to free GPU memory.
      * @param texture the reference to the texture to remove
      * @return true if the texture was successfully deleted, false if something went wrong
      */
-    boolean deleteTexture(int texture);
+    boolean deleteTexture(GPUTexture texture);
 
     /**
      * combines textures into an atlas and transforms the texture coordinates of the meshes to use the atlas,
@@ -151,7 +155,9 @@ public interface Render {
      * @param mesh The source mesh
      * @return the reference to the GPU mesh.
      */
-    int loadGPUMesh(CPUMesh mesh);
+    GPUMesh loadGPUMesh(CPUMesh mesh);
+
+    void deleteGPUMesh(GPUMesh mesh);
 
     //models
     //IMPORTANT: similar to models, only methods not provided by the CPUModel constructor are provided.
@@ -178,7 +184,7 @@ public interface Render {
      * @param model the model to make renderable
      * @return a reference to the model.
      */
-    int loadGPUModel(CPUModel model);
+    GPUModel loadGPUModel(CPUModel model);
 
     /**
      * creates a model that can be rendered from an image and a CPUMesh
@@ -186,7 +192,7 @@ public interface Render {
      * @param mesh the mesh
      * @return a reference to the model
      */
-    int loadGPUModel(BufferedImage image, CPUMesh mesh);
+    GPUModel loadGPUModel(BufferedImage image, CPUMesh mesh);
 
     /**
      * combines a texture and mesh that has already been sent to the GPU and turns them into a model.
@@ -194,14 +200,14 @@ public interface Render {
      * @param mesh the mesh.
      * @return ta reference to the resulting model.
      */
-    int loadGPUModel(int texture, int mesh);
+    GPUModel loadGPUModel(GPUTexture texture, GPUMesh mesh);
 
     /**
      * deletes a model from the GPU
      * Note that the internal texture and mesh are deleted as well, so be careful.
      * @param model the GPU model to delete
      */
-    void deleteGPUModel(int model);
+    void deleteGPUModel(GPUModel model);
 
     //shaders
 
@@ -217,15 +223,15 @@ public interface Render {
      * @param shader the shader name.
      * @return the reference to the shader.
      */
-    int loadShaderProgram(String path, String shader);
+    GPUShader loadShaderProgram(String path, String shader);
 
-    void deleteShaderProgram(int shaderProgram);
+    void deleteShaderProgram(GPUShader shaderProgram);
 
     //entities
 
-    int createEntity(int model, int shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
+    int createEntity(GPUModel model, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
-    int createEntity(int texture, int mesh, int shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
+    int createEntity(GPUTexture texture, GPUMesh mesh, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
     void setEntityPos(int entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
@@ -235,7 +241,7 @@ public interface Render {
 
     void setEntityScale(int entity, float xScale, float yScale, float zScale);
 
-    void setEntityShader(int entity, int shader);
+    void setEntityShader(int entity, GPUShader shader);
 
     Matrix4f getEntityTransform(int entity);
 
@@ -251,7 +257,7 @@ public interface Render {
      * creates an entity that displays text.
      * @return the text entity ID.
      */
-    int createTextEntity(int texture, String text, boolean centerX, boolean centerY, int shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
+    int createTextEntity(GPUTexture texture, String text, boolean centerX, boolean centerY, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
     void setTextEntityPos(int entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
@@ -261,7 +267,7 @@ public interface Render {
 
     void setTextEntityScale(int entity, float xScale, float yScale, float zScale);
 
-    void setTextEntityShader(int entity, int shader);
+    void setTextEntityShader(int entity, GPUShader shader);
 
     void setTextEntityText(int entity, String text, boolean centerX, boolean centerY);
 
@@ -284,32 +290,36 @@ public interface Render {
      * @param z the Z position of the chunk
      * @return the ID of the new chunk.
      */
-    int spawnChunk(int size, CPUMesh[][][] blocks, int[][][] textures, int[][][] shaders, int x, int y, int z);
+    GPUChunk spawnChunk(int size, GPUBlock[][][] blocks, int x, int y, int z, boolean buildImmediately);
 
     /**
      * sets the block data of a chunk.
      * @param blocks a 3D array of blockModel IDs that represent that chunk's block data.
      * @param chunk the chunk whose data will be set.
      */
-    void setChunkData(int chunk, CPUMesh[][][] blocks, int[][][] textures, int[][][] shaders);
+    void setChunkData(GPUChunk chunk, GPUBlock[][][] blocks, boolean buildImmediately);
 
     /**
      * sets a specific block [z, y, x] of a chunk.
      * @param chunk the chunk whose block will be modified
      * @param block the blockModel to be used
      */
-    void setChunkBlock(int chunk, CPUMesh block, int texture, int shader, int x, int y, int z);
+    void setChunkBlock(GPUChunk chunk, GPUBlock block, int x, int y, int z, boolean buildImmediately);
 
     /**
      * deletes a chunk so it is no longer rendered.
      * @param chunk the ID of the chunk to remove
      */
-    void deleteChunk(int chunk);
+    void deleteChunk(GPUChunk chunk);
 
     int getNumChunks();
 
     int getNumChunkSlots();
 
+    /**
+     * completely resets and rebuilds every chunk, removing any ghost blocks.
+     */
+    void rebuildChunks();
     //camera
     void setCameraPos(float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation);
 
@@ -319,6 +329,10 @@ public interface Render {
 
 
     //input & sensing
+
+    void lockMousePos();
+
+    void unlockMousePos();
 
     /**
      * Tells weather a mesh would appear on a part of the screen if it were to be rendered.
@@ -387,6 +401,27 @@ public interface Render {
     double render();
 
 
+    static Matrix4f getBlockTransform(Matrix4f dest, int cx, int cy, int cz, int bx, int by, int bz, int chunkSize){
+        //pretty simple stuff... That is, compared to the other crazy things I've had to do with this project.
+        return dest
+                .translate((cx * chunkSize+bx) * 0.288675134595f, (cy * chunkSize+by) * 0.5f , (cz * chunkSize+bz) * 0.5f)
+                //*after* scaling, the mesh is translated to the right position
+                .scale(0.5f ,  0.5f, ((bx + bz) & 1) - 0.5f);
+                //*before* translating, the mesh is scaled to 1/2 size,
+                // and mirrored on the Z axis if the sum of blockX + blockZ is an odd number
+                //I don't know how I figured out the odd number thing, because I did it like a year ago and forgot.
+    }
 
+    static Matrix4f getBlockTransform(Matrix4f dest, int x, int y, int z, int chunkSize){
+        int cx = (x & -chunkSize)/chunkSize;
+        int cy = (y & -chunkSize)/chunkSize;
+        int cz = (z & -chunkSize)/chunkSize;
+        //' & -chunkSize' avoids strange issues with integer division and negative numbers.
 
+        int bx = x&(chunkSize-1);
+        int by = y&(chunkSize-1);
+        int bz = z&(chunkSize-1);
+        return getBlockTransform(dest, cx, cy, cz, bx, by, bz, chunkSize);
+
+    }
 }
