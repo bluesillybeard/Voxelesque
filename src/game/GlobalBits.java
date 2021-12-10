@@ -1,7 +1,6 @@
 package game;
 
 import engine.multiplatform.Render;
-import engine.multiplatform.render.GPUShader;
 import game.world.block.Block;
 import org.joml.Vector3f;
 
@@ -17,8 +16,8 @@ public class GlobalBits {
     public static String resourcesPath;
     public static Render render;
     public static Vector3f tempV3f;
-    public static GPUShader defaultShader;
-    public static GPUShader guiShader;
+    public static int defaultShader;
+    public static int guiShader;
     //player bits
     public static Vector3f playerPosition;
     public static Vector3f playerRotation;

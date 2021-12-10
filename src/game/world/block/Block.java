@@ -2,8 +2,6 @@ package game.world.block;
 
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.RenderBlockModel;
-import engine.multiplatform.render.GPUShader;
-import engine.multiplatform.render.GPUTexture;
 import game.world.World;
 
 public interface Block extends RenderBlockModel {
@@ -19,7 +17,7 @@ public interface Block extends RenderBlockModel {
     void place(int x, int y, int z, World world);
     String getID(); //eg: voxelesque:grassBlock
     CPUMesh getMesh();
-    GPUTexture getTexture();
-    GPUShader getShader();
+    int getTexture();
+    int getShader();
 
 }

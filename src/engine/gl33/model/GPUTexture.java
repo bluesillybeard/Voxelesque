@@ -1,7 +1,5 @@
 package engine.gl33.model;
 
-import engine.multiplatform.render.GPUTexture;
-
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -11,14 +9,14 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap;
 
-public class GL33Texture implements GPUTexture {
+public class GPUTexture {
     private final int textureID;
 
-    public GL33Texture(String filePath, PrintStream print) throws IOException {
+    public GPUTexture(String filePath, PrintStream print) throws IOException {
         this(new FileInputStream(filePath), print);
     }
 
-    public GL33Texture(InputStream stream, PrintStream print){
+    public GPUTexture(InputStream stream, PrintStream print){
         int textureID1;
         try {
             textureID1 = loadTexture(ImageIO.read(stream));
@@ -34,7 +32,7 @@ public class GL33Texture implements GPUTexture {
         }
         this.textureID = textureID1;
     }
-    public GL33Texture(BufferedImage img){
+    public GPUTexture(BufferedImage img){
         this.textureID = loadTexture(img);
     }
     public void bind(){
@@ -86,18 +84,5 @@ public class GL33Texture implements GPUTexture {
         imgDataBuffer.flip();
 
         return loadTexture(imgDataBuffer, width, height);
-    }
-
-    /**
-     * 0: unknown
-     * 1: GL33
-     * 2: GL21
-     * 3: DX9
-     *
-     * @return the integer ID of the render class this mesh belongs to.
-     */
-    @Override
-    public int getRenderClass() {
-        return 1;
     }
 }

@@ -1,7 +1,6 @@
 package engine.gl33.model;
 
 import engine.multiplatform.model.CPUMesh;
-import engine.multiplatform.render.GPUMesh;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;
@@ -12,7 +11,7 @@ import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
 
-public class GL33Mesh implements GPUMesh {
+public class GPUMesh {
 
     private final int vaoId;
     private final int posVboId;
@@ -20,7 +19,7 @@ public class GL33Mesh implements GPUMesh {
     private final int idxVboId;
     private final int vertexCount;
 
-    public GL33Mesh(float[] positions, float[] UVCoords, int[] indices) {
+    public GPUMesh(float[] positions, float[] UVCoords, int[] indices) {
         this.vertexCount = indices.length;
         this.vaoId = glGenVertexArrays();
         glBindVertexArray(this.vaoId);
@@ -30,7 +29,7 @@ public class GL33Mesh implements GPUMesh {
         this.idxVboId = sendIndices(indices);
     }
 
-    public GL33Mesh(CPUMesh mesh) {
+    public GPUMesh(CPUMesh mesh) {
         this.vertexCount = mesh.indices.length;
         this.vaoId = glGenVertexArrays();
         glBindVertexArray(this.vaoId);
@@ -82,18 +81,5 @@ public class GL33Mesh implements GPUMesh {
 
         // Delete the VAO
         glDeleteVertexArrays(this.vaoId);
-    }
-
-    /**
-     * 0: unknown
-     * 1: GL33
-     * 2: GL21
-     * 3: DX9
-     *
-     * @return the integer ID of the render class this mesh belongs to.
-     */
-    @Override
-    public int getRenderClass() {
-        return 1;
     }
 }

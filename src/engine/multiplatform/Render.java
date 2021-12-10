@@ -3,7 +3,6 @@ package engine.multiplatform;
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
 import engine.multiplatform.model.RenderBlockModel;
-import engine.multiplatform.render.*;
 import org.joml.Matrix4f;
 
 import java.awt.image.BufferedImage;
@@ -70,16 +69,16 @@ public interface Render {
     /**
      * sends a CPU-stored image into a GPU texture for rendering.
      * @param image the image to texturize
-     * @return the GPU-stored texture. Use in methods that require a texture.
+     * @return the texture refference. Use in methods that require a texture.
      */
-    GPUTexture readTexture(BufferedImage image);
+    int readTexture(BufferedImage image);
 
     /**
      * removes a texture from the GPU to free GPU memory.
-     * @param texture the texture to remove from the GPU
+     * @param texture the reference to the texture to remove
      * @return true if the texture was successfully deleted, false if something went wrong
      */
-    boolean deleteTexture(GPUTexture texture);
+    boolean deleteTexture(int texture);
 
     /**
      * combines textures into an atlas and transforms the texture coordinates of the meshes to use the atlas,
@@ -135,7 +134,7 @@ public interface Render {
      * Note that this can also load a VBMF file, but the block-specific data won't be loaded into the mesh.
      *  Useful for when a block and entity share the same model, which I doubt will ever happen.
      * @param VEMFPath the path within the resources folder to load
-     * @return the CPUMesh defined by the file. Null if something went wrong.
+     * @return the CPUMesh defined by the file.
      */
     CPUMesh loadEntityMesh(String VEMFPath);
 
@@ -153,7 +152,7 @@ public interface Render {
      * @param mesh The source mesh
      * @return the reference to the GPU mesh.
      */
-    GPUMesh loadGPUMesh(CPUMesh mesh);
+    int loadGPUMesh(CPUMesh mesh);
 
     //models
     //IMPORTANT: similar to models, only methods not provided by the CPUModel constructor are provided.
@@ -180,7 +179,7 @@ public interface Render {
      * @param model the model to make renderable
      * @return a reference to the model.
      */
-    GPUModel loadGPUModel(CPUModel model);
+    int loadGPUModel(CPUModel model);
 
     /**
      * creates a model that can be rendered from an image and a CPUMesh
@@ -188,7 +187,7 @@ public interface Render {
      * @param mesh the mesh
      * @return a reference to the model
      */
-    GPUModel loadGPUModel(BufferedImage image, CPUMesh mesh);
+    int loadGPUModel(BufferedImage image, CPUMesh mesh);
 
     /**
      * combines a texture and mesh that has already been sent to the GPU and turns them into a model.
@@ -196,14 +195,14 @@ public interface Render {
      * @param mesh the mesh.
      * @return ta reference to the resulting model.
      */
-    GPUModel loadGPUModel(GPUTexture texture, GPUMesh mesh);
+    int loadGPUModel(int texture, int mesh);
 
     /**
      * deletes a model from the GPU
      * Note that the internal texture and mesh are deleted as well, so be careful.
      * @param model the GPU model to delete
      */
-    void deleteGPUModel(GPUModel model);
+    void deleteGPUModel(int model);
 
     //shaders
 
@@ -217,31 +216,31 @@ public interface Render {
      * dx?: DirectX ? (not implemented)
      * @param path the path to the shaders. The final path is: [resources]/[path]/[shader folder(gl33, dx9)]/[shader].[API shader language name(GLSL, HLSL)]
      * @param shader the shader name.
-     * @return the shader. null if it failed.
+     * @return the reference to the shader.
      */
-    GPUShader loadShaderProgram(String path, String shader);
+    int loadShaderProgram(String path, String shader);
 
-    void deleteShaderProgram(GPUShader shaderProgram);
+    void deleteShaderProgram(int shaderProgram);
 
     //entities
 
-    GPUEntity createEntity(GPUModel model, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
+    int createEntity(int model, int shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
-    GPUEntity createEntity(GPUTexture texture, GPUMesh mesh, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
+    int createEntity(int texture, int mesh, int shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
-    void setEntityPos(GPUEntity entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
+    void setEntityPos(int entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
-    void setEntityPos(GPUEntity entity, float xPos, float yPos, float zPos);
+    void setEntityPos(int entity, float xPos, float yPos, float zPos);
 
-    void setEntityRotation(GPUEntity entity, float xRotation, float yRotation, float zRotation);
+    void setEntityRotation(int entity, float xRotation, float yRotation, float zRotation);
 
-    void setEntityScale(GPUEntity entity, float xScale, float yScale, float zScale);
+    void setEntityScale(int entity, float xScale, float yScale, float zScale);
 
-    void setEntityShader(GPUEntity entity, GPUShader shader);
+    void setEntityShader(int entity, int shader);
 
-    Matrix4f getEntityTransform(GPUEntity entity);
+    Matrix4f getEntityTransform(int entity);
 
-    void deleteEntity(GPUEntity entity);
+    void deleteEntity(int entity);
 
     int getNumEntities();
 
@@ -251,31 +250,25 @@ public interface Render {
 
     /**
      * creates an entity that displays text.
-     *
-     * @param texture the font texture; A 16x16 grid of characters that represents ASCII.
-     * @param text the text to display.
-     * @param centerX Weather to center the text on the X axis.
-     * @param centerY Weather to center the text on the Y axis.
-     * @param shader The shader to use.
      * @return the text entity ID.
      */
-    GPUTextEntity createTextEntity(GPUTexture texture, String text, boolean centerX, boolean centerY, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
+    int createTextEntity(int texture, String text, boolean centerX, boolean centerY, int shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
-    void setTextEntityPos(GPUTextEntity entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
+    void setTextEntityPos(int entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
-    void setTextEntityPos(GPUTextEntity entity, float xPos, float yPos, float zPos);
+    void setTextEntityPos(int entity, float xPos, float yPos, float zPos);
 
-    void setTextEntityRotation(GPUTextEntity entity, float xRotation, float yRotation, float zRotation);
+    void setTextEntityRotation(int entity, float xRotation, float yRotation, float zRotation);
 
-    void setTextEntityScale(GPUTextEntity entity, float xScale, float yScale, float zScale);
+    void setTextEntityScale(int entity, float xScale, float yScale, float zScale);
 
-    void setTextEntityShader(GPUTextEntity entity, GPUShader shader);
+    void setTextEntityShader(int entity, int shader);
 
-    void setTextEntityText(GPUTextEntity entity, String text, boolean centerX, boolean centerY);
+    void setTextEntityText(int entity, String text, boolean centerX, boolean centerY);
 
-    Matrix4f getTextEntityTransform(GPUTextEntity entity);
+    Matrix4f getTextEntityTransform(int entity);
 
-    void deleteTextEntity(GPUTextEntity entity);
+    void deleteTextEntity(int entity);
 
     int getNumTextEntities();
 
@@ -286,33 +279,33 @@ public interface Render {
      * creates a chunk at the chunk position [x, y, z]
      *
      * @param size   how big the chunk is in each dimension
-     * @param blocks a 3D array of RenderBlockModels that represent the chunk's block data.
+     * @param blocks a 3D array of CPUMeshes that represent that chunk's block data.
      * @param x the X position of the chunk
      * @param y the Y position of the chunk
      * @param z the Z position of the chunk
      * @return the ID of the new chunk.
      */
-    GPUChunk spawnChunk(int size, RenderBlockModel[][][] blocks, int x, int y, int z);
+    int spawnChunk(int size, RenderBlockModel[][][] blocks, int x, int y, int z);
 
     /**
      * sets the block data of a chunk.
-     * @param blocks a 3D array of RenderBlockModels that represent the chunk's block data.
+     * @param blocks a 3D array of blockModel IDs that represent that chunk's block data.
      * @param chunk the chunk whose data will be set.
      */
-    void setChunkData(GPUChunk chunk, RenderBlockModel[][][] blocks);
+    void setChunkData(int chunk, RenderBlockModel[][][] blocks);
 
     /**
      * sets a specific block [z, y, x] of a chunk.
      * @param chunk the chunk whose block will be modified
-     * @param block the RenderBlockModel of the block
+     * @param block the blockModel to be used
      */
-    void setChunkBlock(GPUChunk chunk, RenderBlockModel block, int x, int y, int z);
+    void setChunkBlock(int chunk, RenderBlockModel block, int x, int y, int z);
 
     /**
      * deletes a chunk so it is no longer rendered.
      * @param chunk the ID of the chunk to remove
      */
-    void deleteChunk(GPUChunk chunk);
+    void deleteChunk(int chunk);
 
     int getNumChunks();
 
@@ -393,4 +386,8 @@ public interface Render {
      * @return the time it took to render the frame in seconds.
      */
     double render();
+
+
+
+
 }

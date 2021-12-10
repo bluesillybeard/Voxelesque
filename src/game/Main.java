@@ -1,7 +1,6 @@
 package game;
 
 import engine.gl33.GL33Render;
-import engine.multiplatform.render.GPUTextEntity;
 import game.misc.StaticUtils;
 import game.world.World;
 import game.world.block.SimpleBlock;
@@ -17,7 +16,7 @@ public class Main {
 
     private static final Vector3f cameraInc = new Vector3f(0, 0, 0);
 
-    private static GPUTextEntity debugTextEntity;
+    private static int debugTextEntity;
     private static float textScale;
     public static void main(String[] args) {
         try {

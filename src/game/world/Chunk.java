@@ -1,6 +1,5 @@
 package game.world;
 
-import engine.multiplatform.render.GPUChunk;
 import game.GlobalBits;
 import game.data.nbt.NBTElement;
 import game.world.block.Block;
@@ -9,8 +8,7 @@ public class Chunk {
     private final int size;
     private final Block[][][] blocks;
     private final NBTElement[][][] nbt;
-    private final GPUChunk handle;
-    private final int xPos, yPos, zPos;
+    private final int handle, xPos, yPos, zPos;
 
 
     public Chunk(int size, Block[][][] blocks, NBTElement[][][] nbt, int x, int y, int z){

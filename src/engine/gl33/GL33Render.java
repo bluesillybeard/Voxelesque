@@ -1,86 +1,94 @@
 package engine.gl33;
 
 import VMF.VMFLoader;
-import engine.gl33.model.GL33Mesh;
-import engine.gl33.model.GL33Model;
-import engine.gl33.model.GL33Texture;
+import engine.gl33.model.GPUMesh;
+import engine.gl33.model.GPUModel;
+import engine.gl33.model.GPUTexture;
 import engine.gl33.render.*;
-import engine.gl33.render.Window;
 import engine.multiplatform.Render;
 import engine.multiplatform.Util.AtlasGenerator;
+import engine.multiplatform.Util.SlottedArrayList;
 import engine.multiplatform.Util.Utils;
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
 import engine.multiplatform.model.RenderBlockModel;
-import engine.multiplatform.render.*;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
+import org.lwjgl.system.CallbackI;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.*;
-import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_DOWN;
+import static org.lwjgl.glfw.GLFW.GLFW_KEY_UP;
 import static org.lwjgl.opengl.GL11.*;
 
 public class GL33Render implements Render {
-    //file stuff
+
+    Matrix4f tempMat = new Matrix4f();
+    Vector4f tempv4f1 = new Vector4f();
+    Vector4f tempv4f2 = new Vector4f();
+    Vector4f tempv4f3 = new Vector4f();
+    Vector3f tempv3f1 = new Vector3f();
+
+    private Window window;
+    private boolean readyToRender;
+    private float FOV;
     private String resourcesPath;
+    private final BufferedImage errorImage = new BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB);
+    private final CPUMesh errorMesh = new CPUMesh(new float[]{
+            -1, -1, 0,
+            1, -1, 0,
+            -1, 1, 0,
+            1, 1, 0,
+    },
+            new float[]{
+                    0, 1,
+                    1, 1,
+                    0, 0,
+                    1, 0,
+            },
+            new int[]{
+                    0, 1, 2,
+                    1, 2, 3,
+            },
+            new byte[]{
 
-    //internal class bits
-    private final Window window;
+            },(byte)0);
 
-    private final Vector3f cameraPosition;
-    private final Vector3f cameraRotation;
-    private final Matrix4f viewMatrix;
-    private final Matrix4f projectionMatrix;
+    private final Matrix4f projectionMatrix = new Matrix4f();
+    private final Matrix4f viewMatrix = new Matrix4f();
 
-    private final Vector4f tempv4f1;
-    private final Vector4f tempv4f2;
-    private final Vector4f tempv4f3;
-    private final Matrix4f tempMat;
+    private final Vector3f cameraPosition = new Vector3f();
+    private final Vector3f cameraRotation = new Vector3f();
 
-    private final Set<GL33Shader> shaders;
-    private final Set<GL33Entity> entities;
-    private final Set<GL33TextEntity> textEntities;
-    private final Set<GL33Chunk> chunks;
+    //todo: smarter resource management that uses hashes to make sure a GPUTexture, GPUMesh, etc is only created once.
+    private final SlottedArrayList<RenderableEntity> renderableEntities = new SlottedArrayList<>();
+    private final SlottedArrayList<RenderableTextEntity> textEntities = new SlottedArrayList<>();
+    private final SlottedArrayList<ShaderProgram> shaderPrograms = new SlottedArrayList<>();
+    private final SlottedArrayList<GPUTexture>textures = new SlottedArrayList<>();
+    private final SlottedArrayList<GPUMesh> meshes = new SlottedArrayList<>();
+    private final SlottedArrayList<GPUModel> models = new SlottedArrayList<>();
+    private final SlottedArrayList<RenderableChunk> chunks = new SlottedArrayList<>();
 
-    private boolean shouldRender;
-    private float fov;
+    private final ExecutorService chunkBuildExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()/2);
+    private final ArrayList<RenderableChunk> deletedChunks = new ArrayList<>();
+    private final ArrayList<RenderableChunk> newChunks = new ArrayList<>();
+    private final VMFLoader vmfLoader = new VMFLoader();
 
-    //static internal class bits
-    private static final BufferedImage errorImage = new BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB);
-    private static boolean staticInitialized;
-    private static final VMFLoader loader = new VMFLoader();
+    private PrintStream warn;
+    private PrintStream debug;
+    private PrintStream err;
 
-    //print streams
-    private PrintStream errorStream;
-    private PrintStream warningStream;
-    private PrintStream debugStream;
-
-    public GL33Render(){
-        window = new Window();
-        shaders = new HashSet<>();
-        entities = new HashSet<>();
-        textEntities = new HashSet<>();
-        chunks = new HashSet<>();
-        cameraPosition = new Vector3f();
-        cameraRotation = new Vector3f();
-        viewMatrix = new Matrix4f();
-        projectionMatrix = new Matrix4f();
-        tempMat = new Matrix4f();
-        tempv4f1 = new Vector4f();
-        tempv4f2 = new Vector4f();
-        tempv4f3 = new Vector4f();
-    }
     /**
      * Initializes the Render and anything contained within it.
      *
-     * @param title         the title of the window.
      * @param width         the width of the window (800 if given an invalid width)
      * @param height        the height of the window (600 if given an invalid height)
      * @param resourcesPath The path to the resources folder. This path is added at the front of any path to be loaded by the Render.
@@ -93,37 +101,35 @@ public class GL33Render implements Render {
      */
     @Override
     public boolean init(String title, int width, int height, String resourcesPath, boolean VSync, PrintStream warning, PrintStream error, PrintStream debug, float fov) {
-        errorStream = error;
-        warningStream = warning;
-        debugStream = debug;
-        this.resourcesPath = resourcesPath;
-        this.fov = fov;
-        this.shouldRender = true;
-
-        updateProjectionMatrix();
-        updateViewMatrix();
-
-        if(!staticInitialized){
-            staticInitialized = true;
-            errorImage.setRGB(0, 0, Color.BLACK.getRGB());
-            errorImage.setRGB(1, 0, Color.MAGENTA.getRGB());
-            errorImage.setRGB(0, 1, Color.BLACK.getRGB());
-            errorImage.setRGB(1, 1, Color.MAGENTA.getRGB());
-        }
         try {
-            window.init(title, width, height, VSync);
+            this.window = new Window(title, width, height, VSync);
+            this.resourcesPath = resourcesPath;
+            this.FOV = fov;
+            this.warn = warning;
+            this.err = error;
+            this.debug = debug;
+            this.readyToRender = true;
+            updateCameraProjectionMatrix();
+            updateCameraViewMatrix();
 
+            errorImage.setRGB(0, 0, 0xff00ff);
+            errorImage.setRGB(1, 0, 0x000000);
+            errorImage.setRGB(0, 1, 0x000000);
+            errorImage.setRGB(1, 1, 0xff00ff);
+
+
+            this.window.init();
+            debug.println("initialized render and " + Runtime.getRuntime().availableProcessors()/2 + " chunk build worker threads");
             return true;
-        } catch(Exception e) {
-            e.printStackTrace(errorStream);
+        } catch(Exception e){
+            e.printStackTrace(err);
             return false;
         }
     }
 
     @Override
     public void close() {
-        window.close();
-        errorStream.flush();
+        chunkBuildExecutor.shutdownNow();
     }
 
     @Override
@@ -138,23 +144,22 @@ public class GL33Render implements Render {
 
     @Override
     public void setWarning(PrintStream warning) {
-        warningStream = warning;
+        this.warn = warning;
     }
 
     @Override
     public void setError(PrintStream error) {
-        errorStream = error;
+        this.err = error;
     }
 
     @Override
     public void setDebug(PrintStream debug) {
-        debugStream = debug;
+        this.debug = debug;
     }
 
     @Override
     public void setFov(float fov) {
-        this.fov = fov;
-        updateProjectionMatrix();
+        this.FOV = fov;
     }
 
     @Override
@@ -177,7 +182,6 @@ public class GL33Render implements Render {
     @Override
     public boolean setWindowSize(int width, int height) {
         window.setSize(width, height);
-        updateProjectionMatrix();
         return true;
     }
 
@@ -191,9 +195,9 @@ public class GL33Render implements Render {
     public BufferedImage readImage(String path) {
         try {
             return ImageIO.read(new File(resourcesPath + "/" + path));
-        } catch(Exception e){
-            e.printStackTrace(errorStream);
-            return errorImage;
+        } catch (Exception e){
+            e.printStackTrace(err);
+            return this.errorImage;
         }
     }
 
@@ -201,32 +205,32 @@ public class GL33Render implements Render {
      * sends a CPU-stored image into a GPU texture for rendering.
      *
      * @param image the image to texturize
-     * @return the GPU-stored texture. Use in methods that require a texture.
+     * @return the texture reference. Use in methods that require a texture.
      */
     @Override
-    public GPUTexture readTexture(BufferedImage image) {
-        return new GL33Texture(image);
+    public int readTexture(BufferedImage image) {
+        return textures.add(new GPUTexture(image));
     }
 
     /**
      * removes a texture from the GPU to free GPU memory.
      *
-     * @param texture the texture to remove from the GPU
+     * @param texture the reference to the texture to remove
      * @return true if the texture was successfully deleted, false if something went wrong
      */
     @Override
-    public boolean deleteTexture(GPUTexture texture) {
-        ((GL33Texture)texture).cleanUp();
+    public boolean deleteTexture(int texture) {
+
+        GPUTexture tex = textures.get(texture);
+        tex.cleanUp();
         return true;
     }
 
     /**
      * combines textures into an atlas and transforms the texture coordinates of the meshes to use the atlas,
-     * then generates a corresponding list of CPUModels, each having a transformed mesh and texture atlas.
+     * then generates a correspinding list of CPUModels, each having a transformed mesh and texture atlas.
      * The indices of each list correspond to the others:
      * index n of the images and index n of the meshes will end up in index n of the output list.
-     * <p>
-     * This is highly advised to use on models for blocks, as chunks need an entire draw call per texture they use.
      *
      * @param images the input images
      * @param meshes the input meshes - they won't be modified, instead copies will be made and the copies modified.
@@ -234,37 +238,7 @@ public class GL33Render implements Render {
      */
     @Override
     public CPUModel[] generateImageAtlas(BufferedImage[] images, CPUMesh[] meshes) {
-        return AtlasGenerator.generateCPUModels(images, meshes, errorStream);
-    }
-
-    /**
-     * This is highly advised to use on models for blocks, as chunks need an entire draw call per texture they use.
-     * combines all the textures of the models into a single atlas, and modifies the texture coordinates of each model to use that atlas.
-     * The original models are not modified, as they are copied and the copies are modified.
-     *
-     * @param models the models to create the atlas.
-     * @return the output list of models that all use the same texture.
-     */
-    @Override
-    public List<CPUModel> generateImageAtlas(List<CPUModel> models) {
-        return AtlasGenerator.generateCPUModels(models, errorStream);
-    }
-
-    /**
-     * combines textures into an atlas and transforms the texture coordinates of the meshes to use the atlas,
-     * then generates a corresponding list of CPUModels, each having a transformed mesh and texture atlas.
-     * The indices of each list correspond to the others:
-     * index n of the images and index n of the meshes will end up in index n of the output list.
-     * <p>
-     * This is highly advised to use on models for blocks, as chunks need an entire draw call per texture they use.
-     *
-     * @param images the input images
-     * @param meshes the input meshes - they won't be modified, instead copies will be made and the copies modified.
-     * @return the output list of models that all use the same texture.
-     */
-    @Override
-    public List<CPUModel> generateImageAtlas(List<BufferedImage> images, List<CPUMesh> meshes) {
-        return AtlasGenerator.generateCPUModels(images, meshes, errorStream);
+        return AtlasGenerator.generateCPUModels(images, meshes, err);
     }
 
     /**
@@ -277,24 +251,52 @@ public class GL33Render implements Render {
      */
     @Override
     public CPUModel[] generateImageAtlas(CPUModel[] models) {
-        return AtlasGenerator.generateCPUModels(models, errorStream);
+        return AtlasGenerator.generateCPUModels(models, err);
     }
 
+
+    /**
+     * combines textures into an atlas and transforms the texture coordinates of the meshes to use the atlas,
+     * then generates a correspinding list of CPUModels, each having a transformed mesh and texture atlas.
+     * The indices of each list correspond to the others:
+     * index n of the images and index n of the meshes will end up in index n of the output list.
+     *
+     * @param images the input images
+     * @param meshes the input meshes - they won't be modified, instead copies will be made and the copies modified.
+     * @return the output list of models that all use the same texture.
+     */
+    @Override
+    public List<CPUModel> generateImageAtlas(List<BufferedImage> images, List<CPUMesh> meshes) {
+        return AtlasGenerator.generateCPUModels(images, meshes, err);
+    }
+
+    /**
+     * This is highly advised to use on models for blocks, as chunks need an entire draw call per texture they use.
+     * combines all the textures of the models into a single atlas, and modifies the texture coordinates of each model to use that atlas.
+     * The original models are not modified, as they are copied and the copies are modified.
+     *
+     * @param models the models to create the atlas.
+     * @return the output list of models that all use the same texture.
+     */
+    @Override
+    public List<CPUModel> generateImageAtlas(List<CPUModel> models) {
+        return AtlasGenerator.generateCPUModels(models, err);
+    }
     /**
      * loads a CPUMesh from a .VEMF0 file.
      * Note that this can also load a VBMF file, but the block-specific data won't be loaded into the mesh.
      * Useful for when a block and entity share the same model, which I doubt will ever happen.
      *
      * @param VEMFPath the path within the resources folder to load
-     * @return the CPUMesh defined by the file. Null if something went wrong.
+     * @return the CPUMesh defined by the file.
      */
     @Override
     public CPUMesh loadEntityMesh(String VEMFPath) {
         try {
-            return new CPUMesh(loader.loadVEMF(new File(resourcesPath + "/" + VEMFPath)));
+            return new CPUMesh(vmfLoader.loadVEMF(new File(resourcesPath + "/" + VEMFPath)));
         } catch(Exception e){
-            e.printStackTrace(errorStream);
-            return null;
+            e.printStackTrace(err);
+            return errorMesh;
         }
     }
 
@@ -308,10 +310,10 @@ public class GL33Render implements Render {
     @Override
     public CPUMesh loadBlockMesh(String VBMFPath) {
         try {
-            return new CPUMesh(loader.loadVBMF(new File(resourcesPath + "/" + VBMFPath)));
+            return new CPUMesh(vmfLoader.loadVBMF(new File(resourcesPath + "/" + VBMFPath)));
         } catch(Exception e){
-            e.printStackTrace(errorStream);
-            return null;
+            e.printStackTrace(err);
+            return errorMesh;
         }
     }
 
@@ -322,8 +324,8 @@ public class GL33Render implements Render {
      * @return the reference to the GPU mesh.
      */
     @Override
-    public GPUMesh loadGPUMesh(CPUMesh mesh) {
-        return new GL33Mesh(mesh);
+    public int loadGPUMesh(CPUMesh mesh) {
+        return meshes.add(new GPUMesh(mesh));
     }
 
     /**
@@ -337,10 +339,10 @@ public class GL33Render implements Render {
     @Override
     public CPUModel loadEntityModel(String VEMFPath) {
         try {
-            return new CPUModel(loader.loadVEMF(new File(resourcesPath + "/" + VEMFPath)));
+            return new CPUModel(vmfLoader.loadVEMF(new File(resourcesPath + "/" + VEMFPath)));
         } catch(Exception e){
-            e.printStackTrace(errorStream);
-            return null;
+            e.printStackTrace(err);
+            return new CPUModel(errorMesh, errorImage);
         }
     }
 
@@ -354,11 +356,12 @@ public class GL33Render implements Render {
     @Override
     public CPUModel loadBlockModel(String VBMFPath) {
         try {
-            return new CPUModel(loader.loadVBMF(new File(resourcesPath + "/" + VBMFPath)));
+            return new CPUModel(vmfLoader.loadVBMF(new File(resourcesPath + "/" + VBMFPath)));
         } catch(Exception e){
-            e.printStackTrace(errorStream);
-            return null;
-        }    }
+            e.printStackTrace(err);
+            return new CPUModel(errorMesh, errorImage);
+        }
+    }
 
     /**
      * sends a CPUModel to the GPU so it can be rendered.
@@ -367,8 +370,8 @@ public class GL33Render implements Render {
      * @return a reference to the model.
      */
     @Override
-    public GPUModel loadGPUModel(CPUModel model) {
-        return new GL33Model(model);
+    public int loadGPUModel(CPUModel model) {
+        return models.add(new GPUModel(model));
     }
 
     /**
@@ -379,8 +382,8 @@ public class GL33Render implements Render {
      * @return a reference to the model
      */
     @Override
-    public GPUModel loadGPUModel(BufferedImage image, CPUMesh mesh) {
-        return new GL33Model(mesh, image);
+    public int loadGPUModel(BufferedImage image, CPUMesh mesh) {
+        return models.add(new GPUModel(mesh, image));
     }
 
     /**
@@ -391,8 +394,8 @@ public class GL33Render implements Render {
      * @return ta reference to the resulting model.
      */
     @Override
-    public GPUModel loadGPUModel(GPUTexture texture, GPUMesh mesh) {
-        return new GL33Model((GL33Mesh)mesh, (GL33Texture)texture);
+    public int loadGPUModel(int texture, int mesh) {
+        return models.add(new GPUModel(meshes.get(mesh), textures.get(texture)));
     }
 
     /**
@@ -402,10 +405,9 @@ public class GL33Render implements Render {
      * @param model the GPU model to delete
      */
     @Override
-    public void deleteGPUModel(GPUModel model) {
-        GL33Model glModel = (GL33Model)model;
-        glModel.mesh.cleanUp();
-        glModel.texture.cleanUp();
+    public void deleteGPUModel(int model) {
+        models.get(model).mesh.cleanUp();
+        models.get(model).texture.cleanUp();
     }
 
     /**
@@ -419,156 +421,145 @@ public class GL33Render implements Render {
      *
      * @param path   the path to the shaders. The final path is: [resources]/[path]/[shader folder(gl33, dx9)]/[shader].[API shader language name(GLSL, HLSL)]
      * @param shader the shader name.
-     * @return the shader. null if it failed.
+     * @return the reference to the shader, -1 if the shader could not be loaded.
      */
     @Override
-    public GPUShader loadShaderProgram(String path, String shader) {
+    public int loadShaderProgram(String path, String shader) {
         try {
-            GL33Shader shader1 = new GL33Shader(Utils.loadResource(resourcesPath + "/" +  path + "/gl33/" + shader + "Vertex.glsl"), Utils.loadResource(resourcesPath + "/" + path + "/gl33/" + shader + "Fragment.glsl"));
-            shaders.add(shader1);
-            return shader1;
-        } catch (Exception e) {
-            e.printStackTrace(errorStream);
-            return null;
+            String fullPath = resourcesPath + "/" + path + "gl33/" + shader;
+            return shaderPrograms.add(new ShaderProgram(Utils.loadResource(fullPath + "Vertex.glsl"), Utils.loadResource(fullPath + "Fragment.glsl")));
+        } catch(Exception e){
+            e.printStackTrace(err);
+            return -1;
         }
     }
 
     @Override
-    public void deleteShaderProgram(GPUShader shaderProgram) {
-        shaders.remove((GL33Shader)shaderProgram);
-        ((GL33Shader)shaderProgram).cleanup();
+    public void deleteShaderProgram(int shaderProgram) {
+        ShaderProgram program = shaderPrograms.get(shaderProgram);
+        program.cleanup();
+        shaderPrograms.remove(shaderProgram);
     }
 
     @Override
-    public GPUEntity createEntity(GPUModel model, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
-
-        GL33Entity entity = new GL33Entity((GL33Model)model, (GL33Shader)shader);
+    public int createEntity(int model, int shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
+        RenderableEntity entity = new RenderableEntity(models.get(model), shaderPrograms.get(shader));
         entity.setPosition(xPos, yPos, zPos);
         entity.setRotation(xRotation, yRotation, zRotation);
         entity.setScale(xScale, yScale, zScale);
-        entities.add(entity);
-        return entity;
+        return renderableEntities.add(entity);
     }
 
     @Override
-    public GPUEntity createEntity(GPUTexture texture, GPUMesh mesh, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
-        GL33Entity entity = new GL33Entity((GL33Mesh)mesh, (GL33Shader)shader, (GL33Texture)texture);
+    public int createEntity(int texture, int mesh, int shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
+        RenderableEntity entity = new RenderableEntity(meshes.get(mesh), shaderPrograms.get(shader), textures.get(texture));
         entity.setPosition(xPos, yPos, zPos);
         entity.setRotation(xRotation, yRotation, zRotation);
         entity.setScale(xScale, yScale, zScale);
-        entities.add(entity);
-        return entity;
+        return renderableEntities.add(entity);
     }
 
     @Override
-    public void setEntityPos(GPUEntity entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
-        GL33Entity entity1 = ((GL33Entity)entity);
-        entity1.setPosition(xPos, yPos, zPos);
-        entity1.setRotation(xRotation, yRotation, zRotation);
-        entity1.setScale(xScale, yScale, zScale);
+    public void setEntityPos(int entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
+        RenderableEntity ent = renderableEntities.get(entity);
+        ent.setPosition(xPos, yPos, zPos);
+        ent.setRotation(xRotation, yRotation, zRotation);
+        ent.setScale(xScale, yScale, zScale);
     }
 
     @Override
-    public void setEntityPos(GPUEntity entity, float xPos, float yPos, float zPos) {
-        ((GL33Entity)entity).setPosition(xPos, yPos, zPos);
+    public void setEntityPos(int entity, float xPos, float yPos, float zPos) {
+        renderableEntities.get(entity).setPosition(xPos, yPos, zPos);
+
     }
 
     @Override
-    public void setEntityRotation(GPUEntity entity, float xRotation, float yRotation, float zRotation) {
-        ((GL33Entity)entity).setRotation(xRotation, yRotation, zRotation);
+    public void setEntityRotation(int entity, float xRotation, float yRotation, float zRotation) {
+        renderableEntities.get(entity).setRotation(xRotation, yRotation, zRotation);
     }
 
     @Override
-    public void setEntityScale(GPUEntity entity, float xScale, float yScale, float zScale) {
-        ((GL33Entity)entity).setScale(xScale, yScale, zScale);
+    public void setEntityScale(int entity, float xScale, float yScale, float zScale) {
+        renderableEntities.get(entity).setScale(xScale, yScale, zScale);
     }
 
     @Override
-    public void setEntityShader(GPUEntity entity, GPUShader shader) {
-        ((GL33Entity)entity).setShaderProgram((GL33Shader)shader);
+    public void setEntityShader(int entity, int shader) {
+        renderableEntities.get(entity).setShaderProgram(shaderPrograms.get(shader));
     }
 
     @Override
-    public Matrix4f getEntityTransform(GPUEntity entity) {
-        return ((GL33Entity)entity).getModelViewMatrix();
+    public Matrix4f getEntityTransform(int entity) {
+        return renderableEntities.get(entity).getModelViewMatrix();
     }
 
     @Override
-    public void deleteEntity(GPUEntity entity) {
-        entities.remove((GL33Entity)entity);
+    public void deleteEntity(int entity) {
+        renderableEntities.remove(entity);
     }
 
     @Override
     public int getNumEntities() {
-        return entities.size();
+        return renderableEntities.size();
     }
 
     @Override
     public int getNumEntitySlots() {
-        return entities.size();
-    }
-
-    /**
-     * creates an entity that displays text.
-     *
-     * @param texture the font texture; A 16x16 grid of characters that represents ASCII.
-     * @param text the text to display.
-     * @param centerX Weather to center the text on the X axis.
-     * @param centerY Weather to center the text on the Y axis.
-     * @param shader The shader to use.
-     * @return the text entity ID.
-     */
-    @Override
-    public GPUTextEntity createTextEntity(GPUTexture texture, String text, boolean centerX, boolean centerY, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
-        GL33TextEntity entity = new GL33TextEntity(text, (GL33Shader)shader, (GL33Texture)texture, centerX, centerY);
-        entity.setPosition(xPos, yPos, zPos);
-        entity.setRotation(xRotation, yRotation, zRotation);
-        entity.setScale(xScale, yScale, zScale);
-        textEntities.add(entity);
-        return entity;
+        return renderableEntities.capacity();
     }
 
     @Override
-    public void setTextEntityPos(GPUTextEntity entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
-        GL33TextEntity entity1 = (GL33TextEntity)entity;
-        entity1.setPosition(xPos, yPos, zPos);
-        entity1.setRotation(xRotation, yRotation, zRotation);
-        entity1.setScale(xScale, yScale, zScale);
+    public int createTextEntity(int texture, String text, boolean centerX, boolean centerY, int shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
+        RenderableTextEntity ent = new RenderableTextEntity(text, shaderPrograms.get(shader), textures.get(texture), centerX, centerY);
+        ent.setPosition(xPos, yPos, zPos);
+        ent.setRotation(xRotation, yRotation, zRotation);
+        ent.setScale(xScale, yScale, zScale);
+        return textEntities.add(ent);
     }
 
     @Override
-    public void setTextEntityPos(GPUTextEntity entity, float xPos, float yPos, float zPos) {
-        ((GL33TextEntity)entity).setPosition(xPos, yPos, zPos);
+    public void setTextEntityPos(int entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale) {
+        RenderableTextEntity ent = textEntities.get(entity);
+        ent.setPosition(xPos, yPos, zPos);
+        ent.setRotation(xRotation, yRotation, zRotation);
+        ent.setScale(xScale, yScale, zScale);
     }
 
     @Override
-    public void setTextEntityRotation(GPUTextEntity entity, float xRotation, float yRotation, float zRotation) {
-        ((GL33TextEntity)entity).setRotation(xRotation, yRotation, zRotation);
+    public void setTextEntityPos(int entity, float xPos, float yPos, float zPos) {
+        textEntities.get(entity).setPosition(xPos, yPos, zPos);
+
     }
 
     @Override
-    public void setTextEntityScale(GPUTextEntity entity, float xScale, float yScale, float zScale) {
-        ((GL33TextEntity)entity).setScale(xScale, yScale, zScale);
+    public void setTextEntityRotation(int entity, float xRotation, float yRotation, float zRotation) {
+        textEntities.get(entity).setRotation(xRotation, yRotation, zRotation);
     }
 
     @Override
-    public void setTextEntityShader(GPUTextEntity entity, GPUShader shader) {
-        ((GL33TextEntity)entity).setShaderProgram((GL33Shader)shader);
+    public void setTextEntityScale(int entity, float xScale, float yScale, float zScale) {
+        textEntities.get(entity).setScale(xScale, yScale, zScale);
     }
 
     @Override
-    public void setTextEntityText(GPUTextEntity entity, String text, boolean centerX, boolean centerY) {
-        ((GL33TextEntity)entity).setText(text, centerX, centerY);
+    public void setTextEntityShader(int entity, int shader) {
+        textEntities.get(entity).setShaderProgram(shaderPrograms.get(shader));
     }
 
     @Override
-    public Matrix4f getTextEntityTransform(GPUTextEntity entity) {
-        return ((GL33TextEntity)entity).getModelViewMatrix();
+    public void setTextEntityText(int entity, String text, boolean centerX, boolean centerY) {
+        textEntities.get(entity).setText(text, centerX, centerY);
     }
 
     @Override
-    public void deleteTextEntity(GPUTextEntity entity) {
-        textEntities.remove((GL33TextEntity)entity);
+    public Matrix4f getTextEntityTransform(int entity) {
+        return textEntities.get(entity).getModelViewMatrix();
+    }
+
+    @Override
+    public void deleteTextEntity(int entity) {
+        textEntities.get(entity).getModel().mesh.cleanUp();
+        textEntities.remove(entity);
     }
 
     @Override
@@ -578,54 +569,84 @@ public class GL33Render implements Render {
 
     @Override
     public int getNumTextEntitySlots() {
-        return textEntities.size();
+        return textEntities.capacity();
     }
 
     /**
      * creates a chunk at the chunk position [x, y, z]
      *
      * @param size   how big the chunk is in each dimension
-     * @param blocks a 3D array of RenderBlockModels that represent the chunk's block data.
-     * @param x      the X position of the chunk
-     * @param y      the Y position of the chunk
-     * @param z      the Z position of the chunk
+     * @param blocks a 3D array of blocks that are the chunk.
+     * @param xp the X position of the chunk
+     * @param yp the Y position of the chunk
+     * @param zp the Z position of the chunk
      * @return the ID of the new chunk.
      */
     @Override
-    public GPUChunk spawnChunk(int size, RenderBlockModel[][][] blocks, int x, int y, int z) {
-        GL33Chunk chunk = new GL33Chunk(size, blocks, x, y, z);
-        chunks.add(chunk);
-        chunk.build();
-        chunk.sendToGPU();
-        return chunk;
+    public int spawnChunk(int size, RenderBlockModel[][][] blocks, int xp, int yp, int zp) {
+
+        //todo: eventually the refactor will reach the RenderableChunk class, at which point this code will be useless.
+        GPUTexture[][][] gpuTextures = new GPUTexture[size][size][size];
+        ShaderProgram[][][] shaders = new ShaderProgram[size][size][size];
+        CPUMesh[][][] meshes = new CPUMesh[size][size][size];
+        for(int x=0; x<size; x++){
+            for(int y=0; y<size; y++){
+                for(int z=0; z<size; z++){
+                    RenderBlockModel block = blocks[x][y][z];
+                    assert block != null;
+                    gpuTextures[x][y][z] = this.textures.get(block.getTexture());
+                    ShaderProgram s = this.shaderPrograms.get(block.getShader());
+                    shaders[x][y][z] = s;
+                    meshes[x][y][z] = block.getMesh();
+                }
+            }
+        }
+        RenderableChunk chunk = new RenderableChunk(size, meshes, gpuTextures, shaders, xp, yp, zp);
+        newChunks.add(chunk);
+        return chunks.add(chunk);
     }
 
     /**
      * sets the block data of a chunk.
      *
      * @param chunk  the chunk whose data will be set.
-     * @param blocks a 3D array of RenderBlockModels that represent the chunk's block data.
+     * @param blocks a 3D array of models that are this chunk.
      */
     @Override
-    public void setChunkData(GPUChunk chunk, RenderBlockModel[][][] blocks) {
-        GL33Chunk chunk1 = ((GL33Chunk)chunk);
-        chunk1.setData(blocks);
-        chunk1.build();
-        chunk1.sendToGPU();
+    public void setChunkData(int chunk, RenderBlockModel[][][] blocks) {
+
+        //todo: eventually the refactor will reach the RenderableChunk class, at which point this code will be useless.
+        RenderableChunk chunk1 = this.chunks.get(chunk);
+        int size = blocks.length;
+        GPUTexture[][][] gpuTextures = new GPUTexture[size][size][size];
+        ShaderProgram[][][] shaders = new ShaderProgram[size][size][size];
+        CPUMesh[][][] meshes = new CPUMesh[size][size][size];
+        for(int x=0; x<size; x++){
+            for(int y=0; y<size; y++){
+                for(int z=0; z<size; z++){
+                    RenderBlockModel block = blocks[x][y][z];
+                    assert block != null;
+                    gpuTextures[x][y][z] = this.textures.get(block.getTexture());
+                    shaders[x][y][z] = this.shaderPrograms.get(block.getShader());
+                    meshes[x][y][z] = block.getMesh();
+                }
+            }
+        }
+        chunk1.setData(meshes, gpuTextures, shaders);
+        if(!newChunks.contains(chunk1))newChunks.add(chunk1);
     }
 
     /**
-     * sets a specific block [z, y, x] of a chunk.
+     * sets a specific block [x, y, z] of a chunk.
      *
      * @param chunk the chunk whose block will be modified
-     * @param block the RenderBlockModel of the block
+     * @param block the blockModel to be used
      */
     @Override
-    public void setChunkBlock(GPUChunk chunk, RenderBlockModel block, int x, int y, int z) {
-        GL33Chunk chunk1 = ((GL33Chunk)chunk);
-        chunk1.setBlock(block, x, y, z);
-        chunk1.build();
-        chunk1.sendToGPU();
+    public void setChunkBlock(int chunk, RenderBlockModel block, int x, int y, int z) {
+        RenderableChunk chunk1 = chunks.get(chunk);
+        chunk1.setBlock(block.getMesh(), textures.get(block.getTexture()), shaderPrograms.get(block.getShader()), x, y, z);
+        if(!newChunks.contains(chunk1))newChunks.add(chunk1);
     }
 
     /**
@@ -634,10 +655,9 @@ public class GL33Render implements Render {
      * @param chunk the ID of the chunk to remove
      */
     @Override
-    public void deleteChunk(GPUChunk chunk) {
-        GL33Chunk chunk1 = (GL33Chunk) chunk;
-        chunks.remove(chunk1);
-        chunk1.clearFromGPU();
+    public void deleteChunk(int chunk) {
+        deletedChunks.add(chunks.get(chunk));
+        chunks.remove(chunk);
     }
 
     @Override
@@ -647,14 +667,24 @@ public class GL33Render implements Render {
 
     @Override
     public int getNumChunkSlots() {
-        return chunks.size();
+        return chunks.capacity();
+    }
+
+    private void updateCameraViewMatrix(){
+        viewMatrix.identity().rotate(cameraRotation.x, tempv3f1.set(1, 0, 0))
+                .rotate(cameraRotation.y, tempv3f1.set(0, 1, 0))
+                .translate(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z);
+    }
+
+    private void updateCameraProjectionMatrix(){
+        projectionMatrix.setPerspective(FOV, (float) window.getWidth() / window.getHeight(), 1/256f, 1 << 20);
     }
 
     @Override
     public void setCameraPos(float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation) {
-        cameraPosition.set(xPos, yPos, zPos);
-        cameraRotation.set(xRotation, yRotation, zRotation);
-        updateViewMatrix();
+        this.cameraPosition.set(xPos, yPos, zPos);
+        this.cameraRotation.set(xRotation, yRotation, zRotation);
+        updateCameraViewMatrix();
     }
 
     @Override
@@ -729,6 +759,7 @@ public class GL33Render implements Render {
         return false;
     }
 
+
     //thanks to https://www.tutorialspoint.com/Check-whether-a-given-point-lies-inside-a-Triangle for the following code:
     //I adapted it slightly to fit my code better, and to fix a bug related to float precision
 
@@ -796,11 +827,11 @@ public class GL33Render implements Render {
      */
     @Override
     public double getTime() {
-        return System.nanoTime()/1_000_000_000.;
+        return System.nanoTime() / 1_000_000_000.;
     }
 
     @Override
-    public boolean shouldClose() {
+    public boolean shouldClose(){
         return window.windowShouldClose();
     }
 
@@ -809,7 +840,7 @@ public class GL33Render implements Render {
      */
     @Override
     public boolean shouldRender() {
-        return shouldRender;
+        return readyToRender;
     }
 
     /**
@@ -819,48 +850,64 @@ public class GL33Render implements Render {
      */
     @Override
     public double render() {
-        if(!shouldRender)return 0;
+        readyToRender = false;
+        if (window.getKey(GLFW_KEY_UP) == 2) {
+            System.out.println(chunks);
+            System.out.println(deletedChunks);
+        }
+        if (window.getKey(GLFW_KEY_DOWN) == 2) {
+            System.out.println("stop");
+        }
+        double startTime = getTime();
+        Iterator<RenderableChunk> iter = deletedChunks.iterator();
+        while (iter.hasNext()) {
+            RenderableChunk c = iter.next();
+            if (!c.taskRunning) {
+                iter.remove();
+                c.clearFromGPU();
+            }
+        }
+        if(!newChunks.isEmpty()){
+            RenderableChunk c = newChunks.remove(newChunks.size() - 1);
+            if (!c.taskRunning) {
+                c.taskRunning = true;
+                chunkBuildExecutor.submit(c::build);
+            }
+        }
         if (window.isResized()) {
             window.setResized(false);
             glViewport(0, 0, window.getWidth(), window.getHeight());
-            updateProjectionMatrix();
+            updateCameraProjectionMatrix();
         }
-
-        for(GL33Shader shader: shaders) {
-            shader.bind();
-            shader.setGameTime();
-            shader.setProjectionMatrix(projectionMatrix);
-            shader.setViewMatrix(viewMatrix);
-            shader.setTextureSampler(0);
-        }
-
-
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        for(GL33Entity entity: entities){
-            entity.render();
-        }
-        for(GL33TextEntity entity: textEntities){
-            entity.render();
-        }
-        for(GL33Chunk chunk : chunks){
-            chunk.sendToGPU();
-            chunk.render();
-        }
+        renderFrame();
         window.update();
 
-        return 0;
+        double time = getTime() - startTime;
+        readyToRender = true;
+        return time;
+
     }
 
-    private void updateProjectionMatrix(){
-        projectionMatrix.setPerspective(fov, (float)getWindowHeight()/getWindowWidth(), (float) (1./256.), 65536);
-    }
-
-    private void updateViewMatrix(){
-        viewMatrix.identity();
-        // First do the rotation so camera rotates over its position
-        viewMatrix.rotate(cameraRotation.x, new Vector3f(1, 0, 0))
-                .rotate(cameraRotation.y, new Vector3f(0, 1, 0));
-        // Then do the translation
-        viewMatrix.translate(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z);
+    private void renderFrame(){
+        //update shader uniforms
+        for(ShaderProgram shaderProgram: shaderPrograms) {
+            shaderProgram.bind();
+            shaderProgram.setGameTime();
+            shaderProgram.setProjectionMatrix(projectionMatrix);
+            shaderProgram.setViewMatrix(viewMatrix);
+            shaderProgram.setTextureSampler(0);
+        }
+        for (RenderableEntity renderableEntity : renderableEntities) {
+            renderableEntity.render();
+        }
+        //render each chunk
+        for (RenderableChunk chunk: chunks){
+            chunk.render();
+            chunk.sendToGPU();
+        }
+        for(RenderableEntity textEntity: textEntities){
+            textEntity.render();
+        }
     }
 }

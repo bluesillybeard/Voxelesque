@@ -1,13 +1,12 @@
 package engine.gl33.render;
 
-import engine.gl33.model.GL33Mesh;
-import engine.gl33.model.GL33Model;
-import engine.gl33.model.GL33Texture;
-import engine.multiplatform.render.GPUEntity;
+import engine.gl33.model.GPUMesh;
+import engine.gl33.model.GPUModel;
+import engine.gl33.model.GPUTexture;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-public class GL33Entity implements GPUEntity {
+public class RenderableEntity {
 
     private final boolean hidden;
 
@@ -15,16 +14,16 @@ public class GL33Entity implements GPUEntity {
 
     private final Vector3f scale;
 
-    private GL33Shader shaderProgram;
+    private ShaderProgram shaderProgram;
 
     private final Matrix4f modelViewMatrix;
 
-    private GL33Model model;
+    private GPUModel model;
 
     private final Vector3f rotation;
 
-    public GL33Entity(GL33Mesh mesh, GL33Shader shaderProgram, GL33Texture texture) {
-        this.model = new GL33Model(mesh, texture);
+    public RenderableEntity(GPUMesh mesh, ShaderProgram shaderProgram, GPUTexture texture) {
+        this.model = new GPUModel(mesh, texture);
         this.shaderProgram = shaderProgram;
         this.position = new Vector3f();
         this.scale = new Vector3f();
@@ -34,7 +33,7 @@ public class GL33Entity implements GPUEntity {
         updateViewMatrix();
     }
 
-    public GL33Entity(GL33Model model, GL33Shader shaderProgram) {
+    public RenderableEntity(GPUModel model, ShaderProgram shaderProgram) {
         this.model = model;
         this.shaderProgram = shaderProgram;
         this.position = new Vector3f();
@@ -55,7 +54,7 @@ public class GL33Entity implements GPUEntity {
                 rotateZ(-this.rotation.z).
                 scale(this.scale);
     }
-    public GL33Model getModel() {
+    public GPUModel getModel() {
         return model;
     }
 
@@ -92,17 +91,17 @@ public class GL33Entity implements GPUEntity {
         updateViewMatrix();
     }
 
-    public void setModel(GL33Model model){
+    public void setModel(GPUModel model){
         this.model = model;
     }
 
-    public void setModel(GL33Mesh mesh, GL33Texture texture){
+    public void setModel(GPUMesh mesh, GPUTexture texture){
         if(this.model.mesh != mesh || this.model.texture != texture) { //if the model or mesh are different
-            this.model = new GL33Model(mesh, texture);
+            this.model = new GPUModel(mesh, texture);
         }
     }
 
-    public void setShaderProgram(GL33Shader program){
+    public void setShaderProgram(ShaderProgram program){
         this.shaderProgram = program;
     }
 
@@ -115,18 +114,5 @@ public class GL33Entity implements GPUEntity {
 
             this.model.render();
         }
-    }
-
-    /**
-     * 0: unknown
-     * 1: GL33
-     * 2: GL21
-     * 3: DX9
-     *
-     * @return the integer ID of the render class this mesh belongs to.
-     */
-    @Override
-    public int getRenderClass() {
-        return 1;
     }
 }

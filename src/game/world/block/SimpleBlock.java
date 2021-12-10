@@ -6,12 +6,9 @@ import com.amihaiemil.eoyaml.YamlNode;
 import com.amihaiemil.eoyaml.YamlStream;
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
-import engine.multiplatform.render.GPUShader;
-import engine.multiplatform.render.GPUTexture;
 import game.GlobalBits;
 import game.world.World;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -24,10 +21,10 @@ public class SimpleBlock implements Block {
     private final String id;
     private final String modID;
     private final CPUMesh mesh;
-    private final GPUTexture texture;
-    private final GPUShader shader;
+    private final int texture;
+    private final int shader;
 
-    public SimpleBlock(String id, String modID, CPUMesh mesh, GPUTexture texture, GPUShader shader){
+    public SimpleBlock(String id, String modID, CPUMesh mesh, int texture, int shader){
         this.id = id;
         this.modID = modID;
         this.mesh = mesh;
@@ -56,12 +53,12 @@ public class SimpleBlock implements Block {
     }
 
     @Override
-    public GPUTexture getTexture() {
+    public int getTexture() {
         return texture;
     }
 
     @Override
-    public GPUShader getShader() {
+    public int getShader() {
         return shader;
     }
 
@@ -83,7 +80,7 @@ public class SimpleBlock implements Block {
                 blockIDs.add(id);
             }
             blockModels = GlobalBits.render.generateImageAtlas(blockModels);
-            GPUTexture texture = GlobalBits.render.readTexture(blockModels.get(0).texture);
+            int texture = GlobalBits.render.readTexture(blockModels.get(0).texture);
             for(int i=0; i<blockModels.size(); i++){
                 blocks.put(modID + ":" + blockIDs.get(i), new SimpleBlock(blockIDs.get(i), modID, blockModels.get(i).mesh, texture, GlobalBits.defaultShader));
             }

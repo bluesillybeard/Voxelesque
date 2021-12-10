@@ -1,8 +1,6 @@
 package game.world.block;
 
 import engine.multiplatform.model.CPUMesh;
-import engine.multiplatform.render.GPUShader;
-import engine.multiplatform.render.GPUTexture;
 import game.GlobalBits;
 import game.world.World;
 
@@ -29,12 +27,12 @@ public class VoidBlock implements Block{
     }
 
     @Override
-    public GPUTexture getTexture() {
-        return null; //Since the model is completely empty, it makes no difference what texture is used.
+    public int getTexture() {
+        return 0; //Since the model is completely empty, it makes no difference what texture is used.
     }
 
     @Override
-    public GPUShader getShader() {
+    public int getShader() {
         return GlobalBits.defaultShader;
     }
 }
