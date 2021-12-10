@@ -2,7 +2,6 @@ package engine.multiplatform;
 
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
-import engine.multiplatform.model.RenderBlockModel;
 import org.joml.Matrix4f;
 
 import java.awt.image.BufferedImage;
@@ -285,21 +284,21 @@ public interface Render {
      * @param z the Z position of the chunk
      * @return the ID of the new chunk.
      */
-    int spawnChunk(int size, RenderBlockModel[][][] blocks, int x, int y, int z);
+    int spawnChunk(int size, CPUMesh[][][] blocks, int[][][] textures, int[][][] shaders, int x, int y, int z);
 
     /**
      * sets the block data of a chunk.
      * @param blocks a 3D array of blockModel IDs that represent that chunk's block data.
      * @param chunk the chunk whose data will be set.
      */
-    void setChunkData(int chunk, RenderBlockModel[][][] blocks);
+    void setChunkData(int chunk, CPUMesh[][][] blocks, int[][][] textures, int[][][] shaders);
 
     /**
      * sets a specific block [z, y, x] of a chunk.
      * @param chunk the chunk whose block will be modified
      * @param block the blockModel to be used
      */
-    void setChunkBlock(int chunk, RenderBlockModel block, int x, int y, int z);
+    void setChunkBlock(int chunk, CPUMesh block, int texture, int shader, int x, int y, int z);
 
     /**
      * deletes a chunk so it is no longer rendered.

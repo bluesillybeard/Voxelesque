@@ -15,6 +15,7 @@ import static game.misc.StaticUtils.getChunkPos;
 import static game.misc.StaticUtils.getChunkWorldPos;
 
 public class World {
+    private final Chunk emptyChunk;
     private final Map<Vector3i, Chunk> chunks;
     private final LinkedList<Vector3i> chunksToUnload;
     private final PerlinNoise noise;
@@ -22,6 +23,7 @@ public class World {
 
     public World() {
         noise = new PerlinNoise((int) ((Math.random()*2-1)*Integer.MAX_VALUE), 1, 0.1, 10, 1);
+        emptyChunk = new Chunk(CHUNK_SIZE, -1, -1, -1);
         chunks = new HashMap<>();
         chunksToUnload = new LinkedList<>();
     }

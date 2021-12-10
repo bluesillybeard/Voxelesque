@@ -115,6 +115,7 @@ public class RenderableChunk {
 
          */
         ShaderTexture TSP = new ShaderTexture();
+
         for (int x = 0; x < data.length; x++) {
             for (int y = 0; y < data[x].length; y++) {
                 for (int z = 0; z < data[x][y].length; z++) {
@@ -129,8 +130,8 @@ public class RenderableChunk {
                         chunkModels.add(new CPUMeshBuilder(this.size * this.size * this.size * 10, true));//todo: test optimal factor (currently 10)
                     }
                     //cloning, index removal, and vertex position modification done within the BlockMeshBuilder
-                    chunkModels.get(shaderTextureIndex).addBlockMeshToChunk(block, x, y, z, /*this.getBlockedFaces(x, y, z)*/(byte) 0);
-                    if (Thread.interrupted()) {
+                    chunkModels.get(shaderTextureIndex).addBlockMeshToChunk(block, x, y, z, /*this.getBlockedFaces(x, y, z)*/(byte)0);
+                    if(Thread.interrupted()){
                         return;
                     }
                 }
