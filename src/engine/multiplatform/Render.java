@@ -352,7 +352,7 @@ public interface Render {
      *
      * Although a Render it mainly a graphics API conversion, it is also an input handler
      * which is why text boxes, sliders, etc. are implemented on the Render side and not the game side.
-     * @return the text box object. Pass into
+     * @return the text box object. Pass into methods that require a text box.
      */
     GPUTextBox createTextBox();
 
