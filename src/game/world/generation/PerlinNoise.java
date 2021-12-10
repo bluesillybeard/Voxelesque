@@ -174,7 +174,7 @@ public class PerlinNoise {
     private float noise(int x, int y) {
         int n = x + y * 57;
         n = (n << 13) ^ n;
-        int t = n^0xaaaaaaaa & 0x7fffffff;
+        int t = (n * (n * n * 15731 + 789221) + 1376312589) & 0x7fffffff;
         return 1.0f - (float) (t) * 0.931322574615478515625e-9f;
     }
 }
