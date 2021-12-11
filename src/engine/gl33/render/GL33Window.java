@@ -124,17 +124,21 @@ public class GL33Window {
         glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     }
-    public int getKey(int key) {
+    public int getKey(int key, boolean change) {
         int keyValue = keys[key];
-        if     (keys[key] == 0) keys[key] = 1;
-        else if(keys[key] == 2) keys[key] = 3;
+        if(change) {
+            if (keys[key] == 0) keys[key] = 1;
+            else if (keys[key] == 2) keys[key] = 3;
+        }
         return keyValue;
     }
 
-    public int getMouseButton(int button) {
+    public int getMouseButton(int button, boolean change) {
         int buttonValue = mouseButtons[button];
-        if     (mouseButtons[button] == 0) mouseButtons[button] = 1;
-        else if(mouseButtons[button] == 2) mouseButtons[button] = 3;
+        if(change) {
+            if (mouseButtons[button] == 0) mouseButtons[button] = 1;
+            else if (mouseButtons[button] == 2) mouseButtons[button] = 3;
+        }
         return buttonValue;
     }
 

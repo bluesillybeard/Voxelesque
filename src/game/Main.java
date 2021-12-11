@@ -77,7 +77,7 @@ public class Main {
 
 
                 Matrix4f temp = new Matrix4f();
-                CPUMesh blockMesh = blocks.get("voxelesque:grassBlock").getMesh();
+                CPUMesh blockMesh = blocks.get("voxelesque:stoneBlock").getMesh();
                 int xOff = (int) (placementDistance/0.288675134595-0.5);
                 int yzOff = (int) (placementDistance*2-0.5);
                 for (int x = blockPos.x - xOff; x < blockPos.x + xOff; ++x) {
@@ -120,7 +120,7 @@ public class Main {
                 if (breakable != null && render.getMouseButton(GLFW_MOUSE_BUTTON_LEFT) == 2)
                     world.getBlock(breakable).destroy(breakable, world);
                 if (replaceable != null && render.getMouseButton(GLFW_MOUSE_BUTTON_RIGHT) == 2)
-                    blocks.get("voxelesque:stoneBlock").place(replaceable, world);
+                    blocks.get("voxelesque:pineLeaves").place(replaceable, world);
 
 
                 render.setTextEntityText(debugTextEntity,

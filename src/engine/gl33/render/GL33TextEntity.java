@@ -22,4 +22,8 @@ public class GL33TextEntity extends GL33Entity implements GPUTextEntity {
             super.setModel(new GL33Model(new GL33Mesh(Utils.generateTextMesh(text, centerX, centerY)), super.getModel().texture));
         }
     }
+
+    public String getText(){
+        return text;
+    }
 }

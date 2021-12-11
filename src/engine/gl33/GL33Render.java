@@ -26,7 +26,6 @@ import java.io.File;
 import java.io.PrintStream;
 import java.util.*;
 
-import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
 public class GL33Render implements Render {
@@ -61,7 +60,10 @@ public class GL33Render implements Render {
                     1, 2, 3,
             },
             new byte[]{
-
+                    0,
+                    0,
+                    0,
+                    0,
             },(byte)0);
 
     private final Matrix4f projectionMatrix = new Matrix4f();
@@ -119,8 +121,8 @@ public class GL33Render implements Render {
 
 
             this.window.init();
-            debug.println("initialized OpenGL 3.3 Render Backend and " + Runtime.getRuntime().availableProcessors() + " chunk build worker threads");
-            warn.println("This is a pre-alpha version of the Voxelesque Rendering Backend, proceed with caution!");
+            this.debug.println("initialized OpenGL 3.3 Render Backend and " + Runtime.getRuntime().availableProcessors() + " chunk build worker threads");
+            this.warn.println("This is a pre-alpha version of the Voxelesque Rendering Backend, proceed with caution!");
             return true;
         } catch(Exception e){
             e.printStackTrace(err);
@@ -861,7 +863,7 @@ public class GL33Render implements Render {
      */
     @Override
     public int getKey(int key) {
-        return window.getKey(key);
+        return window.getKey(key, true);
     }
 
     /**
@@ -872,7 +874,7 @@ public class GL33Render implements Render {
      */
     @Override
     public int getMouseButton(int button) {
-        return window.getMouseButton(button);
+        return window.getMouseButton(button, true);
     }
 
     /**
@@ -921,9 +923,6 @@ public class GL33Render implements Render {
     public double render() {
         readyToRender = false;
 
-        if (window.getKey(GLFW_KEY_END) == 2) {
-            debug.println("stop");
-        }
         double startTime = getTime();
 
         //remove deleted chunks
