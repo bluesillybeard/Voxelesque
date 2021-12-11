@@ -44,7 +44,7 @@ public class Main {
             blocks = SimpleBlock.generateBlocks(GlobalBits.resourcesPath, "BlockRegistry/voxelesque/blocks.yaml", "voxelesque");
             assert blocks != null;
             System.out.println(blocks.keySet());
-            guiScale = 0.03f;
+            guiScale = 0.02f;
             World world = new World();
             GPUTextEntity debugTextEntity = render.createTextEntity(render.readTexture(render.readImage("Textures/ASCII-Extended.png")), "", false, false, guiShader, -1f, 1f - guiScale, 0f, 0f, 0f, 0f, guiScale, guiScale, 0f);
             double placementDistance = 5;

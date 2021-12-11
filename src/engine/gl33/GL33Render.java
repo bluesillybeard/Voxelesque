@@ -804,24 +804,27 @@ public class GL33Render implements Render {
         //if none of the triangles collide, return false.
         for(int i=0; i<indices.length/3; i++){ //each triangle in the mesh
             //get that triangle
+            int t = 3*indices[3*i];
             tempv4f1.set(
-                    positions[3*indices[3*i  ]],
-                    positions[3*indices[3*i  ]+1],
-                    positions[3*indices[3*i  ]+2], 1);
+                    positions[t],
+                    positions[t+1],
+                    positions[t+2], 1);
+            t = 3*indices[3*i+1];
             tempv4f2.set(
-                    positions[3*indices[3*i+1]],
-                    positions[3*indices[3*i+1]+1],
-                    positions[3*indices[3*i+1]+2], 1);
+                    positions[t],
+                    positions[t+1],
+                    positions[t+2], 1);
+            t = 3*indices[3*i+2];
             tempv4f3.set(
-                    positions[3*indices[3*i+2]],
-                    positions[3*indices[3*i+2]+1],
-                    positions[3*indices[3*i+2]+2], 1);
+                    positions[t],
+                    positions[t+1],
+                    positions[t+2], 1);
 
             //transform that triangle to the screen coordinates
             tempv4f1.mulProject(tempMat);
             tempv4f2.mulProject(tempMat); //transform the points
             tempv4f3.mulProject(tempMat);
-            //if the triangle isn't behind the camera and it touches the point, return true.
+            //if the triangle isn't behind the camera, and it touches the point, return true.
             if(tempv4f1.z < 1.0f && tempv4f2.z < 1.0f && tempv4f3.z < 1.0f && isInside(tempv4f1.x, tempv4f1.y, tempv4f2.x, tempv4f2.y, tempv4f3.x, tempv4f3.y, x, y)) {
                 return true;
             }
@@ -831,8 +834,8 @@ public class GL33Render implements Render {
     }
 
 
-    //thanks to https://www.tutorialspoint.com/Check-whether-a-given-point-lies-inside-a-Triangle for the following code:
-    //I adapted it slightly to fit my code better, and to fix a bug related to float precision
+    //thanks to https://www.tutorialspoint.com/Check-whether-a-given-point-lies-inside-a-Triangle for the following code
+    //I adapted it to fit my code better, and to fix a bug related to float precision
 
     private static double triangleArea(float p1x, float p1y, float p2x, float p2y, float p3x, float p3y) {
         return Math.abs((p1x * (p2y - p3y) + p2x * (p3y - p1y) + p3x * (p1y - p2y)) / 2.0);
