@@ -33,11 +33,12 @@ public class GL33TextBox extends GL33TextEntity implements GPUTextBox {
     }
 
     public void left(){
-        this.pointer = pointer-1;
-        if(pointer == -1)pointer =0;
+        if(pointer > 0)
+            this.pointer = pointer - 1;
     }
     public void right(){
-
+        if(pointer < getText().length()-1)
+            this.pointer = this.pointer+1;
     }
 
     public GL33TextBox(String text, GL33Shader shader, GL33Texture tex, boolean centerX, boolean centerY) {
