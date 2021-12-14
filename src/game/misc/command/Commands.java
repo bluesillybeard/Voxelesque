@@ -21,7 +21,14 @@ public class Commands {
 
     public String runCommand(World world, String command){
         int sep = command.indexOf(' ');
-        String com = command.substring(0, sep);
-        return commands.get(com).run(world, command.substring(sep+1));
+        if(sep != -1) {
+            String com = command.substring(0, sep);
+            Command c = commands.get(com);
+            if(c!=null)return c.run(world, command.substring(sep + 1));
+        } else {
+            Command c = commands.get(command);
+            if(c!=null)return c.run(world, "");
+        }
+        return "command \"" + command + "\" does not exist.";
     }
 }

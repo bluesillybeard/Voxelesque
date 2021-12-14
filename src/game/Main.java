@@ -5,6 +5,8 @@ import engine.multiplatform.Render;
 import engine.multiplatform.gpu.GPUTextEntity;
 import engine.multiplatform.model.CPUMesh;
 import game.misc.StaticUtils;
+import game.misc.command.Command;
+import game.misc.command.Commands;
 import game.world.World;
 import game.world.block.Block;
 import game.world.block.SimpleBlock;
@@ -13,6 +15,7 @@ import org.joml.*;
 import java.lang.Math;
 import java.lang.Runtime;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -50,6 +53,10 @@ public class Main {
             double placementDistance = 5;
             render.lockMousePos();
             boolean locked = true;
+
+            commands = new Commands();
+            commands.add(Command.basicCommand("reload", world::reset));
+
             do {
                 if (render.getKey(GLFW_KEY_T) == 2) world.reset();
                 if(render.getKey(GLFW_KEY_R) == 2) render.rebuildChunks();
@@ -61,7 +68,7 @@ public class Main {
                 Runtime runtime = Runtime.getRuntime();
                 Vector3i blockPos = StaticUtils.getBlockPos(playerPosition);
 
-                if (render.getKey(GLFW_KEY_C) == 0) {
+                if (render.getKey(GLFW_KEY_C) == 2) {
                     if (locked) {
                         render.unlockMousePos();
                         locked = false;
@@ -69,6 +76,12 @@ public class Main {
                         render.lockMousePos();
                         locked = true;
                     }
+                }
+
+                if(render.getKey(GLFW_KEY_F) == 0){
+                    Scanner scan = new Scanner(System.in);
+                    if(scan.hasNextLine())System.out.println(commands.runCommand(world, scan.nextLine()));
+                    scan.close();
                 }
 
                 //"raycast" to find the blocks the player might interact with
@@ -83,8 +96,6 @@ public class Main {
                 for (int x = blockPos.x - xOff; x < blockPos.x + xOff; ++x) {
                     for (int y = blockPos.y - yzOff; y < blockPos.y + yzOff; ++y) {
                         for (int z = blockPos.z - yzOff; z < blockPos.z + yzOff; ++z) {
-                            //todo: needs optimizations - this 'raycast' algorithm eats up so much CPU the game lags to heck and back
-                            // hint: only test sphere around player
                             temp = Render.getBlockTransform(temp.identity(), x, y, z, World.CHUNK_SIZE);
 
                             Vector3i pos = new Vector3i(x, y, z);
@@ -94,8 +105,7 @@ public class Main {
                                     render.getCameraViewMatrix(), render.getCameraProjectionMatrix(), (float) render.getMouseXPos(), (float) render.getMouseYPos()
                             )) {
                                 collidedBlocks.put(
-                                        new Vector3f(x * 0.288675134595f, y * 0.5f, z * 0.5f).distance(playerPosition),
-                                        pos);
+                                        new Vector3f(x * 0.288675134595f, y * 0.5f, z * 0.5f).distance(playerPosition), pos);
                             }
                         }
                     }

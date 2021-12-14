@@ -6,7 +6,7 @@ import java.util.concurrent.Callable;
 
 public abstract class Command {
 
-    static Command basicCommand(String name, Callable<String>run){
+    public static Command basicCommand(String name, Callable<String>run){
         return new Command() {
             @Override
             public String run(World world, String arguments) {
@@ -40,7 +40,7 @@ public abstract class Command {
         };
     }
 
-    static Command basicCommand(String name, Runnable run){
+    public static Command basicCommand(String name, Runnable run){
         return new Command() {
             @Override
             public String run(World world, String arguments) {
