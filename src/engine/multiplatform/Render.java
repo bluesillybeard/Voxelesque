@@ -340,17 +340,20 @@ public interface Render {
 
     //input & sensing
 
-    void lockMousePos();
+    void lockCursorPos();
 
-    void unlockMousePos();
+    void unlockCursorPos();
+
+    boolean cursorLocked();
 
 
     /**
      * creates a text box that the user can type into.
      * Note that a text box is simply a text entity whose text can be modified by the user,
      * which itself is just an entity that displays text.
+     * This means, you can use the TextEntity methods to modify it.
      *
-     * Although a Render it mainly a graphics API conversion, it is also an input handler
+     * Although a Render is mainly a graphics API conversion, it is also an input handler
      * which is why text boxes, sliders, etc. are implemented on the Render side and not the game side.
      * @return the text box object. Pass into methods that require a text box.
      */

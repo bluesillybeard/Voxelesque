@@ -211,4 +211,8 @@ public class GL33Window {
     public void unlockMousePos(){
         cursorPosLocked = false;
     }
+
+    public boolean mouseLocked(){
+        return cursorPosLocked;
+    }
 }

@@ -729,13 +729,18 @@ public class GL33Render implements Render {
     }
 
     @Override
-    public void lockMousePos() {
+    public void lockCursorPos() {
         window.lockMousePos();
     }
 
     @Override
-    public void unlockMousePos() {
+    public void unlockCursorPos() {
         window.unlockMousePos();
+    }
+
+    @Override
+    public boolean cursorLocked(){
+        return window.mouseLocked();
     }
 
     /**

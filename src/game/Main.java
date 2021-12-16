@@ -2,6 +2,7 @@ package game;
 
 import engine.gl33.GL33Render;
 import engine.multiplatform.Render;
+import engine.multiplatform.gpu.GPUTextBox;
 import engine.multiplatform.gpu.GPUTextEntity;
 import engine.multiplatform.model.CPUMesh;
 import game.misc.StaticUtils;
@@ -26,6 +27,7 @@ public class Main {
 
     private static final Vector3f cameraInc = new Vector3f(0, 0, 0);
 
+    static double lastMouseYPos, lastMouseXPos;
     public static void main(String[] args) {
         try {
             render = new GL33Render();
@@ -51,11 +53,13 @@ public class Main {
             World world = new World();
             GPUTextEntity debugTextEntity = render.createTextEntity(render.readTexture(render.readImage("Textures/ASCII-Extended.png")), "", false, false, guiShader, -1f, 1f - guiScale, 0f, 0f, 0f, 0f, guiScale, guiScale, 0f);
             double placementDistance = 5;
-            render.lockMousePos();
+            render.lockCursorPos();
             boolean locked = true;
 
             commands = new Commands();
             commands.add(Command.basicCommand("reload", world::reset));
+
+            GPUTextBox basicText = render.createTextBox();
 
             do {
                 if (render.getKey(GLFW_KEY_T) == 2) world.reset();
@@ -70,19 +74,14 @@ public class Main {
 
                 if (render.getKey(GLFW_KEY_C) == 2) {
                     if (locked) {
-                        render.unlockMousePos();
+                        render.unlockCursorPos();
                         locked = false;
                     } else {
-                        render.lockMousePos();
+                        render.lockCursorPos();
                         locked = true;
                     }
                 }
 
-                if(render.getKey(GLFW_KEY_F) == 0){
-                    Scanner scan = new Scanner(System.in);
-                    if(scan.hasNextLine())System.out.println(commands.runCommand(world, scan.nextLine()));
-                    scan.close();
-                }
 
                 //"raycast" to find the blocks the player might interact with
                 //Actually uses a more advanced and flexible system, at the cost of performance and my sanity.
@@ -130,7 +129,7 @@ public class Main {
                 if (breakable != null && render.getMouseButton(GLFW_MOUSE_BUTTON_LEFT) == 2)
                     world.getBlock(breakable).destroy(breakable, world);
                 if (replaceable != null && render.getMouseButton(GLFW_MOUSE_BUTTON_RIGHT) == 2)
-                    blocks.get("voxelesque:pineLeaves").place(replaceable, world);
+                    blocks.get("voxelesque:stoneBlock").place(replaceable, world);
 
 
                 render.setTextEntityText(debugTextEntity,
@@ -183,9 +182,18 @@ public class Main {
 
         // Update camera based on mouse
 
+        if(render.cursorLocked()) {
+            playerRotation.x += (render.getMouseYPos()) * sensitivity;
+            playerRotation.y += (render.getMouseXPos()) * sensitivity;
+        } else {
+            if (render.getMouseButton(GLFW_MOUSE_BUTTON_RIGHT) >= 2) {
+                playerRotation.x += (render.getMouseYPos() - lastMouseYPos) * sensitivity;
+                playerRotation.y += (render.getMouseXPos() - lastMouseXPos) * sensitivity;
+            }
 
-        playerRotation.x += (render.getMouseYPos()) * sensitivity;
-        playerRotation.y += (render.getMouseXPos()) * sensitivity;
+        }
+        lastMouseYPos = render.getMouseYPos();
+        lastMouseXPos = render.getMouseXPos();
 
         //send the camera position to Render
         render.setCameraPos(playerPosition.x, playerPosition.y, playerPosition.z, playerRotation.x, playerRotation.y, playerRotation.z);
