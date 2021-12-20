@@ -385,22 +385,17 @@ public interface Render {
 
 
     /**
-     * This takes a bit of explanation...
-     * When a key is pressed it calls a callback.
-     * That callback changes the value of that key to 2.
-     * there is another one for when a key is released, which sets it to 0
-     * When this function is called, the key's value is returned, then the key's value is changed based on these rules:
-     *        2, 3->3
-     *        0, 1->1
-     * essentially, 0 means just released, 1 means released, 2 means just pushed, 3 means pushed.
-     * @param key the key that you are asking information about. uses the same key codes as in GLFW, whatever those are.
-     * @return they key's value - returns 0, 1, 2, or 3.
+     * Returns the number of frames that the button has been pressed or released.
+     * If it is positive (0 or more) it is pressed, or if it is negative (-1 or less) then ir is released
+     * If it is pressed, the number goes up by 1 every frame, and if it is released then it goes down by one every frame.
+     * @param key the key to poll. uses the same key codes as in GLFW.
+     * @return they key's value
      */
     int getKey(int key);
 
     /**
      * similar to getKey, except for mouse buttons.
-     * @param button the button to be checked
+     * @param button the button to be checked (same as GLFW)
      * @return the value of the button; see getKey for more info.
      */
     int getMouseButton(int button);
@@ -444,7 +439,7 @@ public interface Render {
                 .scale(0.5f ,  0.5f, ((bx + bz) & 1) - 0.5f);
                 //*before* translating, the mesh is scaled to 1/2 size,
                 // and mirrored on the Z axis if the sum of blockX + blockZ is an odd number
-                //I don't know how I figured out the odd number thing, because I did it like a year ago and forgot.
+                //I don't know how I figured out the odd number mirror thing, because I did it like a year ago and forgot.
     }
 
     static Matrix4f getBlockTransform(Matrix4f dest, int x, int y, int z, int chunkSize){

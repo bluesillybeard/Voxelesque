@@ -48,7 +48,6 @@ public class Main {
             guiShader = render.loadShaderProgram("Shaders/", "gui");
             blocks = SimpleBlock.generateBlocks(GlobalBits.resourcesPath, "BlockRegistry/voxelesque/blocks.yaml", "voxelesque");
             assert blocks != null;
-            System.out.println(blocks.keySet());
             guiScale = 0.02f;
             World world = new World();
             GPUTextEntity debugTextEntity = render.createTextEntity(render.readTexture(render.readImage("Textures/ASCII-Extended.png")), "", false, false, guiShader, -1f, 1f - guiScale, 0f, 0f, 0f, 0f, guiScale, guiScale, 0f);
@@ -59,11 +58,9 @@ public class Main {
             commands = new Commands();
             commands.add(Command.basicCommand("reload", world::reset));
 
-            GPUTextBox basicText = render.createTextBox();
-
             do {
-                if (render.getKey(GLFW_KEY_T) == 2) world.reset();
-                if(render.getKey(GLFW_KEY_R) == 2) render.rebuildChunks();
+                if (render.getKey(GLFW_KEY_T) == 0) world.reset();
+                if(render.getKey(GLFW_KEY_R) == 0) render.rebuildChunks();
                 double worldTime = world.updateChunks(1 / 60.);
 
 
@@ -72,7 +69,7 @@ public class Main {
                 Runtime runtime = Runtime.getRuntime();
                 Vector3i blockPos = StaticUtils.getBlockPos(playerPosition);
 
-                if (render.getKey(GLFW_KEY_C) == 2) {
+                if (render.getKey(GLFW_KEY_C) == 0) {
                     if (locked) {
                         render.unlockCursorPos();
                         locked = false;
@@ -126,9 +123,9 @@ public class Main {
 
                 }
 
-                if (breakable != null && render.getMouseButton(GLFW_MOUSE_BUTTON_LEFT) == 2)
+                if (breakable != null && render.getMouseButton(GLFW_MOUSE_BUTTON_LEFT) == 0)
                     world.getBlock(breakable).destroy(breakable, world);
-                if (replaceable != null && render.getMouseButton(GLFW_MOUSE_BUTTON_RIGHT) == 2)
+                if (replaceable != null && render.getMouseButton(GLFW_MOUSE_BUTTON_RIGHT) == 0)
                     blocks.get("voxelesque:stoneBlock").place(replaceable, world);
 
 
@@ -152,24 +149,24 @@ public class Main {
 
     private static void updateCameraPos() {
         cameraInc.set(0, 0, 0);
-        if (render.getKey(GLFW_KEY_W) >= 2) {
+        if (render.getKey(GLFW_KEY_W) >= 0) {
             cameraInc.z = -1;
-        } else if (render.getKey(GLFW_KEY_S) >= 2) {
+        } else if (render.getKey(GLFW_KEY_S) >= 0) {
             cameraInc.z = 1;
         }
-        if (render.getKey(GLFW_KEY_A) >= 2) {
+        if (render.getKey(GLFW_KEY_A) >= 0) {
             cameraInc.x = -1;
-        } else if (render.getKey(GLFW_KEY_D) >= 2) {
+        } else if (render.getKey(GLFW_KEY_D) >= 0) {
             cameraInc.x = 1;
         }
-        if (render.getKey(GLFW_KEY_Z) >= 2) {
+        if (render.getKey(GLFW_KEY_Z) >= 0) {
             cameraInc.y = -1;
-        } else if (render.getKey(GLFW_KEY_X) >= 2) {
+        } else if (render.getKey(GLFW_KEY_X) >= 0) {
             cameraInc.y = 1;
         }
         // Update camera position
         double CAMERA_POS_STEP = 1 / 6d;
-        if(render.getKey(GLFW_KEY_LEFT_CONTROL) >= 2) CAMERA_POS_STEP = 1.;
+        if(render.getKey(GLFW_KEY_LEFT_CONTROL) >= 0) CAMERA_POS_STEP = 1.;
         if (cameraInc.z != 0) {
             playerPosition.x += (float) Math.sin(playerRotation.y) * -1.0f * cameraInc.z * CAMERA_POS_STEP;
             playerPosition.z += (float) Math.cos(playerRotation.y) * cameraInc.z * CAMERA_POS_STEP;
@@ -186,7 +183,7 @@ public class Main {
             playerRotation.x += (render.getMouseYPos()) * sensitivity;
             playerRotation.y += (render.getMouseXPos()) * sensitivity;
         } else {
-            if (render.getMouseButton(GLFW_MOUSE_BUTTON_RIGHT) >= 2) {
+            if (render.getMouseButton(GLFW_MOUSE_BUTTON_RIGHT) >= 0) {
                 playerRotation.x += (render.getMouseYPos() - lastMouseYPos) * sensitivity;
                 playerRotation.y += (render.getMouseXPos() - lastMouseXPos) * sensitivity;
             }

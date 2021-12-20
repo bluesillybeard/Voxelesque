@@ -23,6 +23,7 @@ public class GL33Window {
     private double scrolls;
     private double cursorXPos, cursorYPos;
     private boolean cursorPosLocked;
+    private int frames;
 
     private static final int numKeys = 348; //there are 348 keys supported by GLFW
     private static final int numMouseButtons = 5; //there are 5 mouse buttons supported by GLFW
@@ -71,16 +72,16 @@ public class GL33Window {
         // Set up a key callback. It will be called every time a key is pressed, repeated or released.
         glfwSetKeyCallback(windowHandle, (window, key, scancode, action, mods) -> {
             if(action == GLFW_PRESS){
-                keys[key] = 2;
+                keys[key] = frames;
             } else if(action == GLFW_RELEASE){
-                keys[key] = 0;
+                keys[key] = -frames;
             }
         });
         glfwSetMouseButtonCallback(windowHandle, (window, button, action, mods) -> {
             if(action == GLFW_PRESS){
-                mouseButtons[button] = 2;
+                mouseButtons[button] = frames;
             } else if(action == GLFW_RELEASE){
-                mouseButtons[button] = 0;
+                mouseButtons[button] = -frames;
             }
         });
         glfwSetScrollCallback(windowHandle, (window, xOffset, yOffset) ->{
@@ -123,23 +124,24 @@ public class GL33Window {
         glEnable(GL_BLEND);
         glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        frames = 0;
     }
-    public int getKey(int key, boolean change) {
+    public int getKey(int key) {
         int keyValue = keys[key];
-        if(change) {
-            if (keys[key] == 0) keys[key] = 1;
-            else if (keys[key] == 2) keys[key] = 3;
+        if(keyValue > 0){
+            return frames - keyValue;
+        } else {
+            return keyValue - frames;
         }
-        return keyValue;
     }
 
-    public int getMouseButton(int button, boolean change) {
+    public int getMouseButton(int button) {
         int buttonValue = mouseButtons[button];
-        if(change) {
-            if (mouseButtons[button] == 0) mouseButtons[button] = 1;
-            else if (mouseButtons[button] == 2) mouseButtons[button] = 3;
+        if(buttonValue > 0){
+            return frames - buttonValue;
+        } else {
+            return buttonValue - frames;
         }
-        return buttonValue;
     }
 
     public double getScrolls(){
@@ -187,6 +189,7 @@ public class GL33Window {
     }
 
     public void update() {
+        ++frames;
         if(cursorPosLocked) {
             glfwSetCursorPos(windowHandle, width / 2., height / 2.);
             cursorXPos = 0;
