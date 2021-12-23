@@ -4,7 +4,7 @@ import game.GlobalBits;
 import game.misc.HashComparator;
 import game.misc.StaticUtils;
 import game.world.block.Block;
-import game.world.generation.PerlinNoise;
+import math.FastNoiseLite;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 import math.BetterVector3i;
@@ -18,14 +18,20 @@ import static game.misc.StaticUtils.getChunkWorldPos;
 public class World {
     private Map<Vector3i, Chunk> chunks;
     private LinkedList<Vector3i> chunksToUnload;
-    private final PerlinNoise noise;
+    private final FastNoiseLite noise;
     public static final int CHUNK_SIZE = 32; //MUST BE A POWER OF 2! If this is changed to a non-power of 2, many things would have to be reworked.
 
     private static final Vector3i temp = new Vector3i();
 
     public World() {
 
-        noise = new PerlinNoise(-1, 1, 0.005f, 50, 5);
+        noise = new FastNoiseLite();
+        noise.SetNoiseType(FastNoiseLite.NoiseType.Perlin);
+        noise.SetFractalType(FastNoiseLite.FractalType.FBm);
+        noise.SetFrequency(0.004f);
+        noise.SetFractalOctaves(5);
+        noise.SetFractalLacunarity(2.0f);
+        noise.SetFractalGain(0.5f);
         chunks = new TreeMap<>(new HashComparator());
         chunksToUnload = new LinkedList<>();
     }
@@ -142,11 +148,11 @@ public class World {
         for(int xp = 0; xp < CHUNK_SIZE; xp++){
             for(int zp = 0; zp < CHUNK_SIZE; zp++){
                 Vector3f pos = StaticUtils.getBlockWorldPos(temp.set(CHUNK_SIZE*x+xp, 0, CHUNK_SIZE*z+zp));
-                double height = noise.getHeight(pos.x, pos.z);
+                double height = noise.GetNoise(pos.x, pos.z)*20*noise.GetNoise(pos.x, pos.z)*20; //squaring it makes it better by making lower terrain flatter, and higher terrain more varied and mountain-like
                 for(int yp = 0; yp < CHUNK_SIZE; yp++){
                     pos = StaticUtils.getBlockWorldPos(temp.set(CHUNK_SIZE*x+xp, CHUNK_SIZE * y+yp, CHUNK_SIZE*z+zp));
                     blocksg[xp][yp][zp] = stoneBlock;
-                    if(pos.y < Math.max(height, -100)) {
+                    if(pos.y < height) {
                         //don't print here, ruins world gen for unexplained reasons
                         //seriously - it's really creepy
                         blocksg[xp][yp][zp] = grassBlock;

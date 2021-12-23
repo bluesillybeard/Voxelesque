@@ -159,14 +159,14 @@ public class Main {
         } else if (render.getKey(GLFW_KEY_D) >= 0) {
             cameraInc.x = 1;
         }
-        if (render.getKey(GLFW_KEY_Z) >= 0) {
+        if (render.getKey(GLFW_KEY_LEFT_CONTROL) >= 0) {
             cameraInc.y = -1;
-        } else if (render.getKey(GLFW_KEY_X) >= 0) {
+        } else if (render.getKey(GLFW_KEY_SPACE) >= 0) {
             cameraInc.y = 1;
         }
         // Update camera position
         double CAMERA_POS_STEP = 1 / 6d;
-        if(render.getKey(GLFW_KEY_LEFT_CONTROL) >= 0) CAMERA_POS_STEP = 1.;
+        if(render.getKey(GLFW_KEY_LEFT_SHIFT) >= 0) CAMERA_POS_STEP = 1.;
         if (cameraInc.z != 0) {
             playerPosition.x += (float) Math.sin(playerRotation.y) * -1.0f * cameraInc.z * CAMERA_POS_STEP;
             playerPosition.z += (float) Math.cos(playerRotation.y) * cameraInc.z * CAMERA_POS_STEP;
