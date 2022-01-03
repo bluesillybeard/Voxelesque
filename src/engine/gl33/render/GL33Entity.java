@@ -4,10 +4,12 @@ import engine.gl33.model.GL33Mesh;
 import engine.gl33.model.GL33Model;
 import engine.gl33.model.GL33Texture;
 import engine.multiplatform.gpu.GPUEntity;
+import math.FastNoiseLite;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import java.util.Objects;
+import java.util.Vector;
 
 public class GL33Entity implements GPUEntity, Comparable<GL33Entity> {
 
@@ -56,21 +58,28 @@ public class GL33Entity implements GPUEntity, Comparable<GL33Entity> {
         return model;
     }
 
-    public Vector3f getPosition() {
+    public Vector3f getLocation() {
         return this.position;
     }
 
-    public void setPosition(float x, float y, float z) {
+    @Override //from GPUEntity interface
+    public void setLocation(float x, float y, float z) {
         this.position.x = x;
         this.position.y = y;
         this.position.z = z;
         updateViewMatrix();
     }
 
+    @Override //from GPUEntity interface
+    public void setLocation(Vector3f pos){
+        setLocation(pos.x, pos.y, pos.z);
+    }
+
     public Vector3f getScale() {
         return this.scale;
     }
 
+    @Override //from GPUEntity interface
     public void setScale(float x, float y, float z) {
         this.scale.x = x;
         this.scale.y = y;
@@ -78,10 +87,17 @@ public class GL33Entity implements GPUEntity, Comparable<GL33Entity> {
         updateViewMatrix();
     }
 
+    @Override //from GPUEntity interface
+    public void setScale(Vector3f scale){
+        setScale(scale.x, scale.y, scale.z);
+    }
+
+
     public Vector3f getRotation() {
         return rotation;
     }
 
+    @Override //from GPUEntity interface
     public void setRotation(float x, float y, float z) {
         this.rotation.x = x;
         this.rotation.y = y;
@@ -89,13 +105,29 @@ public class GL33Entity implements GPUEntity, Comparable<GL33Entity> {
         updateViewMatrix();
     }
 
+    @Override //from GPUEntity interface
+    public void setRotation(Vector3f rot){
+        setRotation(rot.x, rot.y, rot.z);
+    }
+
+    @Override //from GPUEntity interface
+    public void setPosition(float xLocation, float yLocation, float zLocation, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale){
+        //todo: more efficient method that doesn't update the view matrix 3 times in a row
+        setLocation(xLocation, yLocation, zLocation);
+        setRotation(xRotation, yRotation, zRotation);
+        setScale(xScale, yLocation, zLocation);
+    }
+    @Override //from GPUEntity interface
+    public void setPosition(Vector3f locat, Vector3f rotat, Vector3f scale){
+        setPosition(locat.x, locat.y, locat.z, rotat.x, rotat.y, rotat.z, scale.x, scale.y, scale.z);
+    }
+
+
     public void setModel(GL33Model model){
         this.model = model;
     }
 
     public void setModel(GL33Mesh mesh, GL33Texture texture){
-
-
         if(this.model.mesh != mesh || this.model.texture != texture) { //if the model or mesh are different
             this.model = new GL33Model(mesh, texture);
         }

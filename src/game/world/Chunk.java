@@ -55,7 +55,7 @@ public class Chunk implements Comparable<Chunk>{
 
     public void setBlock(int x, int y, int z, Block block, boolean buildImmediately){
         this.blocks[x][y][z] = block;
-        GlobalBits.render.setChunkBlock(handle, block, x, y, z, buildImmediately);
+        handle.setBlock(block, x, y, z, buildImmediately);
     }
 
     public NBTElement getBlockNBT(int x, int y, int z){
@@ -66,8 +66,11 @@ public class Chunk implements Comparable<Chunk>{
         this.nbt[x][y][z] = nbtElement;
     }
 
+    /**
+     * Deletes the internal chunk handles and should
+     */
     public void unload(){
-        GlobalBits.render.deleteChunk(handle);
+        handle.delete();
     }
 
     private GPUChunk sendToRender() {

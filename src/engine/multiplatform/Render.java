@@ -242,14 +242,6 @@ public interface Render {
 
     GPUEntity createEntity(GPUTexture texture, GPUMesh mesh, GPUShader shader, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
 
-    void setEntityPos(GPUEntity entity, float xPos, float yPos, float zPos, float xRotation, float yRotation, float zRotation, float xScale, float yScale, float zScale);
-
-    void setEntityPos(GPUEntity entity, float xPos, float yPos, float zPos);
-
-    void setEntityRotation(GPUEntity entity, float xRotation, float yRotation, float zRotation);
-
-    void setEntityScale(GPUEntity entity, float xScale, float yScale, float zScale);
-
     void setEntityShader(GPUEntity entity, GPUShader shader);
 
     Matrix4f getEntityTransform(GPUEntity entity);
@@ -302,32 +294,13 @@ public interface Render {
      */
     GPUChunk spawnChunk(int size, GPUBlock[][][] blocks, int x, int y, int z, boolean buildImmediately);
 
-    /**
-     * sets the block data of a chunk.
-     * @param blocks a 3D array of blockModel IDs that represent that chunk's block data.
-     * @param chunk the chunk whose data will be set.
-     */
-    void setChunkData(GPUChunk chunk, GPUBlock[][][] blocks, boolean buildImmediately);
-
-    /**
-     * sets a specific block [z, y, x] of a chunk.
-     * @param chunk the chunk whose block will be modified
-     * @param block the blockModel to be used
-     */
-    void setChunkBlock(GPUChunk chunk, GPUBlock block, int x, int y, int z, boolean buildImmediately);
-
-    /**
-     * deletes a chunk so it is no longer rendered.
-     * @param chunk the ID of the chunk to remove
-     */
-    void deleteChunk(GPUChunk chunk);
-
     int getNumChunks();
 
     int getNumChunkSlots();
 
     /**
      * completely resets and rebuilds every chunk, removing any ghost blocks.
+     * this *should* never have to be called, but the functionality is there in case it's needed.
      */
     void rebuildChunks();
     //camera
@@ -454,4 +427,14 @@ public interface Render {
         return getBlockTransform(dest, cx, cy, cz, bx, by, bz, chunkSize);
 
     }
+
+    //logging
+    void print(Object p);
+    void println(Object p);
+
+    void printWarn(Object p);
+    void printWarnln(Object p);
+
+    void printErr(Object p);
+    void printErrln(Object p);
 }

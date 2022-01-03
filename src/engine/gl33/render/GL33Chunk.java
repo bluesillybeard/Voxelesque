@@ -1,12 +1,13 @@
 package engine.gl33.render;
 
+import engine.gl33.GL33Render;
 import engine.gl33.model.GL33Mesh;
 import engine.gl33.model.GL33Texture;
+import engine.multiplatform.RenderUtils;
 import engine.multiplatform.Util.CPUMeshBuilder;
 import engine.multiplatform.gpu.GPUBlock;
 import engine.multiplatform.gpu.GPUChunk;
 import engine.multiplatform.model.CPUMesh;
-import game.world.World;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
@@ -41,16 +42,54 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
         this.cameraPos = cameraPos;
     }
 
-    public void setData(GPUBlock[][][] blocks){
+    @Override
+    public void setData(GPUBlock[][][] blocks, boolean buildImmediately){
+        setDataInternal(blocks);
+        GL33Render glRender = (GL33Render)RenderUtils.activeRender;
+        if(buildImmediately){
+            this.taskScheduled = true;
+            this.build(glRender.getChunks());
+            glRender.updateAdjacentChunks(this.pos);
+        } else {
+            this.taskScheduled = true;
+            glRender.getModifiedChunks().add(this);
+            glRender.updateAdjacentChunks(this.pos);
+        }
+    }
+
+    private void setDataInternal(GPUBlock[][][] blocks){
         if(blocks != null && (blocks.length != this.size || blocks[0].length != this.size || blocks[0][0].length != this.size)){
             throw new IllegalStateException("a chunk's data cannot be any other size than " + this.size + "," +
                     " but the data given to the constructor has dimensions (" + blocks.length + ", " + blocks[0].length + ", " + blocks[0][0].length + ")");
         }
         this.blocks = blocks;
     }
-    public void setBlock(GPUBlock block, int x, int y, int z){
+
+    @Override
+    public void setBlock(GPUBlock block, int x, int y, int z, boolean buildImmediately){
+        setBlockInternal(block, x, y, z);
+        GL33Render glRender = (GL33Render)RenderUtils.activeRender;
+        if(buildImmediately){
+            this.taskScheduled = true;
+            this.build(glRender.getChunks());
+            glRender.updateAdjacentChunks(this.pos);
+        } else {
+            this.taskScheduled = true;
+            glRender.getModifiedChunks().add(this);
+            glRender.updateAdjacentChunks(this.pos);
+        }
+    }
+    private void setBlockInternal(GPUBlock block, int x, int y, int z){
         blocks[x][y][z] = block;
     }
+
+    @Override
+    public void delete(){
+        GL33Render glRender = (GL33Render)RenderUtils.activeRender;
+        glRender.getChunks().remove(this.getPosition());
+        glRender.getDeletedChunks().add(this);
+    }
+
     public void render(){
         if(!canRender) return; //don't render if it can't
         for(GL33Entity entity: chunkModel){
@@ -81,7 +120,7 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
                 if(mesh.indices.length > 0) {
                     modelsAdded++;
                     GL33Entity entity = new GL33Entity(new GL33Mesh(mesh), shaderTextures.get(i).shader, shaderTextures.get(i).texture);
-                    entity.setPosition(this.pos.x * this.size * 0.288675134595f, this.pos.y * this.size * 0.5f, this.pos.z * this.size * 0.5f);
+                    entity.setLocation(this.pos.x * this.size * 0.288675134595f, this.pos.y * this.size * 0.5f, this.pos.z * this.size * 0.5f);
                     entity.setScale(1, 1, 1);
                     model.add(entity);
                 }
@@ -101,7 +140,7 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
      */
     public void build(Map<Vector3i, GL33Chunk> chunks) {
         if(taskRunning) {
-            System.err.println("Chunk attempted to build multiple times at once:" + this);
+            RenderUtils.activeRender.printErrln("Chunk attempted to build multiple times at once:" + this);
             return;
         }
         taskRunning = true;
