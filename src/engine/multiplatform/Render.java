@@ -321,28 +321,6 @@ public interface Render {
 
 
     /**
-     * creates a text box that the user can type into.
-     * Note that a text box is simply a text entity whose text can be modified by the user,
-     * which itself is just an entity that displays text.
-     * This means, you can use the TextEntity methods to modify it.
-     *
-     * Although a Render is mainly a graphics API conversion, it is also an input handler
-     * which is why text boxes, sliders, etc. are implemented on the Render side and not the game side.
-     * @return the text box object. Pass into methods that require a text box.
-     */
-    GPUTextBox createTextBox();
-
-    String getTextBoxText(GPUTextBox text);
-
-    GPUTextBox getSelectedTextBox();
-
-    boolean textBoxSelected(GPUTextBox text);
-
-    void deleteTextBox(GPUTextEntity entity);
-
-    int getNumTextBoxes();
-
-    /**
      * Tells weather a mesh would appear on a part of the screen if it were to be rendered.
      *
      * @param mesh the mesh to transform - will not be modified as this method creates its own copy.

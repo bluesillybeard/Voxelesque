@@ -29,7 +29,7 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
     public boolean taskScheduled;
 
     public GL33Chunk(int size, GPUBlock[][][] blocks, int xPos, int yPos, int zPos, Vector3f cameraPos){
-        if(blocks.length != size || blocks[0].length != size || blocks[0][0].length != size){
+        if(blocks != null && (blocks.length != size || blocks[0].length != size || blocks[0][0].length != size)){
             throw new IllegalStateException("a chunk's data cannot be any other size than " + size + "," +
                     "\n but the data given to the constructor has dimensions (" + blocks.length + ", " + blocks[0].length + ", " + blocks[0][0].length + ")");
         }
@@ -80,13 +80,13 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
         }
     }
     private void setBlockInternal(GPUBlock block, int x, int y, int z){
-        blocks[x][y][z] = block;
+        if(blocks != null)blocks[x][y][z] = block;
+        else blocks = new GPUBlock[size][size][size];
     }
 
     @Override
     public void delete(){
         GL33Render glRender = (GL33Render)RenderUtils.activeRender;
-        glRender.getChunks().remove(this.getPosition());
         glRender.getDeletedChunks().add(this);
     }
 
@@ -108,30 +108,26 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
         }
     }
 
-    public boolean sendToGPU(){
-        if(taskRunning || taskScheduled){
-            return false;
-        } else if(chunkModels != null && chunkModels.size() > 0){
-            int modelsAdded = 0;
-            if(canRender)clearFromGPU();
-            ArrayList<GL33Entity> model = new ArrayList<>();
-            for (int i = 0; i < shaderTextures.size(); i++) {
-                CPUMesh mesh = chunkModels.get(i).getMesh();
-                if(mesh.indices.length > 0) {
-                    modelsAdded++;
-                    GL33Entity entity = new GL33Entity(new GL33Mesh(mesh), shaderTextures.get(i).shader, shaderTextures.get(i).texture);
-                    entity.setLocation(this.pos.x * this.size * 0.288675134595f, this.pos.y * this.size * 0.5f, this.pos.z * this.size * 0.5f);
-                    entity.setScale(1, 1, 1);
-                    model.add(entity);
+    public void sendToGPU(){
+        if (!taskRunning && !taskScheduled) {
+            if(chunkModels != null && chunkModels.size() > 0){
+                if(canRender)clearFromGPU();
+                ArrayList<GL33Entity> model = new ArrayList<>();
+                for (int i = 0; i < shaderTextures.size(); i++) {
+                    CPUMesh mesh = chunkModels.get(i).getMesh();
+                    if(mesh.indices.length > 0) {
+                        GL33Entity entity = new GL33Entity(new GL33Mesh(mesh), shaderTextures.get(i).shader, shaderTextures.get(i).texture);
+                        entity.setLocation(this.pos.x * this.size * 0.288675134595f, this.pos.y * this.size * 0.5f, this.pos.z * this.size * 0.5f);
+                        entity.setScale(1, 1, 1);
+                        model.add(entity);
+                    }
                 }
+                chunkModels = null;
+                shaderTextures = null;
+                this.chunkModel = model.toArray(new GL33Entity[0]);
+                this.canRender = true;
             }
-            chunkModels = null;
-            shaderTextures = null;
-            this.chunkModel = model.toArray(new GL33Entity[0]);
-            this.canRender = true;
-            return modelsAdded > 0;
         }
-        return false;
     }
 
     /**
@@ -139,11 +135,13 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
      * @param chunks the map of chunk positions to chunk objects to get adjacent chunks from
      */
     public void build(Map<Vector3i, GL33Chunk> chunks) {
-        if(taskRunning) {
+        if (taskRunning) {
             RenderUtils.activeRender.printErrln("Chunk attempted to build multiple times at once:" + this);
             return;
         }
         taskRunning = true;
+        if (blocks != null) {
+
         /*
         an overview of how chunk building works:
         initialize a list of shaders and models
@@ -157,25 +155,27 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
            add that block model to the chunk model
 
          */
-        chunkModels = new ArrayList<>();
-        shaderTextures = new ArrayList<>();
-        ShaderTexture TSP = new ShaderTexture();
+            chunkModels = new ArrayList<>();
+            shaderTextures = new ArrayList<>();
+            ShaderTexture TSP = new ShaderTexture();
 
-        for (int x = 0; x < blocks.length; x++) {
-            for (int y = 0; y < blocks[x].length; y++) {
-                for (int z = 0; z < blocks[x][y].length; z++) {
-                    GPUBlock block = blocks[x][y][z];
-                    if (block == null || block.getTexture() == null || block.getShader() == null) continue; //skip rendering this block if it is null (void)
-                    GL33Shader program = (GL33Shader)block.getShader();
-                    GL33Texture texture = (GL33Texture)block.getTexture();
-                    int shaderTextureIndex = shaderTextures.indexOf(TSP.s(program).t(texture));
-                    if (shaderTextureIndex == -1) {
-                        shaderTextureIndex = chunkModels.size();
-                        shaderTextures.add(new ShaderTexture(program, texture));
-                        chunkModels.add(new CPUMeshBuilder());
+            for (int x = 0; x < blocks.length; x++) {
+                for (int y = 0; y < blocks[x].length; y++) {
+                    for (int z = 0; z < blocks[x][y].length; z++) {
+                        GPUBlock block = blocks[x][y][z];
+                        if (block == null || block.getTexture() == null || block.getShader() == null)
+                            continue; //skip rendering this block if it is null (void)
+                        GL33Shader program = (GL33Shader) block.getShader();
+                        GL33Texture texture = (GL33Texture) block.getTexture();
+                        int shaderTextureIndex = shaderTextures.indexOf(TSP.s(program).t(texture));
+                        if (shaderTextureIndex == -1) {
+                            shaderTextureIndex = chunkModels.size();
+                            shaderTextures.add(new ShaderTexture(program, texture));
+                            chunkModels.add(new CPUMeshBuilder());
+                        }
+                        //cloning, index removal, and vertex position modification done within the BlockMeshBuilder
+                        chunkModels.get(shaderTextureIndex).addBlockMeshToChunk(block.getMesh(), x, y, z, this.getBlockedFaces(x, y, z, chunks));
                     }
-                    //cloning, index removal, and vertex position modification done within the BlockMeshBuilder
-                    chunkModels.get(shaderTextureIndex).addBlockMeshToChunk(block.getMesh(), x, y, z, this.getBlockedFaces(x, y, z, chunks));
                 }
             }
         }
@@ -243,15 +243,18 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
                 zM = 0;
             }
             if(toUse == null){
-                if(chunks != null)blockedFaces |= (1 << i); //if the chunk doesn't exist yet, assume it's blocked, unless it wasn't given adjacent chunks, in which case assume it isn't blocked.
+                if(chunks != null)blockedFaces |= (1 << i); //if the chunk doesn't exist yet, assume it's not blocked, unless it wasn't given adjacent chunks, in which case assume it isn't blocked.
                 continue;
             }
-            CPUMesh mesh = toUse.getBlock(xM, yM, zM).getMesh();
+            GPUBlock block = toUse.getBlock(xM, yM, zM);
+            if(block != null) {
+                CPUMesh mesh = toUse.getBlock(xM, yM, zM).getMesh();
 
-            if (mesh == null || mesh.blockedFaces == 0) continue; //skip if that mesh doesn't block faces
-            blockedFaces |= (mesh.blockedFaces & (1 << i)); //add the blocked face to the bit field.
+                if (mesh == null || mesh.blockedFaces == 0) continue; //skip if that mesh doesn't block faces
+                blockedFaces |= (mesh.blockedFaces & (1 << i)); //add the blocked face to the bit field.
+            }
         }
-        return blockedFaces;//blockedFaces;
+        return blockedFaces;
     }
 
     /**
@@ -272,48 +275,10 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
     }
 
     public GPUBlock getBlock(int x, int y, int z){
-        return this.blocks[x][y][z];
+        if(blocks != null)return this.blocks[x][y][z];
+        else return null;
     }
 
-    /**
-     * Compares this object with the specified object for order.  Returns a
-     * negative integer, zero, or a positive integer as this object is less
-     * than, equal to, or greater than the specified object.
-     *
-     * <p>The implementor must ensure
-     * {@code sgn(x.compareTo(y)) == -sgn(y.compareTo(x))}
-     * for all {@code x} and {@code y}.  (This
-     * implies that {@code x.compareTo(y)} must throw an exception iff
-     * {@code y.compareTo(x)} throws an exception.)
-     *
-     * <p>The implementor must also ensure that the relation is transitive:
-     * {@code (x.compareTo(y) > 0 && y.compareTo(z) > 0)} implies
-     * {@code x.compareTo(z) > 0}.
-     *
-     * <p>Finally, the implementor must ensure that {@code x.compareTo(y)==0}
-     * implies that {@code sgn(x.compareTo(z)) == sgn(y.compareTo(z))}, for
-     * all {@code z}.
-     *
-     * <p>It is strongly recommended, but <i>not</i> strictly required that
-     * {@code (x.compareTo(y)==0) == (x.equals(y))}.  Generally speaking, any
-     * class that implements the {@code Comparable} interface and violates
-     * this condition should clearly indicate this fact.  The recommended
-     * language is "Note: this class has a natural ordering that is
-     * inconsistent with equals."
-     *
-     * <p>In the foregoing description, the notation
-     * {@code sgn(}<i>expression</i>{@code )} designates the mathematical
-     * <i>signum</i> function, which is defined to return one of {@code -1},
-     * {@code 0}, or {@code 1} according to whether the value of
-     * <i>expression</i> is negative, zero, or positive, respectively.
-     *
-     * @param o the object to be compared.
-     * @return a negative integer, zero, or a positive integer as this object
-     * is less than, equal to, or greater than the specified object.
-     * @throws NullPointerException if the specified object is null
-     * @throws ClassCastException   if the specified object's type prevents it
-     *                              from being compared to this object.
-     */
     @Override
     public int compareTo(GL33Chunk o) {
         return (int)(getChunkWorldPos(this.pos, this.size).distance(cameraPos) - getChunkWorldPos(o.pos, o.size).distance(cameraPos));

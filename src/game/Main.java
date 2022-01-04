@@ -37,7 +37,7 @@ public class Main {
             }
             resourcesPath = System.getProperty("user.dir") + "/resources";
             render.setResourcesPath(GlobalBits.resourcesPath);
-            renderDistance = 150f;
+            renderDistance = 550f;
             tempV3f0 = new Vector3f();
             tempV3f1 = new Vector3f();
             tempV3i0 = new Vector3i();
@@ -61,7 +61,7 @@ public class Main {
             do {
                 if (render.getKey(GLFW_KEY_T) == 0) world.reset();
                 if(render.getKey(GLFW_KEY_R) == 0) render.rebuildChunks();
-                double worldTime = world.updateChunks(1 / 60.);
+                double worldTime = world.updateChunks(1 / 10.);
 
 
                 updateCameraPos();
@@ -132,12 +132,12 @@ public class Main {
                 render.setTextEntityText(debugTextEntity,
                         "Memory:" + (runtime.totalMemory() - runtime.freeMemory()) / 1048576 + " / " + runtime.totalMemory() / 1048576 +
                                 "\nEntities: " + render.getNumEntities() + " / " + render.getNumEntitySlots() +
-                                "\nRC:: " + render.getNumChunks() + " / " + render.getNumChunkSlots() + "|GC: " + world.getChunks().size() +
+                                "\nRC: " + render.getNumChunks() + "|GC: " + world.getChunks().size() +
                                 "\npos: " + StaticUtils.betterVectorToString(playerPosition, 3) + ", rot: (" + StaticUtils.FloatToStringSigFigs(playerRotation.x, 3) + ", " + StaticUtils.FloatToStringSigFigs(playerRotation.y, 3) + ")" +
                                 "\nchunkPos: " + StaticUtils.getChunkPos(playerPosition) +
                                 "\nblock: " + world.getBlock(blockPos.x, blockPos.y, blockPos.z) +
-                                "\nframe: " + StaticUtils.FloatToStringSigFigs((float) (time), 10) +
-                                "\nworld: " + StaticUtils.FloatToStringSigFigs((float) worldTime, 10),
+                                "\nframe: " + StaticUtils.FloatToStringSigFigs((float) (time), 5) +
+                                "\nworld: " + StaticUtils.FloatToStringSigFigs((float) worldTime, 5),
                         false, false);
             } while (!render.shouldClose());
             render.close();

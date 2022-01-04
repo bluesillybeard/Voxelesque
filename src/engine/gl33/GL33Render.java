@@ -75,8 +75,8 @@ public class GL33Render implements Render {
 
     //todo: smarter resource management that uses hashes to make sure a GPUTexture, GPUMesh, etc is only created once.
     private final Set<GL33Entity> entities = new TreeSet<>();
-    private final Set<GL33Shader> shaderPrograms = new HashSet<>();
-    private final Map<Vector3i, GL33Chunk> chunks = new TreeMap<>(new HashComparator());
+    private final Set<GL33Shader> shaderPrograms = new TreeSet<>(new HashComparator());
+    private final HashMap<Vector3i, GL33Chunk> chunks = new HashMap<>(/*new HashComparator()*/);
     private final PriorityThreadPoolExecutor<DistanceRunnable> chunkBuildExecutor = new PriorityThreadPoolExecutor<>(DistanceRunnable.inOrder, Runtime.getRuntime().availableProcessors());
 
     private final LinkedList<GL33Chunk> deletedChunks = new LinkedList<>();
@@ -571,20 +571,6 @@ public class GL33Render implements Render {
         return entities.size();
     }
 
-    //todo: actually implement text boxes.
-
-
-
-    @Override
-    public void deleteTextBox(GPUTextEntity entity) {
-
-    }
-
-    @Override
-    public int getNumTextBoxes() {
-        return 0;
-    }
-
     /**
      * creates a chunk at the chunk position [x, y, z]
      *
@@ -608,41 +594,7 @@ public class GL33Render implements Render {
         updateAdjacentChunks(chunk.getPosition());
         return chunk;
     }
-/*
-    @Override
-    public void setChunkData(GPUChunk chunk, GPUBlock[][][] blocks, boolean buildImmediately) {
 
-        GL33Chunk chunk1 = (GL33Chunk)(chunk);
-
-        chunk1.setData(blocks);
-        if(buildImmediately){
-            chunk1.taskScheduled = true;
-            chunk1.build(chunks);
-        } else {
-            if (!modifiedChunks.contains(chunk1)) modifiedChunks.add(chunk1);
-        }
-        updateAdjacentChunks(chunk1.getPosition());
-    }
-
-    @Override
-    public void setChunkBlock(GPUChunk chunk, GPUBlock block, int x, int y, int z, boolean buildImmediately) {
-        GL33Chunk chunk1 = (GL33Chunk)(chunk);
-        chunk1.setBlock(block, x, y, z);
-        if(buildImmediately){
-            chunk1.taskScheduled = true;
-            chunk1.build(chunks);
-        } else {
-            if (!modifiedChunks.contains(chunk1)) modifiedChunks.add(chunk1);
-        }
-        updateAdjacentChunks(chunk1.getPosition());
-    }
-
-    @Override
-    public void deleteChunk(GPUChunk chunk) {
-        deletedChunks.add((GL33Chunk)(chunk));
-        chunks.remove(((GL33Chunk)chunk).getPosition());
-    }
-*/
     @Override
     public int getNumChunks() {
         return chunks.size();
@@ -661,13 +613,11 @@ public class GL33Render implements Render {
         this.modifiedChunks.clear();
         this.chunkBuildExecutor.getTasks().clear();
         Set<Map.Entry<Vector3i, GL33Chunk>> chunkEntries = chunks.entrySet();
-        Iterator<Map.Entry<Vector3i, GL33Chunk>> iterator = chunkEntries.iterator();
-        while(iterator.hasNext()){
-            Map.Entry<Vector3i, GL33Chunk> entry = iterator.next();
+        for (Map.Entry<Vector3i, GL33Chunk> entry : chunkEntries) {
             entry.getValue().clearFromGPU();
             newChunks.add(entry.getValue());
-            iterator.remove();
         }
+        chunks.clear();
     }
 
     private void updateCameraViewMatrix(){
@@ -710,36 +660,6 @@ public class GL33Render implements Render {
     @Override
     public boolean cursorLocked(){
         return window.mouseLocked();
-    }
-
-    /**
-     * creates a text box that the user can type into.
-     * Note that a text box is simply a text entity whose text can be modified by the user,
-     * which itself is just an entity that displays text.
-     * <p>
-     * Although a Render it mainly a graphics API conversion, it is also an input handler
-     * which is why text boxes, sliders, etc. are implemented on the Render side and not the game side.
-     *
-     * @return the text box object. Pass into methods that require a text box.
-     */
-    @Override
-    public GPUTextBox createTextBox() {
-        return null;
-    }
-
-    @Override
-    public String getTextBoxText(GPUTextBox text) {
-        return null;
-    }
-
-    @Override
-    public GPUTextBox getSelectedTextBox() {
-        return null;
-    }
-
-    @Override
-    public boolean textBoxSelected(GPUTextBox text) {
-        return false;
     }
 
     /**
@@ -898,6 +818,8 @@ public class GL33Render implements Render {
                     //if it is scheduled, then we remove it from the executor.
                     chunkBuildExecutor.getTasks().remove(new DistanceRunnable(null, getChunkWorldPos(c.getPosition()), cameraPosition));
                 }
+                c.clearFromGPU();
+                chunks.remove(c.getPosition());
                 iter.remove();
             }
         }

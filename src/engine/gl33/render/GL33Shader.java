@@ -120,6 +120,9 @@ public class GL33Shader implements GPUShader {
         }
     }
 
+    public int hashCode(){
+        return programId;
+    }
     /**
      * tells what render backend this came from.
      * supported render APIs:

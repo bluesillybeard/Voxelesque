@@ -1,5 +1,7 @@
 package game.world;
 
+import engine.multiplatform.Render;
+import engine.multiplatform.RenderUtils;
 import game.GlobalBits;
 import game.misc.HashComparator;
 import game.misc.StaticUtils;
@@ -87,24 +89,25 @@ public class World {
 
 
     public double updateChunks(double targetTime){
-        double startTime = GlobalBits.render.getTime();
+        Render r = RenderUtils.activeRender;
+        double startTime = r.getTime();
 
 
         Vector3i playerChunk = getChunkPos(GlobalBits.playerPosition);
-        for(int x=playerChunk.x-(int)(renderDistance/8)-1; x<playerChunk.x+(int)(renderDistance/8)+1; x++){
-            for(int y=playerChunk.y-(int)(renderDistance/15)-1; y<playerChunk.y+(int)(renderDistance/15)+1; y++){
-                for(int z=playerChunk.z-(int)(renderDistance/15)-1; z<playerChunk.z+(int)(renderDistance/15)+1; z++){
+        for(int x=playerChunk.x-(int)(renderDistance/6.9); x<playerChunk.x+(int)(renderDistance/6.9); x++){ //haha 69 lol (what a coincidence)
+            for(int y=playerChunk.y-(int)(renderDistance/12); y<playerChunk.y+(int)(renderDistance/12); y++){
+                for(int z=playerChunk.z-(int)(renderDistance/12); z<playerChunk.z+(int)(renderDistance/12); z++){
                     //System.out.println(x + ", " + y + ", " + z);
                     if(!chunks.containsKey(temp.set(x, y, z)) && getChunkWorldPos(temp).distance(GlobalBits.playerPosition) < renderDistance) {
                         loadChunk(x, y, z);
                     }
-                    if((GlobalBits.render.getTime() - startTime) > targetTime)
+                    if((r.getTime() - startTime) > targetTime)
                         break;
                 }
-                if((GlobalBits.render.getTime() - startTime) > targetTime)
+                if((r.getTime() - startTime) > targetTime)
                     break;
             }
-            if((GlobalBits.render.getTime() - startTime) > targetTime)
+            if((r.getTime() - startTime) > targetTime)
                 break;
         }
         for (Vector3i pos : chunks.keySet()) {
@@ -117,7 +120,7 @@ public class World {
             unloadChunk(chunkIterator.next());
             chunkIterator.remove();
         }
-        return GlobalBits.render.getTime() - startTime;
+        return r.getTime() - startTime;
     }
 
     public void unloadChunk(Vector3i chunk){
@@ -161,6 +164,6 @@ public class World {
             }
         }
 
-        return new Chunk(CHUNK_SIZE, blocksg, null, x, y, z);
+        return new Chunk(CHUNK_SIZE, blocksg, x, y, z);
     }
 }

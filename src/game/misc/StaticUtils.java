@@ -117,7 +117,15 @@ public class StaticUtils {
         } else {
             //decimal notation
             String intPartString = Integer.toString((int)f);
-            return intPartString + "." + (int) Math.abs(Math.round(f % 1 * Math.pow(10, sigFigs - intPartString.length())));
+            double log10 = Math.log10(f%1);
+            long decimal = Math.abs(Math.round(f % 1 * Math.pow(10, sigFigs - intPartString.length())));
+            if(log10 < 1) {
+                return intPartString + "." + decimal;
+            } else {
+                //TODO IMPORTANT: fic tis pls
+                int zeros = (int)(-log10)+1;
+                return intPartString + "." + "0".repeat(zeros) + decimal; //add the required number of 0s
+            }
         }
     }
 }
