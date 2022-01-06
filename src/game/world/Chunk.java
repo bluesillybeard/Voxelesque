@@ -37,6 +37,7 @@ public class Chunk implements Comparable<Chunk>{
         this.pos.z = z;
         this.size = size;
         this.empty = true;
+        this.gpuChunk = sendToRender();
     }
 
     public Block getBlock(int x, int y, int z){

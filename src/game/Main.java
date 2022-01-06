@@ -12,13 +12,11 @@ import game.world.World;
 import game.world.block.Block;
 import game.world.block.SimpleBlock;
 import org.joml.*;
+import org.lwjgl.system.CallbackI;
 
 import java.lang.Math;
 import java.lang.Runtime;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 import static game.GlobalBits.*;
 import static org.lwjgl.glfw.GLFW.*;
@@ -31,17 +29,17 @@ public class Main {
     public static void main(String[] args) {
         try {
             render = new GL33Render();
-            if (!render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(90), 1 / 60.)) {
+            if (!render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(90), 1 / 40.)) {
                 System.err.println("Unable to initialize Voxelesque engine");
                 System.exit(-1);
             }
             resourcesPath = System.getProperty("user.dir") + "/resources";
             render.setResourcesPath(GlobalBits.resourcesPath);
-            renderDistance = 550f;
+            renderDistance = 200f;
             tempV3f0 = new Vector3f();
             tempV3f1 = new Vector3f();
             tempV3i0 = new Vector3i();
-            playerPosition = new Vector3f(0, 0, 0);
+            playerPosition = new Vector3f(-284, 69, -305); //spawns player just above a hill.
             playerRotation = new Vector3f(0, 0, 0);
             sensitivity = 1;
             defaultShader = render.loadShaderProgram("Shaders/", "");
@@ -61,7 +59,7 @@ public class Main {
             do {
                 if (render.getKey(GLFW_KEY_T) == 0) world.reset();
                 if(render.getKey(GLFW_KEY_R) == 0) render.rebuildChunks();
-                double worldTime = world.updateChunks(1 / 10.);
+                double worldTime = world.updateChunks(1 / 40.);
 
 
                 updateCameraPos();
@@ -86,6 +84,7 @@ public class Main {
 
 
                 Matrix4f temp = new Matrix4f();
+                Vector3i pos = new Vector3i();
                 CPUMesh blockMesh = blocks.get("voxelesque:stoneBlock").getMesh();
                 int xOff = (int) (placementDistance/0.288675134595-0.5);
                 int yzOff = (int) (placementDistance*2-0.5);
@@ -94,14 +93,14 @@ public class Main {
                         for (int z = blockPos.z - yzOff; z < blockPos.z + yzOff; ++z) {
                             temp = Render.getBlockTransform(temp.identity(), x, y, z, World.CHUNK_SIZE);
 
-                            Vector3i pos = new Vector3i(x, y, z);
+                            pos.set(x, y, z);
                             if (render.meshOnScreen(
                                     blockMesh,
                                     temp,
                                     render.getCameraViewMatrix(), render.getCameraProjectionMatrix(), (float) render.getMouseXPos(), (float) render.getMouseYPos()
                             )) {
                                 collidedBlocks.put(
-                                        new Vector3f(x * 0.288675134595f, y * 0.5f, z * 0.5f).distance(playerPosition), pos);
+                                        tempV3f0.set(x * 0.288675134595f, y * 0.5f, z * 0.5f).distance(playerPosition), pos);
                             }
                         }
                     }
@@ -136,8 +135,8 @@ public class Main {
                                 "\npos: " + StaticUtils.betterVectorToString(playerPosition, 3) + ", rot: (" + StaticUtils.FloatToStringSigFigs(playerRotation.x, 3) + ", " + StaticUtils.FloatToStringSigFigs(playerRotation.y, 3) + ")" +
                                 "\nchunkPos: " + StaticUtils.getChunkPos(playerPosition) +
                                 "\nblock: " + world.getBlock(blockPos.x, blockPos.y, blockPos.z) +
-                                "\nframe: " + StaticUtils.FloatToStringSigFigs((float) (time), 5) +
-                                "\nworld: " + StaticUtils.FloatToStringSigFigs((float) worldTime, 5),
+                                "\nframe: " + (int)(time*1000) + "ms" +
+                                "\nworld: " + (int)(worldTime*1000) + "ms",
                         false, false);
             } while (!render.shouldClose());
             render.close();

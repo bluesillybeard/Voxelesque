@@ -610,14 +610,29 @@ public class GL33Render implements Render {
      */
     @Override
     public void rebuildChunks() {
-        this.modifiedChunks.clear();
+        println("Rebuilding chunks asynchronously...");
         this.chunkBuildExecutor.getTasks().clear();
+        debug.println("cleared tasks...");
+        this.modifiedChunks.clear();
+        debug.println("cleared modification buffer...");
+        this.modifiedChunks.addAll(chunks.values());
+        debug.println("refilled modification buffer");
+
+        /*
+        debug.println("rebuilding chunks");
+        this.chunkBuildExecutor.getTasks().clear();
+        debug.println("cleared tasks...");
+        this.modifiedChunks.clear();
+        debug.println("cleared modification buffer...");
         Set<Map.Entry<Vector3i, GL33Chunk>> chunkEntries = chunks.entrySet();
         for (Map.Entry<Vector3i, GL33Chunk> entry : chunkEntries) {
             entry.getValue().clearFromGPU();
             newChunks.add(entry.getValue());
         }
+        debug.println("added chunks to buffer...");
         chunks.clear();
+        debug.println("cleared chunk structure");
+         */
     }
 
     private void updateCameraViewMatrix(){
@@ -824,15 +839,19 @@ public class GL33Render implements Render {
             }
         }
         //update modified chunks
-        iter = modifiedChunks.iterator();
-        while (iter.hasNext()) {
-            GL33Chunk c = iter.next();
-            if(!c.taskScheduled && !c.taskRunning){
-                c.taskScheduled = true;
-                //copy the result from GetChunkWorldPos since it returns a temporary variable
-                chunkBuildExecutor.submit(new DistanceRunnable(()->c.build(chunks), new Vector3f(getChunkWorldPos(c.getPosition())), cameraPosition));
+        if(modifiedChunks.size() > 0) { //don't submit any new chunks if there aren't any to submit
+            chunkBuildExecutor.setPaused(true); //pause the executor so that access to the executors queue is guaranteed (helps performance massively)
+            iter = modifiedChunks.iterator();
+            while (iter.hasNext()) {
+                GL33Chunk c = iter.next();
+                if (!c.taskScheduled && !c.taskRunning) {
+                    c.taskScheduled = true;
+                    //copy the result from GetChunkWorldPos since it returns a temporary variable
+                    chunkBuildExecutor.submit(new DistanceRunnable(() -> c.build(chunks), new Vector3f(getChunkWorldPos(c.getPosition())), cameraPosition));
+                }
+                iter.remove();
             }
-            iter.remove();
+            chunkBuildExecutor.setPaused(false); //unpause the executor so that it resumes rendering chunks
         }
 
         //add new chunks

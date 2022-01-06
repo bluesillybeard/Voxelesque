@@ -14,13 +14,14 @@ public class PriorityThreadPoolExecutor<R extends Runnable> {
     private final List<R> tasks;
     private final Thread[] runners;
     private final Comparator<R> comparator;
+    private boolean paused;
 
     public PriorityThreadPoolExecutor(Comparator<R> comparator, int threads){
         tasks = Collections.synchronizedList(new LinkedList<>());
         runners = new Thread[threads];
         this.comparator = comparator;
         for(int i=0; i<threads; ++i){
-            runners[i] = new KillablePoolThread<R>(tasks);
+            runners[i] = new KillablePoolThread<>(tasks);
             runners[i].start();
         }
     }
@@ -38,12 +39,22 @@ public class PriorityThreadPoolExecutor<R extends Runnable> {
         }
     }
 
+    /**
+     * pauses the excecutor.
+     * note: tasks that have already started won't be paused;
+     * all this does is it stops the threads from taking up new tasks.
+     * @param paused weather or not the threads will continue executing tasks
+     */
+    public void setPaused(boolean paused){
+        this.paused = paused;
+    }
+
     public List<R> getTasks (){
         return tasks;
     }
 
 
-    private static class KillablePoolThread<T extends Runnable> extends Thread{
+    private class KillablePoolThread<T extends Runnable> extends Thread{
         private final AtomicBoolean running;
         private final List<T> queue;
         public KillablePoolThread(List<T> queue){
@@ -72,7 +83,7 @@ public class PriorityThreadPoolExecutor<R extends Runnable> {
             running.set(true);
             do {
                 try {
-                    if (!queue.isEmpty()) {
+                    if (!queue.isEmpty() && !paused) {
                         queue.remove(0).run();
                     } else {
                         Thread.sleep(100);

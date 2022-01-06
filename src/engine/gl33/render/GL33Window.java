@@ -4,6 +4,9 @@ import static org.lwjgl.glfw.GLFW.*;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
+
+import java.util.Arrays;
+
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL14.glBlendFuncSeparate;
 import static org.lwjgl.system.MemoryUtil.NULL;
@@ -35,7 +38,9 @@ public class GL33Window {
         this.vSync = vSync;
         this.resized = false;
         this.keys = new int[numKeys-1];
+        Arrays.fill(keys, -1);
         this.mouseButtons = new int[numMouseButtons-1];
+        Arrays.fill(mouseButtons, -1);
     }
 
     public void init() {

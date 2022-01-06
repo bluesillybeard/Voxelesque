@@ -3,13 +3,11 @@ package game.world;
 import engine.multiplatform.Render;
 import engine.multiplatform.RenderUtils;
 import game.GlobalBits;
-import game.misc.HashComparator;
 import game.misc.StaticUtils;
 import game.world.block.Block;
 import math.FastNoiseLite;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
-import math.BetterVector3i;
 
 import java.util.*;
 
@@ -18,12 +16,10 @@ import static game.misc.StaticUtils.getChunkPos;
 import static game.misc.StaticUtils.getChunkWorldPos;
 
 public class World {
-    private Map<Vector3i, Chunk> chunks;
-    private LinkedList<Vector3i> chunksToUnload;
+    private HashMap<Vector3i, Chunk> chunks;
     private final FastNoiseLite noise;
+    private final ArrayList<Chunk> chunksToUnload;
     public static final int CHUNK_SIZE = 32; //MUST BE A POWER OF 2! If this is changed to a non-power of 2, many things would have to be reworked.
-
-    private static final Vector3i temp = new Vector3i();
 
     public World() {
 
@@ -34,16 +30,16 @@ public class World {
         noise.SetFractalOctaves(5);
         noise.SetFractalLacunarity(2.0f);
         noise.SetFractalGain(0.5f);
-        chunks = new TreeMap<>(new HashComparator());
-        chunksToUnload = new LinkedList<>();
+        chunks = new HashMap<>();
+        chunksToUnload = new ArrayList<>();
     }
 
     public void reset(){
         for(Map.Entry<Vector3i, Chunk> entry: chunks.entrySet()){
             entry.getValue().unload();
         }
-        chunksToUnload = new LinkedList<>();
-        chunks = new TreeMap<>(new HashComparator());
+        chunksToUnload.clear();
+        chunks = new HashMap<>();
     }
 
     public Map<Vector3i, Chunk> getChunks(){
@@ -89,43 +85,50 @@ public class World {
 
 
     public double updateChunks(double targetTime){
-        Render r = RenderUtils.activeRender;
-        double startTime = r.getTime();
+        final Render r = RenderUtils.activeRender;
+        final double startTime = r.getTime();
+        final float renderDistanceSquared = renderDistance * renderDistance;
+        final Vector3i temp = new Vector3i();
 
+        chunks.forEach((pos, chunk) -> {
+            if (getChunkWorldPos(pos).distanceSquared(GlobalBits.playerPosition) > renderDistanceSquared) {
+                chunksToUnload.add(chunk);
+            }
+        });
 
-        Vector3i playerChunk = getChunkPos(GlobalBits.playerPosition);
-        for(int x=playerChunk.x-(int)(renderDistance/6.9); x<playerChunk.x+(int)(renderDistance/6.9); x++){ //haha 69 lol (what a coincidence)
-            for(int y=playerChunk.y-(int)(renderDistance/12); y<playerChunk.y+(int)(renderDistance/12); y++){
-                for(int z=playerChunk.z-(int)(renderDistance/12); z<playerChunk.z+(int)(renderDistance/12); z++){
-                    //System.out.println(x + ", " + y + ", " + z);
-                    if(!chunks.containsKey(temp.set(x, y, z)) && getChunkWorldPos(temp).distance(GlobalBits.playerPosition) < renderDistance) {
+        for (Chunk chunk : chunksToUnload) {
+            unloadChunk(chunk);
+        }
+        chunksToUnload.clear();
+        boolean outOfTime = false;
+        final Vector3i playerChunk = new Vector3i(getChunkPos(GlobalBits.playerPosition));
+
+        for(int x=playerChunk.x-(int)(renderDistance/8); x<playerChunk.x+(int)(renderDistance/8); x++){
+            for(int y=playerChunk.y-(int)(renderDistance/16); y<playerChunk.y+(int)(renderDistance/16); y++){
+                for(int z=playerChunk.z-(int)(renderDistance/16); z<playerChunk.z+(int)(renderDistance/16); z++){
+                    if((r.getTime() - startTime) > targetTime) {
+                        outOfTime = true;
+                    }
+                    temp.set(x, y, z);
+                    //load the chunk if it's in range
+                    //distanceSquared is faster - just look at the code to find out why
+                    if(!chunks.containsKey(temp) && getChunkWorldPos(x, y, z).distanceSquared(GlobalBits.playerPosition) < renderDistanceSquared) {
                         loadChunk(x, y, z);
                     }
-                    if((r.getTime() - startTime) > targetTime)
-                        break;
+                    //At an absolute minimum load 1 chunk per frame
+                    if(outOfTime) break;
                 }
-                if((r.getTime() - startTime) > targetTime)
-                    break;
+                if(outOfTime) break;
             }
-            if((r.getTime() - startTime) > targetTime)
-                break;
+            if(outOfTime) break;
         }
-        for (Vector3i pos : chunks.keySet()) {
-            if (getChunkWorldPos(pos).distance(GlobalBits.playerPosition) > renderDistance) {
-                chunksToUnload.add(pos);
-            }
-        }
-        Iterator<Vector3i> chunkIterator = chunksToUnload.iterator();
-        while(chunkIterator.hasNext()){
-            unloadChunk(chunkIterator.next());
-            chunkIterator.remove();
-        }
+
         return r.getTime() - startTime;
     }
 
-    public void unloadChunk(Vector3i chunk){
-        chunks.get(chunk).unload();
-        chunks.remove(chunk);
+    public void unloadChunk(Chunk chunk){
+        chunk.unload();
+        chunks.remove(chunk.getPos());
         //todo: world saves
     }
 
@@ -134,36 +137,40 @@ public class World {
      * note: uses xyz chunk coordinates
      */
     public void loadChunk(int x, int y, int z){
-        if(chunks.containsKey(new BetterVector3i(x, y, z))){
+        Vector3i pos = new Vector3i(x, y, z);
+        if(chunks.containsKey(pos)){
             return;
         }
         //todo: world saves
         Chunk chunk = generateChunk(GlobalBits.blocks, x, y, z);
 
-        chunks.put(new BetterVector3i(x, y, z), chunk);
+        chunks.put(pos, chunk);
     }
 
     private Chunk generateChunk(Map<String, Block> blocks, int x, int y, int z){
-        Block[][][] blocksg = new Block[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
-        Block grassBlock = blocks.get("voxelesque:grassBlock");
-        Block stoneBlock = Block.VOID_BLOCK;
+        final Block[][][] blocksg = new Block[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
+        final Block fillBlock = blocks.get("voxelesque:grassBlock");
+        final Block unfillBlock = Block.VOID_BLOCK;
+        final int csx = (int) (CHUNK_SIZE * x * 0.5773502692);
+        final int csy = CHUNK_SIZE * y;
+        final int csz = CHUNK_SIZE * z;
 
+        boolean empty = true;
         for(int xp = 0; xp < CHUNK_SIZE; xp++){
             for(int zp = 0; zp < CHUNK_SIZE; zp++){
-                Vector3f pos = StaticUtils.getBlockWorldPos(temp.set(CHUNK_SIZE*x+xp, 0, CHUNK_SIZE*z+zp));
-                double height = noise.GetNoise(pos.x, pos.z)*20*noise.GetNoise(pos.x, pos.z)*20; //squaring it makes it better by making lower terrain flatter, and higher terrain more varied and mountain-like
+                double height = noise.GetNoise(csx+(xp * 0.5773502692f), csz+zp);
+                height = height*height*400;//squaring it makes it better by making lower terrain flatter, and higher terrain more varied and mountain-like
                 for(int yp = 0; yp < CHUNK_SIZE; yp++){
-                    pos = StaticUtils.getBlockWorldPos(temp.set(CHUNK_SIZE*x+xp, CHUNK_SIZE * y+yp, CHUNK_SIZE*z+zp));
-                    blocksg[xp][yp][zp] = stoneBlock;
-                    if(pos.y < height) {
-                        //don't print here, ruins world gen for unexplained reasons
-                        //seriously - it's really creepy
-                        blocksg[xp][yp][zp] = grassBlock;
+                    if(csy+yp < height) {
+                        blocksg[xp][yp][zp] = fillBlock;
+                        empty = false;
+                    } else {
+                        blocksg[xp][yp][zp] = unfillBlock;
                     }
                 }
             }
         }
-
+        if(empty) return new Chunk(CHUNK_SIZE, x, y, z); //if it's empty, make an empty chunk.
         return new Chunk(CHUNK_SIZE, blocksg, x, y, z);
     }
 }

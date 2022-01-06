@@ -38,6 +38,14 @@ public class StaticUtils {
     }
 
     /**
+     * gets the world pos of the center of a chunk, given its pos.
+     * @return the world pos of the chunk. Note: this value may change unexpectedly, it is recommended to create a new copy of it if it will be needed for something later.
+     */
+    public static Vector3f getChunkWorldPos(int x, int y, int z){
+        return tempsf[tempfIndex = (tempfIndex+1)%tempsf.length].set((x+0.5f)*(World.CHUNK_SIZE*0.288675134595f), (y+0.5f)*(World.CHUNK_SIZE*0.5f), (z+0.5f)*(World.CHUNK_SIZE*0.5f));
+    }
+
+    /**
      * gets the block position given a world position.
      * @param worldPos the world position to get the block position from
      * @return the block position. Note: this value may change unexpectedly, it is recommended to create a new copy of it if it will be needed for something later.
@@ -54,6 +62,15 @@ public class StaticUtils {
     public static Vector3f getBlockWorldPos(Vector3i blockPos){
         return tempsf[tempfIndex = (tempfIndex+1)%tempsf.length].set((blockPos.x+0.5f)*0.288675134595f, (blockPos.y+0.5f)*0.5f, (blockPos.z+0.5f)*0.5f);
     }
+
+    /**
+     * gets the world position of the center of a block, given its block position.
+     * @return the world position of that block. Note: this value may change unexpectedly, it is recommended to create a new copy of it if it will be needed for something later.
+     */
+    public static Vector3f getBlockWorldPos(int x, int y, int z){
+        return tempsf[tempfIndex = (tempfIndex+1)%tempsf.length].set((x+0.5f)*0.288675134595f, (y+0.5f)*0.5f, (z+0.5f)*0.5f);
+    }
+
 
     public static byte[] getFourBytes(int i){
         return new byte[]{(byte)i, (byte)(i>>8), (byte)(i>>16), (byte)(i>>24)};
