@@ -103,7 +103,7 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
     public void clearFromGPU(){
         if(this.chunkModel != null) {
             for (GL33Entity entity : this.chunkModel) {
-                entity.getModel().mesh.cleanUp();//DON'T clear the texture.
+                entity.getModel().mesh.delete();//DON'T clear the texture.
             }
         }
     }

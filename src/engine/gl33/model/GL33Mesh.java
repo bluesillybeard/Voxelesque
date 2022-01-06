@@ -73,7 +73,8 @@ public class GL33Mesh implements GPUMesh {
         return "GPUMesh ID " + vaoId + " has " + vertexCount + " vertices";
     }
 
-    public void cleanUp() {
+    @Override
+    public void delete() {
         // Delete the VBOs
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glDeleteBuffers(this.posVboId);
@@ -83,6 +84,7 @@ public class GL33Mesh implements GPUMesh {
         // Delete the VAO
         glDeleteVertexArrays(this.vaoId);
     }
+
 
     /**
      * tells what render backend this came from.

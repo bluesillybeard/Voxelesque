@@ -166,8 +166,6 @@ public interface Render {
      */
     GPUMesh loadGPUMesh(CPUMesh mesh);
 
-    void deleteGPUMesh(GPUMesh mesh);
-
     //models
     //IMPORTANT: similar to models, only methods not provided by the CPUModel constructor are provided.
 

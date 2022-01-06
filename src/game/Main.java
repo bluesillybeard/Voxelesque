@@ -2,7 +2,6 @@ package game;
 
 import engine.gl33.GL33Render;
 import engine.multiplatform.Render;
-import engine.multiplatform.gpu.GPUTextBox;
 import engine.multiplatform.gpu.GPUTextEntity;
 import engine.multiplatform.model.CPUMesh;
 import game.misc.StaticUtils;
@@ -12,7 +11,6 @@ import game.world.World;
 import game.world.block.Block;
 import game.world.block.SimpleBlock;
 import org.joml.*;
-import org.lwjgl.system.CallbackI;
 
 import java.lang.Math;
 import java.lang.Runtime;
@@ -35,7 +33,7 @@ public class Main {
             }
             resourcesPath = System.getProperty("user.dir") + "/resources";
             render.setResourcesPath(GlobalBits.resourcesPath);
-            renderDistance = 200f;
+            renderDistance = 100f;
             tempV3f0 = new Vector3f();
             tempV3f1 = new Vector3f();
             tempV3i0 = new Vector3i();
@@ -46,7 +44,7 @@ public class Main {
             guiShader = render.loadShaderProgram("Shaders/", "gui");
             blocks = SimpleBlock.generateBlocks(GlobalBits.resourcesPath, "BlockRegistry/voxelesque/blocks.yaml", "voxelesque");
             assert blocks != null;
-            guiScale = 0.02f;
+            guiScale = 0.03f;
             World world = new World();
             GPUTextEntity debugTextEntity = render.createTextEntity(render.readTexture(render.readImage("Textures/ASCII-Extended.png")), "", false, false, guiShader, -1f, 1f - guiScale, 0f, 0f, 0f, 0f, guiScale, guiScale, 0f);
             double placementDistance = 5;

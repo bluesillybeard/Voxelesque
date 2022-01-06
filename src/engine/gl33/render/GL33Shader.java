@@ -1,8 +1,12 @@
 package engine.gl33.render;
 
+import engine.multiplatform.RenderUtils;
 import engine.multiplatform.gpu.GPUShader;
 import org.joml.Matrix4f;
 import static org.lwjgl.opengl.GL20.*;
+
+import org.joml.Vector3f;
+import org.joml.Vector4f;
 import org.lwjgl.system.MemoryStack;
 
 public class GL33Shader implements GPUShader {
@@ -80,6 +84,22 @@ public class GL33Shader implements GPUShader {
         }
     }
 
+    public void setUniformVec3(int uniform, Vector3f value){
+        // Dump the vector into a float buffer
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            glUniform3fv(uniform,
+                    value.get(stack.mallocFloat(3)));
+        }
+    }
+
+    public void setUniformVec4(int uniform, Vector4f value){
+        // Dump the vector into a float buffer
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            glUniform3fv(uniform,
+                    value.get(stack.mallocFloat(4)));
+        }
+    }
+
     public void setUniform1i(int uniform, int value){
         glUniform1i(uniform, value);
     }
@@ -113,7 +133,8 @@ public class GL33Shader implements GPUShader {
         glUseProgram(0);
     }
 
-    public void cleanup() {
+    @Override
+    public void delete() {
         unbind();
         if (programId != 0) {
             glDeleteProgram(programId);
@@ -134,5 +155,43 @@ public class GL33Shader implements GPUShader {
     @Override
     public int getRenderType() {
         return 1;
+    }
+
+    /**
+     * currently supported types:
+     * -Matrix4f
+     * -Vector3f
+     * -Vector4f
+     * @param uniform the uniform to set the value of.
+     * @param value the new value of the uniform
+     */
+
+    @Override
+    public void setUniform(String uniform, Object value) {
+        int uniformId = glGetUniformLocation(this.programId, uniform);
+        if(uniformId < 1) RenderUtils.activeRender.printErrln("uniform " + uniform + " does not exist; tried to send value " + value + " type " + value.getClass());
+        else if(value instanceof Number){
+            RenderUtils.activeRender.printErrln("Tried to send number through generic setUniform");
+        } else if(value instanceof Matrix4f){
+            setUniformMat4(uniformId, (Matrix4f) value);
+        } else if(value instanceof Vector3f){
+            setUniformVec3(uniformId, (Vector3f) value);
+        } else if(value instanceof Vector4f){
+            setUniformVec4(uniformId, (Vector4f) value);
+        }
+    }
+
+    @Override
+    public void setUniform(String uniform, float value) {
+        int uniformId = glGetUniformLocation(this.programId, uniform);
+        if(uniformId < 1) RenderUtils.activeRender.printErrln("uniform " + uniform + " does not exist; tried to send value " + value + " type float");
+        else setUniform1f(uniformId, value);
+    }
+
+    @Override
+    public void setUniform(String uniform, int value) {
+        int uniformId = glGetUniformLocation(this.programId, uniform);
+        if(uniformId < 1) RenderUtils.activeRender.printErrln("uniform " + uniform + " does not exist; tried to send value " + value + " type int");
+        else setUniform1i(uniformId, value);
     }
 }

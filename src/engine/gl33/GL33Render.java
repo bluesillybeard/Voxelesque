@@ -341,11 +341,6 @@ public class GL33Render implements Render {
         return new GL33Mesh(mesh);
     }
 
-    @Override
-    public void deleteGPUMesh(GPUMesh mesh){
-        ((GL33Mesh)mesh).cleanUp();
-    }
-
     /**
      * loads a CPUModel from a .VEMF0 file.
      * Note that this can also load a VBMF file, but the block-specific data won't be loaded into the model.
@@ -425,7 +420,7 @@ public class GL33Render implements Render {
     @Override
     public void deleteGPUModel(GPUModel model) {
         GL33Model glModel = (GL33Model)model;
-        glModel.mesh.cleanUp();
+        glModel.mesh.delete();
         glModel.texture.cleanUp();
     }
 
@@ -459,7 +454,7 @@ public class GL33Render implements Render {
     public void deleteShaderProgram(GPUShader shaderProgram) {
         GL33Shader program = (GL33Shader)(shaderProgram);
         shaderPrograms.remove(program);
-        program.cleanup();
+        program.delete();
     }
 
     @Override
@@ -557,7 +552,7 @@ public class GL33Render implements Render {
 
     @Override
     public void deleteTextEntity(GPUTextEntity entity) {
-        ((GL33TextEntity)entity).getModel().mesh.cleanUp(); //clean up the mesh since it isn't being handled by the game.
+        ((GL33TextEntity)entity).getModel().mesh.delete(); //clean up the mesh since it isn't being handled by the game.
         entities.remove((GL33Entity)entity);
     }
 
