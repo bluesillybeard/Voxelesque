@@ -4,12 +4,10 @@ import engine.gl33.model.GL33Mesh;
 import engine.gl33.model.GL33Model;
 import engine.gl33.model.GL33Texture;
 import engine.multiplatform.gpu.GPUEntity;
-import math.FastNoiseLite;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import java.util.Objects;
-import java.util.Vector;
 
 public class GL33Entity implements GPUEntity, Comparable<GL33Entity> {
 

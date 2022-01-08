@@ -1,4 +1,4 @@
-package engine.multiplatform.Util.threads;
+package util.threads;
 
 import org.joml.Vector3f;
 
@@ -7,17 +7,18 @@ import java.util.Comparator;
 /**
  * This class is intended to be used in the PriorityThreadPoolExecutor.
  */
-public class DistanceRunnable extends Number implements Runnable{
-    public static final Comparator<DistanceRunnable> inOrder = Comparator.comparingInt(DistanceRunnable::intValue);
+public class DistanceRunnable3f extends Number implements Runnable{
+    public static final Comparator<DistanceRunnable3f> inOrder = Comparator.comparingInt(DistanceRunnable3f::intValue);
 
     private final Runnable run;
-    public final Vector3f a;
-    public final Vector3f b;
+    public final Vector3f constant;
+    public final Vector3f dynamic;
 
-    public DistanceRunnable(Runnable r, Vector3f a, Vector3f b){
+
+    public DistanceRunnable3f(Runnable r, Vector3f constant, Vector3f dynamic){
         this.run = r;
-        this.a = a;
-        this.b = b;
+        this.constant = constant;
+        this.dynamic = dynamic;
     }
     /**
      * When an object implementing interface {@code Runnable} is used
@@ -43,7 +44,7 @@ public class DistanceRunnable extends Number implements Runnable{
      */
     @Override
     public int intValue() {
-        return (int)a.distance(b);
+        return (int) constant.distanceSquared(dynamic);
     }
 
     /**
@@ -54,7 +55,7 @@ public class DistanceRunnable extends Number implements Runnable{
      */
     @Override
     public long longValue() {
-        return (long)a.distance(b);
+        return (long) constant.distanceSquared(dynamic);
     }
 
     /**
@@ -65,7 +66,7 @@ public class DistanceRunnable extends Number implements Runnable{
      */
     @Override
     public float floatValue() {
-        return a.distance(b);
+        return constant.distanceSquared(dynamic);
     }
 
     /**
@@ -76,7 +77,7 @@ public class DistanceRunnable extends Number implements Runnable{
      */
     @Override
     public double doubleValue() {
-        return a.distance(b);
+        return constant.distanceSquared(dynamic);
     }
 
     public boolean equals(Object o) {
@@ -84,12 +85,8 @@ public class DistanceRunnable extends Number implements Runnable{
             return true;
         } else if (o == null) {
             return false;
-        } else if (o instanceof DistanceRunnable) {
-            if (this.a.equals(((DistanceRunnable) o).a)) {
-                return true;
-            } else {
-                return false;
-            }
+        } else if (o instanceof DistanceRunnable3f or) {
+            return this.constant.equals(or.constant);
         } else {
             return false;
         }

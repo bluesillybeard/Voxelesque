@@ -1,4 +1,4 @@
-package engine.multiplatform.Util;
+package util.threads;
 
 public class ExecutionThread extends Thread{
     //odd that this kind of generic reusable thread doesn't already exist...

@@ -14,6 +14,7 @@ import org.joml.*;
 
 import java.lang.Math;
 import java.lang.Runtime;
+import java.text.NumberFormat;
 import java.util.*;
 
 import static game.GlobalBits.*;
@@ -24,10 +25,13 @@ public class Main {
     private static final Vector3f cameraInc = new Vector3f(0, 0, 0);
 
     static double lastMouseYPos, lastMouseXPos;
+
+    public static World world;
+    public static double targetFrameTime = 1./130.;
     public static void main(String[] args) {
         try {
             render = new GL33Render();
-            if (!render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(90), 1 / 70.)) {
+            if (!render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(90), targetFrameTime)) {
                 System.err.println("Unable to initialize Voxelesque engine");
                 System.exit(-1);
             }
@@ -38,6 +42,7 @@ public class Main {
             tempV3f1 = new Vector3f();
             tempV3i0 = new Vector3i();
             playerPosition = new Vector3f(-284, 69, -305); //spawns player just above a hill.
+            playerChunk = new Vector3i();
             playerRotation = new Vector3f(0, 0, 0);
             sensitivity = 1;
             defaultShader = render.loadShaderProgram("Shaders/", "");
@@ -45,7 +50,7 @@ public class Main {
             blocks = SimpleBlock.generateBlocks(GlobalBits.resourcesPath, "BlockRegistry/voxelesque/blocks.yaml", "voxelesque");
             assert blocks != null;
             guiScale = 0.03f;
-            World world = new World();
+            world = new World();
             GPUTextEntity debugTextEntity = render.createTextEntity(render.readTexture(render.readImage("Textures/ASCII-Extended.png")), "", false, false, guiShader, -1f, 1f - guiScale, 0f, 0f, 0f, 0f, guiScale, guiScale, 0f);
             double placementDistance = 5;
             render.lockCursorPos();
@@ -55,9 +60,10 @@ public class Main {
             commands.add(Command.basicCommand("reload", world::reset));
 
             do {
+                updateValues();
                 if (render.getKey(GLFW_KEY_T) == 0) world.reset();
                 if(render.getKey(GLFW_KEY_R) == 0) render.rebuildChunks();
-                double worldTime = world.updateChunks(1 / 70.);
+                double worldTime = world.updateChunks(targetFrameTime);
 
 
                 updateCameraPos();
@@ -131,16 +137,19 @@ public class Main {
                                 "\nEntities: " + render.getNumEntities() + " / " + render.getNumEntitySlots() +
                                 "\nRC: " + render.getNumChunks() + "|GC: " + world.getChunks().size() +
                                 "\npos: " + StaticUtils.betterVectorToString(playerPosition, 3) + ", rot: (" + StaticUtils.FloatToStringSigFigs(playerRotation.x, 3) + ", " + StaticUtils.FloatToStringSigFigs(playerRotation.y, 3) + ")" +
-                                "\nchunkPos: " + StaticUtils.getChunkPos(playerPosition) +
+                                "\nchunkPos: " + StaticUtils.getChunkPos(playerPosition).toString(NumberFormat.getIntegerInstance()) +
                                 "\nblock: " + world.getBlock(blockPos.x, blockPos.y, blockPos.z) +
                                 "\nframe: " + (int)(time*1000) + "ms" +
                                 "\nworld: " + (int)(worldTime*1000) + "ms",
                         false, false);
             } while (!render.shouldClose());
             render.close();
+            world.close();
         } catch (Exception e) {
+            System.err.println("encountered fatal error:");
             e.printStackTrace();
             render.close();
+            world.close();
         }
     }
 

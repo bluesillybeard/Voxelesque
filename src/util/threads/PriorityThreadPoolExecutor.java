@@ -1,4 +1,4 @@
-package engine.multiplatform.Util.threads;
+package util.threads;
 
 import java.util.Collections;
 import java.util.Comparator;

@@ -9,8 +9,8 @@ import engine.multiplatform.Render;
 import engine.multiplatform.RenderUtils;
 import engine.multiplatform.Util.AtlasGenerator;
 import engine.multiplatform.Util.Utils;
-import engine.multiplatform.Util.threads.DistanceRunnable;
-import engine.multiplatform.Util.threads.PriorityThreadPoolExecutor;
+import util.threads.DistanceRunnable3f;
+import util.threads.PriorityThreadPoolExecutor;
 import engine.multiplatform.gpu.*;
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
@@ -42,6 +42,7 @@ public class GL33Render implements Render {
     private float FOV;
     private String resourcesPath;
     private double targetFrameTime;
+
 
     private final BufferedImage errorImage = new BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB);
     private final CPUMesh errorMesh = new CPUMesh(new float[]{
@@ -77,7 +78,12 @@ public class GL33Render implements Render {
     private final Set<GL33Entity> entities = new TreeSet<>();
     private final Set<GL33Shader> shaderPrograms = new TreeSet<>(new HashComparator());
     private final HashMap<Vector3i, GL33Chunk> chunks = new HashMap<>(/*new HashComparator()*/);
-    private final PriorityThreadPoolExecutor<DistanceRunnable> chunkBuildExecutor = new PriorityThreadPoolExecutor<>(DistanceRunnable.inOrder, Runtime.getRuntime().availableProcessors());
+    private final PriorityThreadPoolExecutor<DistanceRunnable3f> chunkBuildExecutor = new PriorityThreadPoolExecutor<>(DistanceRunnable3f.inOrder, Runtime.getRuntime().availableProcessors());
+
+    /**
+     * weather the render is currently flushing the chunk buffers.
+     */
+    private boolean updatingChunks;
 
     private final LinkedList<GL33Chunk> deletedChunks = new LinkedList<>();
     private final LinkedList<GL33Chunk> newChunks = new LinkedList<>();
@@ -584,6 +590,7 @@ public class GL33Render implements Render {
             chunks.put(chunk.getPosition(), chunk);
             chunk.build(chunks);
         } else {
+            waitUntilDoneUpdating();
             newChunks.add(chunk);
         }
         updateAdjacentChunks(chunk.getPosition());
@@ -802,6 +809,7 @@ public class GL33Render implements Render {
         readyToRender = false;
 
         double startTime = getTime();
+        updatingChunks = true;
 
         //remove deleted chunks
         Iterator<GL33Chunk> iter = deletedChunks.iterator();
@@ -810,27 +818,26 @@ public class GL33Render implements Render {
             if(!c.taskRunning) {
                 if (c.taskScheduled) {
                     //if it is scheduled, then we remove it from the executor.
-                    chunkBuildExecutor.getTasks().remove(new DistanceRunnable(null, getChunkWorldPos(c.getPosition()), cameraPosition));
+                    chunkBuildExecutor.getTasks().remove(new DistanceRunnable3f(null, getChunkWorldPos(c.getPosition()), cameraPosition));
                 }
                 c.clearFromGPU();
                 chunks.remove(c.getPosition());
                 iter.remove();
             }
         }
+        chunkBuildExecutor.setPaused(true); //pause the executor so that access to the executors queue is guaranteed (helps performance massively)
         //update modified chunks
         if(modifiedChunks.size() > 0) { //don't submit any new chunks if there aren't any to submit
-            chunkBuildExecutor.setPaused(true); //pause the executor so that access to the executors queue is guaranteed (helps performance massively)
             iter = modifiedChunks.iterator();
             while (iter.hasNext()) {
                 GL33Chunk c = iter.next();
                 if (!c.taskScheduled && !c.taskRunning) {
                     c.taskScheduled = true;
                     //copy the result from GetChunkWorldPos since it returns a temporary variable
-                    chunkBuildExecutor.submit(new DistanceRunnable(() -> c.build(chunks), new Vector3f(getChunkWorldPos(c.getPosition())), cameraPosition));
+                    chunkBuildExecutor.submit(new DistanceRunnable3f(() -> c.build(chunks), new Vector3f(getChunkWorldPos(c.getPosition())), cameraPosition));
                 }
                 iter.remove();
             }
-            chunkBuildExecutor.setPaused(false); //unpause the executor so that it resumes rendering chunks
         }
 
         //add new chunks
@@ -840,11 +847,13 @@ public class GL33Render implements Render {
             if(!c.taskScheduled && !c.taskRunning){
                 c.taskScheduled = true;
                 //copy the result from GetChunkWorldPos since it returns a temporary variable
-                chunkBuildExecutor.submit(new DistanceRunnable(()->c.build(chunks), new Vector3f(getChunkWorldPos(c.getPosition())), cameraPosition));
+                chunkBuildExecutor.submit(new DistanceRunnable3f(()->c.build(chunks), new Vector3f(getChunkWorldPos(c.getPosition())), cameraPosition));
             }
             chunks.put(c.getPosition(), c);
             iter.remove();
         }
+        chunkBuildExecutor.setPaused(false); //unpause the executor so that it resumes rendering chunks
+        updatingChunks = false;
 
         if (window.isResized()) {
             window.setResized(false);
@@ -920,30 +929,44 @@ public class GL33Render implements Render {
     public void updateAdjacentChunks(Vector3i pos){
         GL33Chunk c;
         Vector3i temp = new Vector3i();
-
+        
         //(-1, 0, 0)
         c = chunks.get(temp.set(pos.x-1, pos.y, pos.z));
-        if(c!=null && !modifiedChunks.contains(c))modifiedChunks.add(c);
+        if(c!=null && !modifiedChunks.contains(c)) {
+            waitUntilDoneUpdating();
+            modifiedChunks.add(c);
+        }
 
         //(0, -1, 0)
         c = chunks.get(temp.set(pos.x, pos.y-1, pos.z));
-        if(c!=null && !modifiedChunks.contains(c))modifiedChunks.add(c);
-
+        if(c!=null && !modifiedChunks.contains(c)) {
+            waitUntilDoneUpdating();
+            modifiedChunks.add(c);
+        }
         //(0, 0, -1)
         c = chunks.get(temp.set(pos.x, pos.y, pos.z-1));
-        if(c!=null && !modifiedChunks.contains(c))modifiedChunks.add(c);
-
+        if(c!=null && !modifiedChunks.contains(c)) {
+            waitUntilDoneUpdating();
+            modifiedChunks.add(c);
+        }
         //(+1, 0, 0)
         c = chunks.get(temp.set(pos.x+1, pos.y, pos.z));
-        if(c!=null && !modifiedChunks.contains(c))modifiedChunks.add(c);
-
+        if(c!=null && !modifiedChunks.contains(c)) {
+            waitUntilDoneUpdating();
+            modifiedChunks.add(c);
+        }
         //(0, +1, 0)
         c = chunks.get(temp.set(pos.x, pos.y+1, pos.z));
-        if(c!=null && !modifiedChunks.contains(c))modifiedChunks.add(c);
-
+        if(c!=null && !modifiedChunks.contains(c)) {
+            waitUntilDoneUpdating();
+            modifiedChunks.add(c);
+        }
         //(0, 0, +1)
         c = chunks.get(temp.set(pos.x, pos.y, pos.z+1));
-        if(c!=null && !modifiedChunks.contains(c))modifiedChunks.add(c);
+        if(c!=null && !modifiedChunks.contains(c)) {
+            waitUntilDoneUpdating();
+            modifiedChunks.add(c);
+        }
     }
 
     public Collection<GL33Chunk> getDeletedChunks(){
@@ -952,6 +975,11 @@ public class GL33Render implements Render {
 
     public Collection<GL33Chunk> getModifiedChunks(){
         return modifiedChunks;
+    }
+
+    public void updateChunk(GL33Chunk c){
+        waitUntilDoneUpdating();
+        modifiedChunks.add(c);
     }
 
     public Collection<GL33Chunk> getNewChunks(){
@@ -964,5 +992,17 @@ public class GL33Render implements Render {
 
     public static Vector3f getChunkWorldPos(Vector3i chunkPos){
         return new Vector3f((chunkPos.x+0.5f)*(World.CHUNK_SIZE*0.288675134595f), (chunkPos.y+0.5f)*(World.CHUNK_SIZE*0.5f), (chunkPos.z+0.5f)*(World.CHUNK_SIZE*0.5f));
+    }
+
+    public Boolean getUpdatingChunks(){
+        return updatingChunks;
+    }
+
+    private void waitUntilDoneUpdating(){
+        while(updatingChunks){
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException ignored) {}
+        }
     }
 }

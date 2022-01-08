@@ -3,23 +3,24 @@ package game.world;
 import engine.multiplatform.Render;
 import engine.multiplatform.RenderUtils;
 import game.GlobalBits;
-import game.misc.StaticUtils;
 import game.world.block.Block;
-import math.FastNoiseLite;
-import org.joml.Vector3f;
+import util.noise.FastNoiseLite;
 import org.joml.Vector3i;
+import util.threads.DistanceRunnable3i;
+import util.threads.PriorityThreadPoolExecutor;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
-import static game.GlobalBits.renderDistance;
+import static game.GlobalBits.*;
 import static game.misc.StaticUtils.getChunkPos;
 import static game.misc.StaticUtils.getChunkWorldPos;
 
 public class World {
-    private HashMap<Vector3i, Chunk> chunks;
+    private final Map<Vector3i, Chunk> chunks;
     private final FastNoiseLite noise;
     private final ArrayList<Chunk> chunksToUnload;
+    private final PriorityThreadPoolExecutor<DistanceRunnable3i> executor = new PriorityThreadPoolExecutor<>(DistanceRunnable3i.inOrder, Runtime.getRuntime().availableProcessors());
+
     public static final int CHUNK_SIZE = 32; //MUST BE A POWER OF 2! If this is changed to a non-power of 2, many things would have to be reworked.
 
     public World() {
@@ -31,7 +32,7 @@ public class World {
         noise.SetFractalOctaves(5);
         noise.SetFractalLacunarity(2.0f);
         noise.SetFractalGain(0.5f);
-        chunks = new HashMap<>();
+        chunks = Collections.synchronizedMap( new HashMap<>());
         chunksToUnload = new ArrayList<>();
     }
 
@@ -40,7 +41,7 @@ public class World {
             entry.getValue().unload();
         }
         chunksToUnload.clear();
-        chunks = new HashMap<>();
+        chunks.clear();
     }
 
     public Map<Vector3i, Chunk> getChunks(){
@@ -102,34 +103,20 @@ public class World {
         }
         chunksToUnload.clear();
         boolean outOfTime = false;
-        final Vector3i playerChunk = new Vector3i(getChunkPos(GlobalBits.playerPosition));
-        CompletableFuture<Void> future = null;
         for(int x=playerChunk.x-(int)(renderDistance/8); x<playerChunk.x+(int)(renderDistance/8); x++){
             for(int y=playerChunk.y-(int)(renderDistance/16); y<playerChunk.y+(int)(renderDistance/16); y++){
-                for(int z=playerChunk.z-(int)(renderDistance/16); z<playerChunk.z+(int)(renderDistance/16); z+=2){
+                for(int z=playerChunk.z-(int)(renderDistance/16); z<playerChunk.z+(int)(renderDistance/16); z++){
                     if((r.getTime() - startTime) > targetTime) {
                         outOfTime = true;
                     }
                     //load the chunk if it's in range
                     //distanceSquared is faster - just look at the code to find out why
                     temp.set(x, y, z);
-                    if(!chunks.containsKey(temp) && getChunkWorldPos(x, y, z).distanceSquared(GlobalBits.playerPosition) < renderDistanceSquared) {
-                        final int finalY = y;
+                    if(!executor.getTasks().contains(new DistanceRunnable3i(null, temp, null)) && !chunks.containsKey(temp) && getChunkWorldPos(x, y, z).distanceSquared(GlobalBits.playerPosition) < renderDistanceSquared) {
                         final int finalX = x;
+                        final int finalY = y;
                         final int finalZ = z;
-                        future = CompletableFuture.runAsync( () -> loadChunk(finalX, finalY, finalZ));
-                    }
-
-
-                    temp.set(x, y, z-1);
-                    if(!chunks.containsKey(temp) && getChunkWorldPos(x, y, z-1).distanceSquared(GlobalBits.playerPosition) < renderDistanceSquared) {
-                        loadChunk(x, y, z-1);
-                    }
-                    try {
-                        if (future != null)
-                            future.get(); //make sure it isn't rapidly yeeting threads at the OS to get chunks built
-                    } catch (Exception ignored){
-                        RenderUtils.activeRender.printErrln("oh no this is bad");
+                        executor.submit(new DistanceRunnable3i(()->loadChunk(finalX, finalY, finalZ), new Vector3i(x, y, z), playerChunk));
                     }
                     //At an absolute minimum load 2 chunks per frame
                     if(outOfTime) break;
@@ -154,6 +141,11 @@ public class World {
      */
     public void loadChunk(int x, int y, int z){
         Vector3i pos = new Vector3i(x, y, z);
+
+        if(chunks.containsKey(pos)){
+            RenderUtils.activeRender.printErrln("tried to load chunk that is already loaded!");
+            return;
+        }
         //todo: world saves
         Chunk chunk = generateChunk(GlobalBits.blocks, x, y, z);
 
@@ -183,7 +175,14 @@ public class World {
                 }
             }
         }
+
+
         if(empty) return new Chunk(CHUNK_SIZE, x, y, z); //if it's empty, make an empty chunk.
         return new Chunk(CHUNK_SIZE, blocksg, x, y, z);
+    }
+
+    public void close(){
+        executor.stop();
+        //todo: save chunks when world closes.
     }
 }

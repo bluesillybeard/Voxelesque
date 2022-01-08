@@ -8,14 +8,14 @@ import org.joml.Vector3i;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.text.NumberFormat;
 
-import math.BetterVector3i;
 public class StaticUtils {
 
     //if I were using C or C++ I could use stack allocated objects, but Java has no such thing so in order to save memory I gotta do this madness.
     //I'm using Java because it's a much better programming experience - soooo much easier than C or C++.
     private static final Vector3f[] tempsf = new Vector3f[]{new Vector3f(), new Vector3f(), new Vector3f(), new Vector3f(), new Vector3f(), new Vector3f(), new Vector3f(), new Vector3f(), };
-    private static final BetterVector3i[] tempsi = new BetterVector3i[]{new BetterVector3i(), new BetterVector3i(), new BetterVector3i(), new BetterVector3i(), new BetterVector3i(), new BetterVector3i(), new BetterVector3i(), new BetterVector3i(), };
+    private static final Vector3i[] tempsi = new Vector3i[]{new Vector3i(), new Vector3i(), new Vector3i(), new Vector3i(), new Vector3i(), new Vector3i(), new Vector3i(), new Vector3i(), };
     private static int tempfIndex;
     private static int tempiIndex;
 
@@ -122,6 +122,8 @@ public class StaticUtils {
      * @return a String that represents f
      */
     public static String FloatToStringSigFigs(float f, int sigFigs){
+
+        /*
         //uses simple mathematical concepts way to convert a float into a string.
         int ceilLogf = (int)Math.ceil(Math.log10(f)); //the number of integer digits in the number.
         if(ceilLogf > sigFigs) { //if the number of integer digits is greater than the number of significant digits
@@ -139,10 +141,19 @@ public class StaticUtils {
             if(log10 < 1) {
                 return intPartString + "." + decimal;
             } else {
-                //TODO IMPORTANT: fic tis pls
                 int zeros = (int)(-log10)+1;
                 return intPartString + "." + "0".repeat(zeros) + decimal; //add the required number of 0s
             }
         }
+
+         */
+        //todo (unimportant) re-implement this function to actually work. Old code is commented above.
+
+        //As a "temporary" solution, use a NumberFormat. Doesn't use scientific notation, but it works for now.
+        int digits = (int)Math.ceil(Math.log10(f)); //the number of integer digits in the number.
+
+        NumberFormat format = NumberFormat.getNumberInstance();
+        format.setMaximumFractionDigits(sigFigs-digits);
+        return format.format(f);
     }
 }

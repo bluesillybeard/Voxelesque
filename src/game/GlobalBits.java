@@ -2,6 +2,7 @@ package game;
 
 import engine.multiplatform.Render;
 import engine.multiplatform.gpu.GPUShader;
+import game.misc.StaticUtils;
 import game.misc.command.Commands;
 import game.world.block.Block;
 import org.joml.Vector3f;
@@ -27,8 +28,15 @@ public class GlobalBits {
     //player bits
     public static Vector3f playerPosition;
     public static Vector3f playerRotation;
+    public static Vector3i playerChunk;
     public static double sensitivity;
     //blocks
     public static Map<String, Block> blocks;
+
+    public static void updateValues(){
+        playerChunk.set(StaticUtils.getChunkPos(playerPosition));
+    }
+
+
 
 }

@@ -52,7 +52,7 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
             glRender.updateAdjacentChunks(this.pos);
         } else {
             this.taskScheduled = true;
-            glRender.getModifiedChunks().add(this);
+            glRender.updateChunk(this);
             glRender.updateAdjacentChunks(this.pos);
         }
     }
@@ -75,7 +75,7 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
             glRender.updateAdjacentChunks(this.pos);
         } else {
             this.taskScheduled = true;
-            glRender.getModifiedChunks().add(this);
+            glRender.updateChunk(this);
             glRender.updateAdjacentChunks(this.pos);
         }
     }

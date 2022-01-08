@@ -1,4 +1,4 @@
-package math;
+package util.noise;
 
 ///THIS CODE IS NOT FROM A VOXELESQUE DEVELOPER, IT IS FROM AN EXTERNAL SOURCE: https://github.com/Auburn/FastNoiseLite
 
