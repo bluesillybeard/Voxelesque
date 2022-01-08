@@ -577,7 +577,7 @@ public class GL33Render implements Render {
      * @return the ID of the new chunk.
      */
     @Override
-    public GPUChunk spawnChunk(int size, GPUBlock[][][] blocks, int x, int y, int z, boolean buildImmediately) {
+    public synchronized GPUChunk spawnChunk(int size, GPUBlock[][][] blocks, int x, int y, int z, boolean buildImmediately) {
         GL33Chunk chunk = new GL33Chunk(size, blocks, x, y, z, cameraPosition);
         if(buildImmediately){
             chunk.taskScheduled = true;
@@ -612,22 +612,6 @@ public class GL33Render implements Render {
         debug.println("cleared modification buffer...");
         this.modifiedChunks.addAll(chunks.values());
         debug.println("refilled modification buffer");
-
-        /*
-        debug.println("rebuilding chunks");
-        this.chunkBuildExecutor.getTasks().clear();
-        debug.println("cleared tasks...");
-        this.modifiedChunks.clear();
-        debug.println("cleared modification buffer...");
-        Set<Map.Entry<Vector3i, GL33Chunk>> chunkEntries = chunks.entrySet();
-        for (Map.Entry<Vector3i, GL33Chunk> entry : chunkEntries) {
-            entry.getValue().clearFromGPU();
-            newChunks.add(entry.getValue());
-        }
-        debug.println("added chunks to buffer...");
-        chunks.clear();
-        debug.println("cleared chunk structure");
-         */
     }
 
     private void updateCameraViewMatrix(){

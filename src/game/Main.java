@@ -98,7 +98,7 @@ public class Main {
                                     render.getCameraViewMatrix(), render.getCameraProjectionMatrix(), (float) render.getMouseXPos(), (float) render.getMouseYPos()
                             )) {
                                 collidedBlocks.put(
-                                        tempV3f0.set(x * 0.288675134595f, y * 0.5f, z * 0.5f).distance(playerPosition), pos);
+                                        tempV3f0.set(x * 0.288675134595f, y * 0.5f, z * 0.5f).distance(playerPosition), new Vector3i(pos));
                             }
                         }
                     }
