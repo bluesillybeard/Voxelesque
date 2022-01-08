@@ -108,7 +108,7 @@ public class World {
             for(int y=playerChunk.y-(int)(renderDistance/16); y<playerChunk.y+(int)(renderDistance/16); y++){
                 for(int z=playerChunk.z-(int)(renderDistance/16); z<playerChunk.z+(int)(renderDistance/16); z+=2){
                     if((r.getTime() - startTime) > targetTime) {
-                    //    outOfTime = true;
+                        outOfTime = true;
                     }
                     //load the chunk if it's in range
                     //distanceSquared is faster - just look at the code to find out why

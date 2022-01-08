@@ -27,13 +27,13 @@ public class Main {
     public static void main(String[] args) {
         try {
             render = new GL33Render();
-            if (!render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(90), 1 / 40.)) {
+            if (!render.init("Voxelesque Alpha 0-0-0", 800, 600, "", true, System.err, System.err, System.out, (float) Math.toRadians(90), 1 / 70.)) {
                 System.err.println("Unable to initialize Voxelesque engine");
                 System.exit(-1);
             }
             resourcesPath = System.getProperty("user.dir") + "/resources";
             render.setResourcesPath(GlobalBits.resourcesPath);
-            renderDistance = 100f;
+            renderDistance = 200f;
             tempV3f0 = new Vector3f();
             tempV3f1 = new Vector3f();
             tempV3i0 = new Vector3i();
@@ -57,7 +57,7 @@ public class Main {
             do {
                 if (render.getKey(GLFW_KEY_T) == 0) world.reset();
                 if(render.getKey(GLFW_KEY_R) == 0) render.rebuildChunks();
-                double worldTime = world.updateChunks(1 / 40.);
+                double worldTime = world.updateChunks(1 / 70.);
 
 
                 updateCameraPos();
