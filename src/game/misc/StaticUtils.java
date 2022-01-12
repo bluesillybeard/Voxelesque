@@ -1,14 +1,8 @@
 package game.misc;
 
 import game.data.nbt.NBTElement;
-import game.world.World;
-import org.joml.Vector3f;
-import org.joml.Vector3i;
-
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.text.NumberFormat;
 
 public class StaticUtils {
 

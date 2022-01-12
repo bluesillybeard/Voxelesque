@@ -15,8 +15,7 @@ import util.threads.PriorityThreadPoolExecutor;
 import engine.multiplatform.gpu.*;
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
-import game.misc.HashComparator;
-import game.world.World;
+import util.other.HashComparator;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
@@ -150,6 +149,7 @@ public class GL33Render implements Render {
 
     @Override
     public void close() {
+        updatingChunks = false;
         chunkBuildExecutor.stop();
     }
 
@@ -620,7 +620,7 @@ public class GL33Render implements Render {
 
     @Override
     public boolean hasChunk(Vector3i chunk) {
-        return chunks.containsKey(chunk) || newChunks.contains(new NullChunk(chunk)) || chunkBuildExecutor.getTasks().contains(new DistanceRunnable3i(null, chunk, null)) || modifiedChunks.contains(new NullChunk(chunk));
+        return chunks.containsKey(chunk) || newChunks.contains(new NullChunk(chunk)) || modifiedChunks.contains(new NullChunk(chunk));
     }
 
     /**

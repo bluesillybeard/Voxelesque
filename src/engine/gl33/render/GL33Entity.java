@@ -160,7 +160,7 @@ public class GL33Entity implements GPUEntity, Comparable<GL33Entity> {
     }
 
     public int hashCode(){
-        return Objects.hash(id);
+        return id;
     }
 
     /**

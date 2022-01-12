@@ -1,4 +1,4 @@
-package game.misc;
+package util.other;
 
 import java.util.Comparator;
 

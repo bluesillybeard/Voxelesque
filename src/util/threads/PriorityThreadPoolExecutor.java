@@ -6,10 +6,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-//I genuinely don't believe Java doesn't already have a built-in version of this.
-//Seriously, it was not something I would have expected.
-//Oh well, I was probably going to make my own implementation eventually anyway,
-// since I need the priority to dynamically update when the player moves.
+//since I need the priority to dynamically update when the player moves.
+// I mean, when any elements are added - since the player moving is guaranteed to add more tasks
+// to load/render chunks, it's basically guaranteed to update when the player moves.
 public class PriorityThreadPoolExecutor<R extends Runnable> {
     private final List<R> tasks;
     private final Thread[] runners;
