@@ -78,7 +78,7 @@ public class GL33Render implements Render {
     //todo: smarter resource management that uses hashes to make sure a GPUTexture, GPUMesh, etc is only created once.
     private final Set<GL33Entity> entities = new TreeSet<>();
     private final Set<GL33Shader> shaderPrograms = new TreeSet<>(new HashComparator());
-    private final HashMap<Vector3i, GPUChunk> chunks = new HashMap<>(/*new HashComparator()*/);
+    private final HashMap<Vector3i, GPUChunk> chunks = new HashMap<>();
     private final PriorityThreadPoolExecutor<DistanceRunnable3i> chunkBuildExecutor = new PriorityThreadPoolExecutor<>(DistanceRunnable3i.inOrder, Runtime.getRuntime().availableProcessors());
 
     /**

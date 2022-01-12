@@ -85,7 +85,7 @@ public class DistanceRunnable3i extends Number implements Runnable{
             return true;
         } else if (o == null) {
             return false;
-        } else if (o instanceof DistanceRunnable3f or) {
+        } else if (o instanceof DistanceRunnable3i or) {
             return this.constant.equals(or.constant);
         } else {
             return false;
