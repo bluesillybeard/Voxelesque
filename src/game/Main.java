@@ -27,7 +27,7 @@ public class Main {
     static double lastMouseYPos, lastMouseXPos;
 
     public static World world;
-    public static double targetFrameTime = 1./130.;
+    public static double targetFrameTime = 1./120.;
     public static void main(String[] args) {
         try {
             render = new GL33Render();

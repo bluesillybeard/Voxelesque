@@ -809,8 +809,12 @@ public class GL33Render implements Render {
         readyToRender = false;
 
         double startTime = getTime();
-        updatingChunks = true;
 
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        renderFrame(startTime);
+        window.update();
+
+        updatingChunks = true;
         //remove deleted chunks
         Iterator<GL33Chunk> iter = deletedChunks.iterator();
         while (iter.hasNext()) {
@@ -823,6 +827,7 @@ public class GL33Render implements Render {
                 c.clearFromGPU();
                 chunks.remove(c.getPosition());
                 iter.remove();
+
             }
         }
         chunkBuildExecutor.setPaused(true); //pause the executor so that access to the executors queue is guaranteed (helps performance massively)
@@ -835,8 +840,11 @@ public class GL33Render implements Render {
                     c.taskScheduled = true;
                     //copy the result from GetChunkWorldPos since it returns a temporary variable
                     chunkBuildExecutor.submit(new DistanceRunnable3f(() -> c.build(chunks), new Vector3f(getChunkWorldPos(c.getPosition())), cameraPosition));
+                    iter.remove();
                 }
-                iter.remove();
+                if((getTime() - startTime) > targetFrameTime){
+                    break;
+                }
             }
         }
 
@@ -848,9 +856,14 @@ public class GL33Render implements Render {
                 c.taskScheduled = true;
                 //copy the result from GetChunkWorldPos since it returns a temporary variable
                 chunkBuildExecutor.submit(new DistanceRunnable3f(()->c.build(chunks), new Vector3f(getChunkWorldPos(c.getPosition())), cameraPosition));
+                chunks.put(c.getPosition(), c);
+                iter.remove();
+            } else {
+                err.println("Chunk " + c + "seems to already exist!");
             }
-            chunks.put(c.getPosition(), c);
-            iter.remove();
+            if((getTime() - startTime) > targetFrameTime) {
+                break;
+            }
         }
         chunkBuildExecutor.setPaused(false); //unpause the executor so that it resumes rendering chunks
         updatingChunks = false;
@@ -860,9 +873,6 @@ public class GL33Render implements Render {
             glViewport(0, 0, window.getWidth(), window.getHeight());
             updateCameraProjectionMatrix();
         }
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        renderFrame(startTime);
-        window.update();
 
         double time = getTime() - startTime;
         readyToRender = true;

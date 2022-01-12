@@ -118,7 +118,6 @@ public class World {
                         final int finalZ = z;
                         executor.submit(new DistanceRunnable3i(()->loadChunk(finalX, finalY, finalZ), new Vector3i(x, y, z), playerChunk));
                     }
-                    //At an absolute minimum load 2 chunks per frame
                     if(outOfTime) break;
                 }
                 if(outOfTime) break;
