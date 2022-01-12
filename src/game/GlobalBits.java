@@ -1,14 +1,13 @@
 package game;
 
 import engine.multiplatform.Render;
+import engine.multiplatform.RenderUtils;
 import engine.multiplatform.gpu.GPUShader;
-import game.misc.StaticUtils;
 import game.misc.command.Commands;
 import game.world.block.Block;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
-import java.util.ArrayList;
 import java.util.Map;
 
 public class GlobalBits {
@@ -34,9 +33,7 @@ public class GlobalBits {
     public static Map<String, Block> blocks;
 
     public static void updateValues(){
-        playerChunk.set(StaticUtils.getChunkPos(playerPosition));
+        playerChunk.set(RenderUtils.getChunkPos(playerPosition));
     }
-
-
 
 }

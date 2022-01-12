@@ -3,7 +3,6 @@ package game.data.nbt;
 import game.misc.StaticUtils;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 public class NBTInteger implements NBTElement{
     private int value;
@@ -44,7 +43,7 @@ public class NBTInteger implements NBTElement{
     @Override
     public byte[] serialize() {
         byte[] valueBytes = StaticUtils.getFourBytes(value);
-        ByteBuffer out = StaticUtils.getNBTSerialData(this, valueBytes);
+        ByteBuffer out = StaticUtils.getNBTSerialHeader(this, valueBytes);
         if(out.hasArray()) {
             return out.array();
         } else {

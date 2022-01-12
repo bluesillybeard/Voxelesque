@@ -58,7 +58,7 @@ public class NBTString implements NBTElement{
     @Override
     public byte[] serialize() {
         byte[] valueBytes = value.getBytes(StandardCharsets.UTF_8);
-        ByteBuffer out = StaticUtils.getNBTSerialData(this, valueBytes);
+        ByteBuffer out = StaticUtils.getNBTSerialHeader(this, valueBytes);
         if(out.hasArray()) {
             return out.array();
         } else {

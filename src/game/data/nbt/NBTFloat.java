@@ -43,7 +43,7 @@ public class NBTFloat implements NBTElement{
     @Override
     public byte[] serialize() {
         byte[] valueBytes = StaticUtils.getFourBytes(value);
-        ByteBuffer out = StaticUtils.getNBTSerialData(this, valueBytes);
+        ByteBuffer out = StaticUtils.getNBTSerialHeader(this, valueBytes);
         if(out.hasArray()) {
             return out.array();
         } else {

@@ -2,6 +2,7 @@ package game.world;
 
 import engine.multiplatform.Render;
 import engine.multiplatform.RenderUtils;
+import engine.multiplatform.gpu.GPUChunk;
 import game.GlobalBits;
 import game.world.block.Block;
 import util.noise.FastNoiseLite;
@@ -12,13 +13,12 @@ import util.threads.PriorityThreadPoolExecutor;
 import java.util.*;
 
 import static game.GlobalBits.*;
-import static game.misc.StaticUtils.getChunkPos;
-import static game.misc.StaticUtils.getChunkWorldPos;
 
 public class World {
-    private final Map<Vector3i, Chunk> chunks;
+
+    int num;
     private final FastNoiseLite noise;
-    private final ArrayList<Chunk> chunksToUnload;
+    private final ArrayList<GPUChunk> chunksToUnload;
     private final PriorityThreadPoolExecutor<DistanceRunnable3i> executor = new PriorityThreadPoolExecutor<>(DistanceRunnable3i.inOrder, Runtime.getRuntime().availableProcessors());
 
     public static final int CHUNK_SIZE = 32; //MUST BE A POWER OF 2! If this is changed to a non-power of 2, many things would have to be reworked.
@@ -32,26 +32,19 @@ public class World {
         noise.SetFractalOctaves(5);
         noise.SetFractalLacunarity(2.0f);
         noise.SetFractalGain(0.5f);
-        chunks = Collections.synchronizedMap( new HashMap<>());
         chunksToUnload = new ArrayList<>();
     }
 
     public void reset(){
-        for(Map.Entry<Vector3i, Chunk> entry: chunks.entrySet()){
-            entry.getValue().unload();
-        }
+        Iterator<Map.Entry<Vector3i, GPUChunk>> iter = RenderUtils.activeRender.getChunks().entrySet().iterator();
+        //todo: finish implementing method
         chunksToUnload.clear();
-        chunks.clear();
-    }
-
-    public Map<Vector3i, Chunk> getChunks(){
-        return chunks;
     }
 
     public Block getBlock(int x, int y, int z){
-        Chunk c = getBlockChunk(x, y, z);
+        GPUChunk c = getBlockChunk(x, y, z);
         if(c != null)
-            return c.getBlock(x&(CHUNK_SIZE-1), y&(CHUNK_SIZE-1), z&(CHUNK_SIZE-1));
+            return (Block)c.getBlock(x&(CHUNK_SIZE-1), y&(CHUNK_SIZE-1), z&(CHUNK_SIZE-1));
         else return null;
     }
 
@@ -60,8 +53,8 @@ public class World {
     }
 
     public void setBlock(int x, int y, int z, Block block, boolean buildImmediately){
-        Chunk c = getBlockChunk(x, y, z);
-        if(c != null)c.setBlock(x&(CHUNK_SIZE-1), y&(CHUNK_SIZE-1), z&(CHUNK_SIZE-1), block, buildImmediately);
+        GPUChunk c = getBlockChunk(x, y, z);
+        if(c != null)c.setBlock(block, x&(CHUNK_SIZE-1), y&(CHUNK_SIZE-1), z&(CHUNK_SIZE-1), buildImmediately);
         else System.err.println("Could not set chunk block!!!");
         //TODO: create a system that keeps track of blocks placed into nonexistent chunks
     }
@@ -78,11 +71,11 @@ public class World {
      * @param z the z coordinate of the block
      * @return the Chunk that contains the block coordinates.
      */
-    public Chunk getBlockChunk(int x, int y, int z){
+    public GPUChunk getBlockChunk(int x, int y, int z){
         Vector3i pos = new Vector3i((x & -CHUNK_SIZE)/CHUNK_SIZE, (y & -CHUNK_SIZE)/CHUNK_SIZE, (z & -CHUNK_SIZE)/CHUNK_SIZE);
         //the '& -CHUNK_SIZE' is required because of a strange issue with integer division and negative numbers.
         //It is also part of why CHUNK_SIZE must ALWAYS ALWAYS ALWAYS be a power of 2. If it isn't, weird stuff will happen.
-        return chunks.get(pos);
+        return render.getChunk(pos);
     }
 
 
@@ -92,13 +85,13 @@ public class World {
         final float renderDistanceSquared = renderDistance * renderDistance;
         final Vector3i temp = new Vector3i();
 
-        chunks.forEach((pos, chunk) -> {
-            if (getChunkWorldPos(pos).distanceSquared(GlobalBits.playerPosition) > renderDistanceSquared) {
+        render.getChunks().forEach((pos, chunk) -> {
+            if (RenderUtils.getChunkWorldPos(pos).distanceSquared(GlobalBits.playerPosition) > renderDistanceSquared) {
                 chunksToUnload.add(chunk);
             }
         });
 
-        for (Chunk chunk : chunksToUnload) {
+        for (GPUChunk chunk : chunksToUnload) {
             unloadChunk(chunk);
         }
         chunksToUnload.clear();
@@ -112,7 +105,7 @@ public class World {
                     //load the chunk if it's in range
                     //distanceSquared is faster - just look at the code to find out why
                     temp.set(x, y, z);
-                    if(!executor.getTasks().contains(new DistanceRunnable3i(null, temp, null)) && !chunks.containsKey(temp) && getChunkWorldPos(x, y, z).distanceSquared(GlobalBits.playerPosition) < renderDistanceSquared) {
+                    if(!executor.getTasks().contains(new DistanceRunnable3i(null, temp, null)) && !render.hasChunk(temp) && RenderUtils.getChunkWorldPos(x, y, z).distanceSquared(GlobalBits.playerPosition) < renderDistanceSquared) {
                         final int finalX = x;
                         final int finalY = y;
                         final int finalZ = z;
@@ -128,9 +121,8 @@ public class World {
         return r.getTime() - startTime;
     }
 
-    public void unloadChunk(Chunk chunk){
-        chunk.unload();
-        chunks.remove(chunk.getPos());
+    public void unloadChunk(GPUChunk chunk){
+        chunk.delete();
         //todo: world saves
     }
 
@@ -141,17 +133,15 @@ public class World {
     public void loadChunk(int x, int y, int z){
         Vector3i pos = new Vector3i(x, y, z);
 
-        if(chunks.containsKey(pos)){
-            RenderUtils.activeRender.printErrln("tried to load chunk that is already loaded!");
+        if(render.getChunks().containsKey(pos)){
+            RenderUtils.activeRender.printErrln("tried to load chunk that is already loaded! " + num++);
             return;
         }
         //todo: world saves
-        Chunk chunk = generateChunk(GlobalBits.blocks, x, y, z);
-
-        chunks.put(pos, chunk);
+        generateChunk(blocks, x, y, z);
     }
 
-    private Chunk generateChunk(Map<String, Block> blocks, int x, int y, int z){
+    private void generateChunk(Map<String, Block> blocks, int x, int y, int z){
         final Block[][][] blocksg = new Block[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
         final Block fillBlock = blocks.get("voxelesque:grassBlock");
         final Block unfillBlock = Block.VOID_BLOCK;
@@ -175,9 +165,8 @@ public class World {
             }
         }
 
-
-        if(empty) return new Chunk(CHUNK_SIZE, x, y, z); //if it's empty, make an empty chunk.
-        return new Chunk(CHUNK_SIZE, blocksg, x, y, z);
+        if(empty) render.spawnChunk(CHUNK_SIZE, null, x, y, z, false); //if it's empty, make an empty chunk.
+        else render.spawnChunk(CHUNK_SIZE, blocksg, x, y, z, false);
     }
 
     public void close(){

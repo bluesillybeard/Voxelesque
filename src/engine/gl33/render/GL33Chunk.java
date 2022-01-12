@@ -13,6 +13,7 @@ import org.joml.Vector3i;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Objects;
 
 public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
     private final Vector3i pos;
@@ -43,6 +44,11 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
     }
 
     @Override
+    public Vector3i getPos() {
+        return pos;
+    }
+
+    @Override
     public void setData(GPUBlock[][][] blocks, boolean buildImmediately){
         setDataInternal(blocks);
         GL33Render glRender = (GL33Render)RenderUtils.activeRender;
@@ -63,6 +69,35 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
                     " but the data given to the constructor has dimensions (" + blocks.length + ", " + blocks[0].length + ", " + blocks[0][0].length + ")");
         }
         this.blocks = blocks;
+    }
+
+
+    /**
+     * tells what render backend this came from.
+     * supported render APIs:
+     * 0:unknown (This should absolutely under no circumstances ever happen. Not in all time and space should this value ever be returned by this function)
+     * 1:GL33
+     *
+     * @return the render backend ID
+     */
+    @Override
+    public int getRenderType() {
+        return 1;
+    }
+
+    public Vector3i getPosition(){
+        return this.pos;
+    }
+
+    @Override
+    public GPUBlock getBlock(int x, int y, int z){
+        if(blocks != null)return this.blocks[x][y][z];
+        else return null;
+    }
+
+    @Override
+    public int compareTo(GL33Chunk o) {
+        return (int)(getChunkWorldPos(this.pos, this.size).distance(cameraPos) - getChunkWorldPos(o.pos, o.size).distance(cameraPos));
     }
 
     @Override
@@ -134,7 +169,7 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
      *
      * @param chunks the map of chunk positions to chunk objects to get adjacent chunks from
      */
-    public void build(Map<Vector3i, GL33Chunk> chunks) {
+    public void build(Map<Vector3i, GPUChunk> chunks) {
         if (taskRunning) {
             RenderUtils.activeRender.printErrln("Chunk attempted to build multiple times at once:" + this);
             return;
@@ -183,9 +218,23 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
         this.taskRunning = false;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if(o instanceof GPUChunk c) {
+            return this.pos.equals(c.getPos());
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(pos);
+    }
 
     //blockedFaces: [top (+y), bottom(-y), (-z / +z), -x, +x]
-    private byte getBlockedFaces(int x, int y, int z, Map<Vector3i, GL33Chunk> chunks){
+    private byte getBlockedFaces(int x, int y, int z, Map<Vector3i, GPUChunk> chunks){
         byte blockedFaces = 0;
 
         for(int i=0; i < 5; i++){
@@ -208,7 +257,7 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
             } else {
                 zM = z;
             }
-            GL33Chunk toUse = this;
+            GPUChunk toUse = this;
 
             //[(-1, 0, 0), (0, -1, 0), (0, 0, -1), (+1, 0, 0), (0, +1, 0), (0, 0, +1)]
             if(xM<0){ //-1, 0, 0
@@ -255,33 +304,6 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
             }
         }
         return blockedFaces;
-    }
-
-    /**
-     * tells what render backend this came from.
-     * supported render APIs:
-     * 0:unknown (This should absolutely under no circumstances ever happen. Not in all time and space should this value ever be returned by this function)
-     * 1:GL33
-     *
-     * @return the render backend ID
-     */
-    @Override
-    public int getRenderType() {
-        return 1;
-    }
-
-    public Vector3i getPosition(){
-        return this.pos;
-    }
-
-    public GPUBlock getBlock(int x, int y, int z){
-        if(blocks != null)return this.blocks[x][y][z];
-        else return null;
-    }
-
-    @Override
-    public int compareTo(GL33Chunk o) {
-        return (int)(getChunkWorldPos(this.pos, this.size).distance(cameraPos) - getChunkWorldPos(o.pos, o.size).distance(cameraPos));
     }
 
     public static Vector3f getChunkWorldPos(Vector3i chunkPos, int chunkSize){

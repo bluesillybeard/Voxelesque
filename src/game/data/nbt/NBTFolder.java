@@ -76,7 +76,7 @@ public class NBTFolder implements NBTElement{
         for(byte[] array: valueBytesArray){
             valueBytesBuffer.put(array); //put that data into a ByteBuffer
         }
-        ByteBuffer out = StaticUtils.getNBTSerialData(this, valueBytesBuffer);
+        ByteBuffer out = StaticUtils.getNBTSerialHeader(this, valueBytesBuffer);
         if(out.hasArray()) {
             return out.array(); //create the rest of the NBT data
         } else {

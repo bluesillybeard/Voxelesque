@@ -1,6 +1,10 @@
 package engine.multiplatform.gpu;
 
+import org.joml.Vector3i;
+
 public interface GPUChunk extends GPUObject{
+
+    Vector3i getPos();
 
     /**
      * sets the block data of this chunk.
@@ -15,6 +19,8 @@ public interface GPUChunk extends GPUObject{
      * @param buildImmediately weather the chunk will be rebuilt immediately (true) or placed in priority queue (false)
      */
     void setBlock(GPUBlock block, int x, int y, int z, boolean buildImmediately);
+
+    GPUBlock getBlock(int x, int y, int z);
 
     /**
      * Deletes this chunk, so it will no longer be updated or rendered.

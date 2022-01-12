@@ -4,10 +4,12 @@ import engine.multiplatform.gpu.*;
 import engine.multiplatform.model.CPUMesh;
 import engine.multiplatform.model.CPUModel;
 import org.joml.Matrix4f;
+import org.joml.Vector3i;
 
 import java.awt.image.BufferedImage;
 import java.io.PrintStream;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -281,16 +283,51 @@ public interface Render {
     //chunks
 
     /**
-     * creates a chunk at the chunk position [x, y, z]
+     * creates a chunk at the chunk position [x, y, z].
+     * The chunk will be added to the chunk registry; to modify a chunk use the getChunk() method.
+     * DO NOT STORE YOUR OWN VERSION OF THE CHUNKS. Just use the getChunk() method like a reasonable person.
      *
      * @param size   how big the chunk is in each dimension
      * @param blocks a 3D array of CPUMeshes that represent that chunk's block data.
      * @param x the X position of the chunk
      * @param y the Y position of the chunk
      * @param z the Z position of the chunk
-     * @return the ID of the new chunk.
      */
-    GPUChunk spawnChunk(int size, GPUBlock[][][] blocks, int x, int y, int z, boolean buildImmediately);
+    void spawnChunk(int size, GPUBlock[][][] blocks, int x, int y, int z, boolean buildImmediately);
+
+    /**
+     * Gets a chunk at a specific position.
+     * @param x the chunk X position
+     * @param y the chunk Y position
+     * @param z the chunk Z position
+     * @return the chunk
+     */
+    GPUChunk getChunk(int x, int y, int z);
+
+    /**
+     * Gets a chunk at a specific position.
+     * @param pos the chunk position
+     * @return the chunk
+     */
+    GPUChunk getChunk(Vector3i pos);
+
+    /**
+     * checks if a chunks is ANYWHERE in the chunk system, in the chunk storage OR in any chunk buffer.
+     * @return if a chunk exists.
+     */
+    boolean hasChunk(int x, int y, int z);
+
+    /**
+     * checks if a chunks is ANYWHERE in the chunk system, in the chunk storage OR in any chunk buffer.
+     * @return if a chunk exists.
+     */
+    boolean hasChunk(Vector3i chunk);
+
+    /**
+     *
+     * @return the raw map of chunks. Editing the map directly is not recommended; instead use the chunk's built-in modifiers.
+     */
+    Map<Vector3i, GPUChunk> getChunks();
 
     int getNumChunks();
 

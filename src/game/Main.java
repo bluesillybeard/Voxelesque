@@ -2,9 +2,9 @@ package game;
 
 import engine.gl33.GL33Render;
 import engine.multiplatform.Render;
+import engine.multiplatform.RenderUtils;
 import engine.multiplatform.gpu.GPUTextEntity;
 import engine.multiplatform.model.CPUMesh;
-import game.misc.StaticUtils;
 import game.misc.command.Command;
 import game.misc.command.Commands;
 import game.world.World;
@@ -69,7 +69,7 @@ public class Main {
                 updateCameraPos();
                 double time = render.render();
                 Runtime runtime = Runtime.getRuntime();
-                Vector3i blockPos = StaticUtils.getBlockPos(playerPosition);
+                Vector3i blockPos = RenderUtils.getBlockPos(playerPosition);
 
                 if (render.getKey(GLFW_KEY_C) == 0) {
                     if (locked) {
@@ -135,9 +135,9 @@ public class Main {
                 render.setTextEntityText(debugTextEntity,
                         "Memory:" + (runtime.totalMemory() - runtime.freeMemory()) / 1048576 + " / " + runtime.totalMemory() / 1048576 +
                                 "\nEntities: " + render.getNumEntities() + " / " + render.getNumEntitySlots() +
-                                "\nRC: " + render.getNumChunks() + "|GC: " + world.getChunks().size() +
-                                "\npos: " + StaticUtils.betterVectorToString(playerPosition, 3) + ", rot: (" + StaticUtils.FloatToStringSigFigs(playerRotation.x, 3) + ", " + StaticUtils.FloatToStringSigFigs(playerRotation.y, 3) + ")" +
-                                "\nchunkPos: " + StaticUtils.getChunkPos(playerPosition).toString(NumberFormat.getIntegerInstance()) +
+                                "\nRC: " + render.getNumChunks() +
+                                "\npos: " + RenderUtils.betterVectorToString(playerPosition, 3) + ", rot: (" + RenderUtils.FloatToStringSigFigs(playerRotation.x, 3) + ", " + RenderUtils.FloatToStringSigFigs(playerRotation.y, 3) + ")" +
+                                "\nchunkPos: " + RenderUtils.getChunkPos(playerPosition).toString(NumberFormat.getIntegerInstance()) +
                                 "\nblock: " + world.getBlock(blockPos.x, blockPos.y, blockPos.z) +
                                 "\nframe: " + (int)(time*1000) + "ms" +
                                 "\nworld: " + (int)(worldTime*1000) + "ms",

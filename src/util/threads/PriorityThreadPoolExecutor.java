@@ -29,7 +29,6 @@ public class PriorityThreadPoolExecutor<R extends Runnable> {
     public void submit(R task){
         tasks.add(task);
         tasks.sort(comparator);
-
     }
 
     public void stop(){
