@@ -20,7 +20,6 @@ import java.util.stream.Stream;
 public class IteratorSafeList<E> implements List<E> {
     private final List<E> list;
     private boolean iterating;
-    private boolean modifying;
 
     public IteratorSafeList(List<E> list) {
         this.list = list;
@@ -211,4 +210,5 @@ public class IteratorSafeList<E> implements List<E> {
             } catch (InterruptedException ignored) {}
         }
     }
+
 }
