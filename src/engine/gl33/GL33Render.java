@@ -9,6 +9,7 @@ import engine.multiplatform.Render;
 import engine.multiplatform.RenderUtils;
 import engine.multiplatform.Util.AtlasGenerator;
 import engine.multiplatform.Util.Utils;
+import util.other.IteratorSafeMap;
 import util.other.ReadOnlyMap;
 import util.threads.DistanceRunnable3i;
 import util.threads.PriorityThreadPoolExecutor;
@@ -79,7 +80,7 @@ public class GL33Render implements Render {
     private final Set<GL33Entity> entities = new TreeSet<>();
     private final Set<GL33Shader> shaderPrograms = new TreeSet<>(new HashComparator());
 
-    private final Map<Vector3i, GPUChunk> chunks = new HashMap<>();
+    private final IteratorSafeMap<Vector3i, GPUChunk> chunks = new IteratorSafeMap<>(new HashMap<>());
     private final LinkedList<GPUChunk> chunkUpdateBuffer = new LinkedList<>(); //avoids a sudden runaway effect that freezes the game until all the chunks are done being built
     private final PriorityThreadPoolExecutor<DistanceRunnable3i> chunkBuildExecutor = new PriorityThreadPoolExecutor<>(DistanceRunnable3i.inOrder, Runtime.getRuntime().availableProcessors());
 

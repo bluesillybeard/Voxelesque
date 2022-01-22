@@ -14,7 +14,7 @@ import java.util.function.Function;
  * @param <V>
  */
 public class ReadOnlyMap<K, V> implements Map<K, V> {
-    Map<K, V> map;
+    private final Map<K, V> map;
     public ReadOnlyMap(Map<K, V> m){
         map = m;
     }
