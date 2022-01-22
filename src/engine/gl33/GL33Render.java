@@ -9,6 +9,7 @@ import engine.multiplatform.Render;
 import engine.multiplatform.RenderUtils;
 import engine.multiplatform.Util.AtlasGenerator;
 import engine.multiplatform.Util.Utils;
+import util.other.IteratorSafeList;
 import util.other.IteratorSafeMap;
 import util.other.ReadOnlyMap;
 import util.threads.DistanceRunnable3i;
@@ -81,7 +82,7 @@ public class GL33Render implements Render {
     private final Set<GL33Shader> shaderPrograms = new TreeSet<>(new HashComparator());
 
     private final IteratorSafeMap<Vector3i, GPUChunk> chunks = new IteratorSafeMap<>(new HashMap<>());
-    private final LinkedList<GPUChunk> chunkUpdateBuffer = new LinkedList<>(); //avoids a sudden runaway effect that freezes the game until all the chunks are done being built
+    private final IteratorSafeList<GPUChunk> chunkUpdateBuffer = new IteratorSafeList<>(new LinkedList<>()); //avoids a sudden runaway effect that freezes the game until all the chunks are done being built
     private final PriorityThreadPoolExecutor<DistanceRunnable3i> chunkBuildExecutor = new PriorityThreadPoolExecutor<>(DistanceRunnable3i.inOrder, Runtime.getRuntime().availableProcessors());
 
     /**
@@ -576,9 +577,7 @@ public class GL33Render implements Render {
 
     @Override
     public synchronized void spawnChunk(int size, GPUBlock[][][] blocks, int x, int y, int z, boolean buildImmediately) {
-
         GL33Chunk chunk = new GL33Chunk(size, blocks, x, y, z, cameraPosition);
-        waitUntilDoneIteratingChunks();
         chunks.put(chunk.getPos(), chunk);
         if(buildImmediately){
             chunk.taskScheduled = true;
@@ -592,7 +591,10 @@ public class GL33Render implements Render {
 
     //internal GL33 method
     public synchronized boolean deleteChunk(GL33Chunk c){
-        return false;//chunkUpdateBuffer.remove(c) || chunks.remove(c.getPosition()) == null || chunkBuildExecutor.getTasks().remove(new DistanceRunnable3i(null, c.getPosition(), null));
+        boolean a = chunkUpdateBuffer.remove(c);
+        boolean b = chunks.remove(c.getPosition()) == null;
+        boolean c0 = chunkBuildExecutor.getTasks().remove(new DistanceRunnable3i(null, c.getPosition(), null));
+        return a || b || c0;
     }
 
     /**
@@ -849,7 +851,6 @@ public class GL33Render implements Render {
         window.update();
 
         //remove deleted chunks
-        iteratingChunks = true;
         chunkBuildExecutor.setPaused(true); //pause the executor so that access to the executor queue is guaranteed (improves performance massively)
         //update modified chunks
         if(chunkUpdateBuffer.size() > 0) { //don't submit any new chunks if there aren't any to submit
@@ -866,9 +867,9 @@ public class GL33Render implements Render {
                     break;
                 }
             }
+            chunkUpdateBuffer.stopIterating();
         }
         chunkBuildExecutor.setPaused(false); //unpause the executor so that it resumes rendering chunks
-        iteratingChunks = false;
 
         if (window.isResized()) {
             window.setResized(false);
@@ -925,15 +926,14 @@ public class GL33Render implements Render {
             GL33Entity.render();
         }
         //render each chunk
-        iteratingChunks = true;
-        for (Map.Entry<Vector3i, GPUChunk> chunkEntry: chunks.entrySet()){
-            GL33Chunk chunk = (GL33Chunk) chunkEntry.getValue();
+
+        chunks.forEach((pos, chunk) -> {
+            GL33Chunk glChunk = (GL33Chunk)chunk;
             if (!((getTime() - startTime) > targetFrameTime)) {
-                chunk.sendToGPU();
+                glChunk.sendToGPU();
             }
-            chunk.render();
-        }
-        iteratingChunks = false;
+            glChunk.render();
+        });
     }
 
     /**
@@ -981,12 +981,4 @@ public class GL33Render implements Render {
         if(!chunkUpdateBuffer.contains(c))chunkUpdateBuffer.add(c);
     }
 
-
-    public void waitUntilDoneIteratingChunks(){
-        while(iteratingChunks){
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException ignored) {}
-        }
-    }
 }
