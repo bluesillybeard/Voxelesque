@@ -5,6 +5,7 @@ import engine.multiplatform.RenderUtils;
 import engine.multiplatform.gpu.GPUChunk;
 import game.GlobalBits;
 import game.world.block.Block;
+import org.lwjgl.system.CallbackI;
 import util.noise.FastNoiseLite;
 import org.joml.Vector3i;
 import util.threads.DistanceRunnable3i;
@@ -85,6 +86,8 @@ public class World {
         final float renderDistanceSquared = renderDistance * renderDistance;
         final Vector3i temp = new Vector3i();
 
+        boolean outOfTime = false;
+
         render.getChunks().forEach((pos, chunk) -> {
             if (RenderUtils.getChunkWorldPos(pos).distanceSquared(GlobalBits.playerPosition) > renderDistanceSquared) {
                 chunksToUnload.add(chunk);
@@ -95,6 +98,7 @@ public class World {
             unloadChunk(chunk);
         }
         chunksToUnload.clear();
+        DistanceRunnable3i tdri = new DistanceRunnable3i(null, temp, null);
         for(int x=playerChunk.x-(int)(renderDistance/8); x<playerChunk.x+(int)(renderDistance/8); x++){
             for(int y=playerChunk.y-(int)(renderDistance/16); y<playerChunk.y+(int)(renderDistance/16); y++){
                 for(int z=playerChunk.z-(int)(renderDistance/16); z<playerChunk.z+(int)(renderDistance/16); z++){
@@ -102,13 +106,23 @@ public class World {
                     //load the chunk if it's in range
                     //distanceSquared is faster - just look at the code to find out why
                     temp.set(x, y, z);
-                    if(!executor.getTasks().contains(new DistanceRunnable3i(null, temp, null)) && !render.hasChunk(temp) && RenderUtils.getChunkWorldPos(x, y, z).distanceSquared(GlobalBits.playerPosition) < renderDistanceSquared) {
+                    if(!executor.getTasks().contains(tdri) && !render.hasChunk(temp) && RenderUtils.getChunkWorldPos(x, y, z).distanceSquared(GlobalBits.playerPosition) < renderDistanceSquared) {
                         final int finalX = x;
                         final int finalY = y;
                         final int finalZ = z;
                         executor.submit(new DistanceRunnable3i(()->loadChunk(finalX, finalY, finalZ), new Vector3i(x, y, z), playerChunk));
                     }
+                    if((r.getTime() - startTime) > targetTime){
+                        outOfTime = true;
+                        break;
+                    }
                 }
+                if(outOfTime){
+                    break;
+                }
+            }
+            if(outOfTime){
+                break;
             }
         }
 
