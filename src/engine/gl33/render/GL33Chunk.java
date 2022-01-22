@@ -122,7 +122,9 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
     @Override
     public void delete(){
         GL33Render glRender = (GL33Render)RenderUtils.activeRender;
-        glRender.getDeletedChunks().add(this);
+        if(!glRender.deleteChunk(this)){
+            glRender.printErrln("Attempted to delete nonexistent chunk");
+        }
     }
 
     public void render(){

@@ -95,13 +95,10 @@ public class World {
             unloadChunk(chunk);
         }
         chunksToUnload.clear();
-        boolean outOfTime = false;
         for(int x=playerChunk.x-(int)(renderDistance/8); x<playerChunk.x+(int)(renderDistance/8); x++){
             for(int y=playerChunk.y-(int)(renderDistance/16); y<playerChunk.y+(int)(renderDistance/16); y++){
                 for(int z=playerChunk.z-(int)(renderDistance/16); z<playerChunk.z+(int)(renderDistance/16); z++){
-                    if((r.getTime() - startTime) > targetTime) {
-                        outOfTime = true;
-                    }
+
                     //load the chunk if it's in range
                     //distanceSquared is faster - just look at the code to find out why
                     temp.set(x, y, z);
@@ -111,11 +108,8 @@ public class World {
                         final int finalZ = z;
                         executor.submit(new DistanceRunnable3i(()->loadChunk(finalX, finalY, finalZ), new Vector3i(x, y, z), playerChunk));
                     }
-                    if(outOfTime) break;
                 }
-                if(outOfTime) break;
             }
-            if(outOfTime) break;
         }
 
         return r.getTime() - startTime;

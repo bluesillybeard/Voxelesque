@@ -1,16 +1,22 @@
-import com.amihaiemil.eoyaml.*;
 
-import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class testingstuff {
     public static void main(String[] args) throws IOException {
 
-        System.out.println(Double.longBitsToDouble(4523227044276562163L));
-        System.out.println(Double.longBitsToDouble(-4671934770969572232L));
-        System.out.println(Double.longBitsToDouble(4575957211482072852L));
-        System.out.println(Double.longBitsToDouble(-4628199223918090387L));
-        System.out.println(Double.longBitsToDouble(4607182418589157889L));
+        Map<Object, Object> example = new HashMap<>();
+        example.put("0", "0");
+        example.put("1", "1");
+        example.put("2", "2");
+        example.put("3", "3");
+        example.put("4", "4");
+        Iterator<Map.Entry<Object, Object>> iterator = example.entrySet().iterator();
 
+        example.remove("5");
+
+        if(iterator.hasNext())iterator.next();
     }
 }
