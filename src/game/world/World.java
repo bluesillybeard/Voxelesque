@@ -96,7 +96,7 @@ public class World {
         unloadChunks(chunksToUnload);
 
         chunksToUnload.clear();
-        if(executor.getTasks().size() == 0) {
+        if(executor.isEmpty()) {
             for (int x = playerChunk.x - (int) (renderDistance / 8); x < playerChunk.x + (int) (renderDistance / 8); x++) {
                 for (int y = playerChunk.y - (int) (renderDistance / 16); y < playerChunk.y + (int) (renderDistance / 16); y++) {
                     for (int z = playerChunk.z - (int) (renderDistance / 16); z < playerChunk.z + (int) (renderDistance / 16); z++) {

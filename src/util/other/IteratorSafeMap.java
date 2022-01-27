@@ -103,8 +103,8 @@ public class IteratorSafeMap<K, V> implements Map<K, V>{
     }
     @Override
     public void forEach(BiConsumer<? super K, ? super V> action) {
-        waitModifying();
         iterating = true;
+        waitModifying();
         map.forEach(action);
         iterating = false;
     }

@@ -11,13 +11,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 // to load/render chunks, it's basically guaranteed to update when the player moves.
 public class PriorityThreadPoolExecutor<R extends Runnable> {
     private final List<R> tasks;
-    private final Thread[] runners;
+    private final KillablePoolThread[] runners; //Curse you java and your idiotic Generics system.
     private final Comparator<R> comparator;
     private boolean paused;
 
     public PriorityThreadPoolExecutor(Comparator<R> comparator, int threads){
         tasks = Collections.synchronizedList(new LinkedList<>());
-        runners = new Thread[threads];
+        runners = new KillablePoolThread[threads];
         this.comparator = comparator;
         for(int i=0; i<threads; ++i){
             runners[i] = new KillablePoolThread<>(tasks);
@@ -47,6 +47,15 @@ public class PriorityThreadPoolExecutor<R extends Runnable> {
         this.paused = paused;
     }
 
+    public boolean isEmpty(){
+        for(KillablePoolThread<R> thread: runners){
+            if(!thread.getIdle()){
+                return false;
+            }
+        }
+        return getTasks().isEmpty();
+    }
+
     public List<R> getTasks (){
         return tasks;
     }
@@ -55,6 +64,7 @@ public class PriorityThreadPoolExecutor<R extends Runnable> {
     private class KillablePoolThread<T extends Runnable> extends Thread{
         private final AtomicBoolean running;
         private final List<T> queue;
+        private boolean idle;
         public KillablePoolThread(List<T> queue){
             this.queue = queue;
             running = new AtomicBoolean(false);
@@ -63,6 +73,10 @@ public class PriorityThreadPoolExecutor<R extends Runnable> {
         public void interrupt(){
             running.set(false);
             super.interrupt();
+        }
+
+        public boolean getIdle(){
+            return idle;
         }
 
         /**
@@ -82,8 +96,10 @@ public class PriorityThreadPoolExecutor<R extends Runnable> {
             do {
                 try {
                     if (!queue.isEmpty() && !paused) {
+                        idle = false;
                         queue.remove(0).run();
                     } else {
+                        idle = true;
                         Thread.sleep(100);
                     }
                 } catch (Exception ignored){}

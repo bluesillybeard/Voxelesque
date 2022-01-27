@@ -83,6 +83,7 @@ public class GL33Render implements Render {
 
     private final IteratorSafeMap<Vector3i, GPUChunk> chunks = new IteratorSafeMap<>(new HashMap<>());
     private final IteratorSafeList<GPUChunk> chunkUpdateBuffer = new IteratorSafeList<>(new LinkedList<>()); //avoids a sudden runaway effect that freezes the game until all the chunks are done being built
+    private final IteratorSafeList<GL33Chunk> chunksToClear = new IteratorSafeList<>(new LinkedList<>());
     private final PriorityThreadPoolExecutor<DistanceRunnable3i> chunkBuildExecutor = new PriorityThreadPoolExecutor<>(DistanceRunnable3i.inOrder, Runtime.getRuntime().availableProcessors());
 
     /**
@@ -592,7 +593,7 @@ public class GL33Render implements Render {
     //internal GL33 method
     public synchronized boolean deleteChunk(GL33Chunk c){
         boolean a = chunkUpdateBuffer.remove(c);
-        boolean b = chunks.remove(c.getPosition()) == null;
+        boolean b = chunks.remove(c.getPosition()) != null;
         boolean c0 = chunkBuildExecutor.getTasks().remove(new DistanceRunnable3i(null, c.getPosition(), null));
         if(!(c.taskScheduled || c.taskRunning)) {
             c.clearFromGPU();
@@ -856,6 +857,7 @@ public class GL33Render implements Render {
         window.update();
 
         //remove deleted chunks
+
         chunkBuildExecutor.setPaused(true); //pause the executor so that access to the executor queue is guaranteed (improves performance massively)
         //update modified chunks
         if(chunkUpdateBuffer.size() > 0) { //don't submit any new chunks if there aren't any to submit
@@ -875,6 +877,16 @@ public class GL33Render implements Render {
             chunkUpdateBuffer.stopIterating();
         }
         chunkBuildExecutor.setPaused(false); //unpause the executor so that it resumes rendering chunks
+
+        Iterator<GL33Chunk> iterator = chunksToClear.iterator();
+        while(iterator.hasNext()){
+            GL33Chunk c = iterator.next();
+            if(!(c.taskScheduled || c.taskRunning)){
+                c.clearFromGPU();
+                iterator.remove();
+            }
+        }
+        chunksToClear.stopIterating();
 
         if (window.isResized()) {
             window.setResized(false);
