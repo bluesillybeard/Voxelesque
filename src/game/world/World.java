@@ -86,7 +86,6 @@ public class World {
         final float renderDistanceSquared = renderDistance * renderDistance;
         final Vector3i temp = new Vector3i();
 
-        boolean outOfTime = false;
 
         render.getChunks().forEach((pos, chunk) -> {
             if (RenderUtils.getChunkWorldPos(pos).distanceSquared(GlobalBits.playerPosition) > renderDistanceSquared) {
@@ -94,41 +93,36 @@ public class World {
             }
         });
 
-        for (GPUChunk chunk : chunksToUnload) {
-            unloadChunk(chunk);
-        }
-        chunksToUnload.clear();
-        DistanceRunnable3i tdri = new DistanceRunnable3i(null, temp, null);
-        for(int x=playerChunk.x-(int)(renderDistance/8); x<playerChunk.x+(int)(renderDistance/8); x++){
-            for(int y=playerChunk.y-(int)(renderDistance/16); y<playerChunk.y+(int)(renderDistance/16); y++){
-                for(int z=playerChunk.z-(int)(renderDistance/16); z<playerChunk.z+(int)(renderDistance/16); z++){
+        unloadChunks(chunksToUnload);
 
-                    //load the chunk if it's in range
-                    //distanceSquared is faster - just look at the code to find out why
-                    temp.set(x, y, z);
-                    if(!executor.getTasks().contains(tdri) && !render.hasChunk(temp) && RenderUtils.getChunkWorldPos(x, y, z).distanceSquared(GlobalBits.playerPosition) < renderDistanceSquared) {
-                        final int finalX = x;
-                        final int finalY = y;
-                        final int finalZ = z;
-                        executor.submit(new DistanceRunnable3i(()->loadChunk(finalX, finalY, finalZ), new Vector3i(x, y, z), playerChunk));
-                    }
-                    if((r.getTime() - startTime) > targetTime){
-                        outOfTime = true;
-                        break;
+        chunksToUnload.clear();
+        if(executor.getTasks().size() == 0) {
+            for (int x = playerChunk.x - (int) (renderDistance / 8); x < playerChunk.x + (int) (renderDistance / 8); x++) {
+                for (int y = playerChunk.y - (int) (renderDistance / 16); y < playerChunk.y + (int) (renderDistance / 16); y++) {
+                    for (int z = playerChunk.z - (int) (renderDistance / 16); z < playerChunk.z + (int) (renderDistance / 16); z++) {
+
+                        //load the chunk if it's in range
+                        //distanceSquared is faster - just look at the code to find out why
+                        temp.set(x, y, z);
+                        if (!render.hasChunk(temp) && RenderUtils.getChunkWorldPos(x, y, z).distanceSquared(GlobalBits.playerPosition) < renderDistanceSquared) {
+                            final int finalX = x;
+                            final int finalY = y;
+                            final int finalZ = z;
+                            executor.submit(new DistanceRunnable3i(() -> loadChunk(finalX, finalY, finalZ), new Vector3i(x, y, z), playerChunk));
+                        }
                     }
                 }
-                if(outOfTime){
-                    break;
-                }
-            }
-            if(outOfTime){
-                break;
             }
         }
 
         return r.getTime() - startTime;
     }
 
+    public void unloadChunks(Collection<GPUChunk> chunks){
+        for(GPUChunk chunk: chunks){
+            unloadChunk(chunk);
+        }
+    }
     public void unloadChunk(GPUChunk chunk){
         chunk.delete();
         //todo: world saves

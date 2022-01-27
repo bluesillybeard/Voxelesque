@@ -594,6 +594,11 @@ public class GL33Render implements Render {
         boolean a = chunkUpdateBuffer.remove(c);
         boolean b = chunks.remove(c.getPosition()) == null;
         boolean c0 = chunkBuildExecutor.getTasks().remove(new DistanceRunnable3i(null, c.getPosition(), null));
+        if(!(c.taskScheduled || c.taskRunning)) {
+            c.clearFromGPU();
+        } else {
+            chunksToClear.add(c);
+        }
         return a || b || c0;
     }
 
