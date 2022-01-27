@@ -22,6 +22,8 @@ public class IteratorSafeList<E> implements List<E> {
     private boolean iterating;
     private boolean modifying;
 
+    private boolean waitingIterating;
+
     public IteratorSafeList(List<E> list) {
         this.list = list;
     }
@@ -244,15 +246,20 @@ public class IteratorSafeList<E> implements List<E> {
     }
 
     private void waitIterating(){
+        waitingIterating = true;
         while(iterating){
             try {
                 Thread.sleep(10);
             } catch (InterruptedException ignored) {}
         }
+        waitingIterating = false;
     }
 
     private void waitModifying(){
         while(modifying){
+            if(waitingIterating) { //if we are waiting to modify and waiting to iterate at the same time, you're free to go
+                return;
+            }
             try {
                 Thread.sleep(10);
             } catch (InterruptedException ignored) {}
