@@ -20,6 +20,12 @@ public class World {
     int num;
     private final FastNoiseLite noise;
     private final ArrayList<GPUChunk> chunksToUnload;
+
+
+    private boolean pausedBatch;
+    private int batchX;
+    private int batchY;
+    private int batchZ;
     private final PriorityThreadPoolExecutor<DistanceRunnable3i> executor = new PriorityThreadPoolExecutor<>(DistanceRunnable3i.inOrder, Runtime.getRuntime().availableProcessors());
 
     public static final int CHUNK_SIZE = 32; //MUST BE A POWER OF 2! If this is changed to a non-power of 2, many things would have to be reworked.
@@ -96,24 +102,37 @@ public class World {
         unloadChunks(chunksToUnload);
 
         chunksToUnload.clear();
-        if(executor.isEmpty()) {
-            for (int x = playerChunk.x - (int) (renderDistance / 8); x < playerChunk.x + (int) (renderDistance / 8); x++) {
-                for (int y = playerChunk.y - (int) (renderDistance / 16); y < playerChunk.y + (int) (renderDistance / 16); y++) {
-                    for (int z = playerChunk.z - (int) (renderDistance / 16); z < playerChunk.z + (int) (renderDistance / 16); z++) {
+        if(executor.isEmpty() || pausedBatch) {
+            if(!pausedBatch)batchX = playerChunk.x - (int) (renderDistance / 8);
+            for (; batchX < playerChunk.x + (int) (renderDistance / 8); batchX++) {
+                if(!pausedBatch)batchY = playerChunk.y - (int) (renderDistance / 16);
+                for (; batchY < playerChunk.y + (int) (renderDistance / 16); batchY++) {
+                    if(!pausedBatch)batchZ = playerChunk.z - (int) (renderDistance / 16);
+                    for (; batchZ < playerChunk.z + (int) (renderDistance / 16); batchZ++) {
+                        pausedBatch = false;
 
                         //load the chunk if it's in range
                         //distanceSquared is faster - just look at the code to find out why
-                        temp.set(x, y, z);
-                        if (!render.hasChunk(temp) && RenderUtils.getChunkWorldPos(x, y, z).distanceSquared(GlobalBits.playerPosition) < renderDistanceSquared) {
-                            final int finalX = x;
-                            final int finalY = y;
-                            final int finalZ = z;
-                            executor.submit(new DistanceRunnable3i(() -> loadChunk(finalX, finalY, finalZ), new Vector3i(x, y, z), playerChunk));
+                        temp.set(batchX, batchY, batchZ);
+                        if (!render.hasChunk(temp) && RenderUtils.getChunkWorldPos(batchX, batchY, batchZ).distanceSquared(GlobalBits.playerPosition) < renderDistanceSquared) {
+                            final int finalX = batchX;
+                            final int finalY = batchY;
+                            final int finalZ = batchZ;
+                            executor.submit(new DistanceRunnable3i(() -> loadChunk(finalX, finalY, finalZ), new Vector3i(batchX, batchY, batchZ), playerChunk));
                         }
+
+                        if((r.getTime() - startTime) > targetTime) {
+                            pausedBatch = true;
+                            batchZ++;
+                            return r.getTime() - startTime;
+                        }
+
                     }
                 }
             }
         }
+        //todo: batch pausing system needs more tuning, probably
+        pausedBatch = false;
 
         return r.getTime() - startTime;
     }
