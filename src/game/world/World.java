@@ -130,9 +130,9 @@ public class World {
                     }
                 }
             }
+            pausedBatch = false;
         }
         //todo: batch pausing system needs more tuning, probably
-        pausedBatch = false;
 
         return r.getTime() - startTime;
     }
