@@ -19,8 +19,8 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
     private final Vector3i pos;
     private GPUBlock[][][] blocks;
     private final int size;
-    private GL33Entity[] chunkModel;
-    private boolean canRender;
+    public GL33Entity[] chunkModel;
+    public boolean canRender;
     private final Vector3f cameraPos;
 
     private ArrayList<CPUMeshBuilder> chunkModels;
@@ -140,7 +140,7 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
     public void clearFromGPU(){
         if(this.chunkModel != null) {
             for (GL33Entity entity : this.chunkModel) {
-                entity.getModel().mesh.delete();//DON'T clear the texture.
+                entity.model.mesh.delete();//DON'T clear the texture.
             }
         }
     }
@@ -154,7 +154,7 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
                     CPUMesh mesh = chunkModels.get(i).getMesh();
                     if(mesh.indices.length > 0) {
                         GL33Entity entity = new GL33Entity(new GL33Mesh(mesh), shaderTextures.get(i).shader, shaderTextures.get(i).texture);
-                        entity.setLocation(this.pos.x * this.size * 0.288675134595f, this.pos.y * this.size * 0.5f, this.pos.z * this.size * 0.5f);
+                        entity.setLocation(this.pos.x * this.size * 0.28867513459481288225f, this.pos.y * this.size * 0.5f, this.pos.z * this.size * 0.5f);
                         entity.setScale(1, 1, 1);
                         model.add(entity);
                     }

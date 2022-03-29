@@ -21,8 +21,8 @@ public class GL33Entity implements GPUEntity, Comparable<GL33Entity> {
 
     private final Matrix4f modelViewMatrix;
 
-    private GL33Shader shaderProgram;
-    private GL33Model model;
+    public GL33Shader shaderProgram;
+    public GL33Model model;
 
     public GL33Entity(GL33Mesh mesh, GL33Shader shaderProgram, GL33Texture texture) {
         this(new GL33Model(mesh, texture), shaderProgram);
@@ -52,10 +52,6 @@ public class GL33Entity implements GPUEntity, Comparable<GL33Entity> {
                 rotateZ(-this.rotation.z).
                 scale(this.scale);
     }
-    public GL33Model getModel() {
-        return model;
-    }
-
     public Vector3f getLocation() {
         return this.position;
     }
@@ -120,10 +116,6 @@ public class GL33Entity implements GPUEntity, Comparable<GL33Entity> {
         setPosition(locat.x, locat.y, locat.z, rotat.x, rotat.y, rotat.z, scale.x, scale.y, scale.z);
     }
 
-
-    public void setModel(GL33Model model){
-        this.model = model;
-    }
 
     public void setModel(GL33Mesh mesh, GL33Texture texture){
         if(this.model.mesh != mesh || this.model.texture != texture) { //if the model or mesh are different

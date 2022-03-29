@@ -39,6 +39,8 @@ public class GL33Model implements GPUModel {
         return texture;
     }
 
+    public GL33Texture getGlTexture(){return texture;}
+
     /**
      * tells what render backend this came from.
      * supported render APIs:

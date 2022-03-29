@@ -62,6 +62,7 @@ public class GL33Shader implements GPUShader {
 
         glShaderSource(shaderId, shaderCode);
         glCompileShader(shaderId);
+        //glShaderSource(shaderId, "");
 
         if (glGetShaderi(shaderId, GL_COMPILE_STATUS) == 0) {
             throw new Exception("Error compiling Shader code: " + glGetShaderInfoLog(shaderId, 1024));

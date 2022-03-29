@@ -14,11 +14,11 @@ import static org.lwjgl.opengl.GL30.*;
 
 public class GL33Mesh implements GPUMesh {
 
-    private final int vaoId;
+    public final int vaoId;
     private final int posVboId;
     private final int UVVboId;
     private final int idxVboId;
-    private final int vertexCount;
+    public final int vertexCount;
 
     public GL33Mesh(float[] positions, float[] UVCoords, int[] indices) {
         this.vertexCount = indices.length;
@@ -76,7 +76,7 @@ public class GL33Mesh implements GPUMesh {
     @Override
     public void delete() {
         // Delete the VBOs
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        //glBindBuffer(GL_ARRAY_BUFFER, 0);
         glDeleteBuffers(this.posVboId);
         glDeleteBuffers(this.UVVboId);
         glDeleteBuffers(this.idxVboId);

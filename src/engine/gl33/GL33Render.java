@@ -30,6 +30,7 @@ import java.io.PrintStream;
 import java.util.*;
 
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL30.glBindVertexArray;
 
 public class GL33Render implements Render {
 
@@ -86,10 +87,6 @@ public class GL33Render implements Render {
     private final IteratorSafeList<GL33Chunk> chunksToClear = new IteratorSafeList<>(new LinkedList<>());
     private final PriorityThreadPoolExecutor<DistanceRunnable3i> chunkBuildExecutor = new PriorityThreadPoolExecutor<>(DistanceRunnable3i.inOrder, Runtime.getRuntime().availableProcessors());
 
-    /**
-     * weather the render is currently flushing the chunk buffers.
-     */
-    private boolean iteratingChunks;
 
     private final VMFLoader vmfLoader = new VMFLoader();
 
@@ -151,7 +148,6 @@ public class GL33Render implements Render {
 
     @Override
     public void close() {
-        iteratingChunks = false;
         chunkBuildExecutor.stop();
     }
 
@@ -562,7 +558,7 @@ public class GL33Render implements Render {
 
     @Override
     public void deleteTextEntity(GPUTextEntity entity) {
-        ((GL33TextEntity)entity).getModel().mesh.delete(); //clean up the mesh since it isn't being handled by the game.
+        ((GL33TextEntity)entity).model.mesh.delete(); //clean up the mesh since it isn't being handled by the game.
         entities.remove((GL33Entity)entity);
     }
 
@@ -664,8 +660,9 @@ public class GL33Render implements Render {
     }
 
     private void updateCameraViewMatrix(){
-        viewMatrix.identity().rotate(cameraRotation.x, tempv3f1.set(1, 0, 0))
+        viewMatrix.identity().rotate(cameraRotation.z, tempv3f1.set(1, 0, 0))
                 .rotate(cameraRotation.y, tempv3f1.set(0, 1, 0))
+                .rotate(cameraRotation.z, tempv3f1.set(0, 0, 1))
                 .translate(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z);
     }
 
@@ -939,8 +936,12 @@ public class GL33Render implements Render {
             shaderProgram.setViewMatrix(viewMatrix);
             shaderProgram.setTextureSampler(0);
         }
-        for (GL33Entity GL33Entity : entities) {
-            GL33Entity.render();
+        for (GL33Entity entity : entities) {
+            entity.shaderProgram.bind();
+            entity.shaderProgram.setModelViewMatrix(entity.getModelViewMatrix());
+            entity.model.getGlTexture().bind();
+            glBindVertexArray(entity.model.mesh.vaoId);
+            glDrawElements(GL_TRIANGLES, entity.model.mesh.vertexCount, GL_UNSIGNED_INT, 0);
         }
         //render each chunk
 
@@ -949,7 +950,15 @@ public class GL33Render implements Render {
             if (!((getTime() - startTime) > targetFrameTime)) {
                 glChunk.sendToGPU();
             }
-            glChunk.render();
+            if(glChunk.canRender){
+                for(GL33Entity entity: glChunk.chunkModel){
+                    entity.shaderProgram.bind();
+                    entity.shaderProgram.setModelViewMatrix(entity.getModelViewMatrix());
+                    entity.model.getGlTexture().bind();
+                    glBindVertexArray(entity.model.mesh.vaoId);
+                    glDrawElements(GL_TRIANGLES, entity.model.mesh.vertexCount, GL_UNSIGNED_INT, 0);
+                }
+            }
         });
     }
 
