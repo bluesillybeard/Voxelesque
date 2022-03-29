@@ -660,7 +660,7 @@ public class GL33Render implements Render {
     }
 
     private void updateCameraViewMatrix(){
-        viewMatrix.identity().rotate(cameraRotation.z, tempv3f1.set(1, 0, 0))
+        viewMatrix.identity().rotate(cameraRotation.x, tempv3f1.set(1, 0, 0))
                 .rotate(cameraRotation.y, tempv3f1.set(0, 1, 0))
                 .rotate(cameraRotation.z, tempv3f1.set(0, 0, 1))
                 .translate(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z);

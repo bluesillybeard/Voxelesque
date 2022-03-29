@@ -28,7 +28,7 @@ public class World {
     private int batchZ;
     private final PriorityThreadPoolExecutor<DistanceRunnable3i> executor = new PriorityThreadPoolExecutor<>(DistanceRunnable3i.inOrder, Runtime.getRuntime().availableProcessors());
 
-    public static final int CHUNK_SIZE = 32; //MUST BE A POWER OF 2! If this is changed to a non-power of 2, many things would have to be reworked.
+    public static final int CHUNK_SIZE = 16; //MUST BE A POWER OF 2! If this is changed to a non-power of 2, many things would have to be reworked.
 
     public World() {
 
@@ -103,12 +103,12 @@ public class World {
 
         chunksToUnload.clear();
         if(executor.isEmpty() || pausedBatch) {
-            if(!pausedBatch)batchX = playerChunk.x - (int) (renderDistance / 8);
-            for (; batchX < playerChunk.x + (int) (renderDistance / 8); batchX++) {
-                if(!pausedBatch)batchY = playerChunk.y - (int) (renderDistance / 16);
-                for (; batchY < playerChunk.y + (int) (renderDistance / 16); batchY++) {
-                    if(!pausedBatch)batchZ = playerChunk.z - (int) (renderDistance / 16);
-                    for (; batchZ < playerChunk.z + (int) (renderDistance / 16); batchZ++) {
+            if(!pausedBatch)batchX = playerChunk.x - (int) (renderDistance / 4);
+            for (; batchX < playerChunk.x + (int) (renderDistance / 4); batchX++) {
+                if(!pausedBatch)batchY = playerChunk.y - (int) (renderDistance / 8);
+                for (; batchY < playerChunk.y + (int) (renderDistance / 8); batchY++) {
+                    if(!pausedBatch)batchZ = playerChunk.z - (int) (renderDistance / 8);
+                    for (; batchZ < playerChunk.z + (int) (renderDistance / 8); batchZ++) {
                         pausedBatch = false;
 
                         //load the chunk if it's in range
