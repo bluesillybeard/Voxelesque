@@ -1,6 +1,7 @@
 package util.other;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -20,11 +21,13 @@ import java.util.function.Function;
 public class IteratorSafeMap<K, V> implements Map<K, V>{
     private final Map<K, V> map;
     private boolean iterating;
-    private boolean modifying;
-    //If there is an issue with starting an iterator while the map is being modified, add a modifying variable.
 
-    public IteratorSafeMap(Map<K, V> map) {
-        this.map = map;
+    public IteratorSafeMap(Map<K, V> map, boolean threadSafe) {
+        if(threadSafe){
+            this.map = Collections.synchronizedMap(map);
+        } else {
+            this.map = map;
+        }
     }
 
     public void stopIterating(){
@@ -58,32 +61,24 @@ public class IteratorSafeMap<K, V> implements Map<K, V>{
     @Override
     public V put(K key, V value) {
         waitIterating();
-        modifying = true;
         V out = map.put(key, value);
-        modifying = false;
         return out;
     }
     @Override
     public V remove(Object key) {
         waitIterating();
-        modifying = true;
         V out = map.remove(key);
-        modifying = false;
         return out;
     }
     @Override
     public void putAll(Map<? extends K, ? extends V> m) {
         waitIterating();
-        modifying = true;
         map.putAll(m);
-        modifying = false;
     }
     @Override
     public void clear() {
         waitIterating();
-        modifying = true;
         map.clear();
-        modifying = false;
     }
     @Override
     public Set<K> keySet() {
@@ -105,47 +100,36 @@ public class IteratorSafeMap<K, V> implements Map<K, V>{
     public void forEach(BiConsumer<? super K, ? super V> action) {
         waitIterating();
         iterating = true;
-        waitModifying();
         map.forEach(action);
         iterating = false;
     }
     @Override
     public void replaceAll(BiFunction<? super K, ? super V, ? extends V> function) {
         waitIterating();
-        modifying = true;
         map.replaceAll(function);
-        modifying = false;
     }
     @Override
     public V putIfAbsent(K key, V value) {
         waitIterating();
-        modifying = true;
         V out = map.putIfAbsent(key, value);
-        modifying = false;
         return out;
     }
     @Override
     public boolean remove(Object key, Object value) {
         waitIterating();
-        modifying = true;
         boolean out = map.remove(key, value);
-        modifying = false;
         return out;
     }
     @Override
     public boolean replace(K key, V oldValue, V newValue) {
         waitIterating();
-        modifying = true;
         boolean out = map.replace(key, oldValue, newValue);
-        modifying = false;
         return out;
     }
     @Override
     public V replace(K key, V value) {
         waitIterating();
-        modifying = true;
         V out = map.replace(key, value);
-        modifying = false;
         return out;
     }
     @Override
@@ -163,23 +147,12 @@ public class IteratorSafeMap<K, V> implements Map<K, V>{
     @Override
     public V merge(K key, V value, BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
         waitIterating();
-        waitIterating();
-        modifying = true;
         V out = map.merge(key, value, remappingFunction);
-        modifying = false;
         return out;
     }
     
     private void waitIterating(){
         while(iterating){
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException ignored) {}
-        }
-    }
-
-    private void waitModifying(){
-        while(modifying){
             try {
                 Thread.sleep(10);
             } catch (InterruptedException ignored) {}

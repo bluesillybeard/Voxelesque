@@ -20,16 +20,18 @@ import java.util.stream.Stream;
 public class IteratorSafeList<E> implements List<E> {
     private final List<E> list;
     private boolean iterating;
-    private boolean modifying;
 
-    private boolean waitingIterating;
-
-    public IteratorSafeList(List<E> list) {
-        this.list = list;
+    public IteratorSafeList(List<E> list, boolean threadSafe) {
+        if( threadSafe)this.list = Collections.synchronizedList(list);
+        else this.list = list;
     }
 
     public void stopIterating(){
         iterating = false;
+    }
+
+    public void startIterating(){
+        iterating = true;
     }
     @Override
     public int size() {
@@ -49,14 +51,12 @@ public class IteratorSafeList<E> implements List<E> {
     @Override
     public Iterator<E> iterator() {
         this.iterating = true;
-        waitModifying();
         return list.iterator();
     }
 
     @Override
     public void forEach(Consumer<? super E> action) {
         this.iterating = true;
-        waitModifying();
         list.forEach(action);
         this.iterating = false;
     }
@@ -78,20 +78,14 @@ public class IteratorSafeList<E> implements List<E> {
 
     @Override
     public boolean add(E e) {
-        modifying = true;
         waitIterating();
-        list.add(e);
-        modifying = false;
-        return true;
+        return list.add(e);
     }
 
     @Override
     public boolean remove(Object o) {
-        modifying = true;
         waitIterating();
-        boolean out = list.remove(o);
-        modifying = false;
-        return out;
+        return list.remove(o);
     }
 
     @Override
@@ -101,71 +95,50 @@ public class IteratorSafeList<E> implements List<E> {
 
     @Override
     public boolean addAll(Collection<? extends E> c) {
-        modifying = true;
         waitIterating();
-        boolean out = list.addAll(c);
-        modifying = false;
-        return out;
+        return list.addAll(c);
     }
 
     @Override
     public boolean addAll(int index, Collection<? extends E> c) {
-        modifying = true;
         waitIterating();
-        boolean out = list.addAll(index, c);
-        modifying = false;
-        return out;
+        return list.addAll(index, c);
     }
 
     @Override
     public boolean removeAll(Collection<?> c) {
-        modifying = true;
         waitIterating();
-        boolean out = list.removeAll(c);
-        modifying = false;
-        return out;
+        return list.removeAll(c);
     }
 
     @Override
     public boolean removeIf(Predicate<? super E> filter) {
-        modifying = true;
         waitIterating();
-        boolean out = list.removeIf(filter);
-        modifying = false;
-        return out;
+        return list.removeIf(filter);
     }
 
     @Override
     public boolean retainAll(Collection<?> c) {
-        modifying = true;
         waitIterating();
-        boolean out = list.retainAll(c);
-        modifying = false;
-        return out;
+        return list.retainAll(c);
     }
 
     @Override
     public void replaceAll(UnaryOperator<E> operator) {
-        modifying = true;
         waitIterating();
         list.replaceAll(operator);
-        modifying = false;
     }
 
     @Override
     public void sort(Comparator<? super E> c) {
-        modifying = true;
         waitIterating();
         list.sort(c);
-        modifying = false;
     }
 
     @Override
     public void clear() {
-        modifying = true;
         waitIterating();
         list.clear();
-        modifying = false;
     }
 
     @Override
@@ -175,28 +148,20 @@ public class IteratorSafeList<E> implements List<E> {
 
     @Override
     public E set(int index, E element) {
-        modifying = true;
         waitIterating();
-        E out = list.set(index, element);
-        modifying = false;
-        return out;
+        return list.set(index, element);
     }
 
     @Override
     public void add(int index, E element) {
-        modifying = true;
         waitIterating();
         list.add(index, element);
-        modifying = false;
     }
 
     @Override
     public E remove(int index) {
-        modifying = true;
         waitIterating();
-        E out = list.remove(index);
-        modifying = false;
-        return out;
+        return list.remove(index);
     }
 
     @Override
@@ -212,14 +177,12 @@ public class IteratorSafeList<E> implements List<E> {
     @Override
     public ListIterator<E> listIterator() {
         this.iterating = true;
-        waitModifying();
         return list.listIterator();
     }
 
     @Override
     public ListIterator<E> listIterator(int index) {
         this.iterating = true;
-        waitModifying();
         return list.listIterator(index);
     }
 
@@ -231,7 +194,6 @@ public class IteratorSafeList<E> implements List<E> {
     @Override
     public Spliterator<E> spliterator() {
         iterating = true;
-        waitModifying();
         return list.spliterator();
     }
 
@@ -246,23 +208,11 @@ public class IteratorSafeList<E> implements List<E> {
     }
 
     private void waitIterating(){
-        waitingIterating = true;
         while(iterating){
             try {
-                Thread.sleep(10);
+                Thread.sleep(1);
             } catch (InterruptedException ignored) {}
         }
-        waitingIterating = false;
     }
 
-    private void waitModifying(){
-        while(modifying){
-            if(waitingIterating) { //if we are waiting to modify and waiting to iterate at the same time, you're free to go
-                return;
-            }
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException ignored) {}
-        }
-    }
 }
