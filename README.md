@@ -19,9 +19,9 @@ but the actual C# language is just SOO much better, both in terms of features an
 I choose this because it is something that Minecraft runs on, and these are actually the specs of my secondary PC, 
 which I will be using to test the performance of Voxelesque.
 
-Check out the [planning document](https://docs.google.com/document/d/1Fdh-ZeGf8YEUFWpwgS4D_PbiXnAFNS3MLjdPwnYaDAo)
-And the [Devlogs](https://youtu.be/M8LMCoB7KTM)
-[Short Casual Devlogs](https://www.youtube.com/channel/UCm83QMQFK20LsBOCGx5jYHA/videos)
+Check out the [planning document](https://docs.google.com/document/d/1Fdh-ZeGf8YEUFWpwgS4D_PbiXnAFNS3MLjdPwnYaDAo) <br>
+And the [Devlogs](https://youtu.be/M8LMCoB7KTM) <br>
+[Short Casual Devlogs](https://www.youtube.com/channel/UCm83QMQFK20LsBOCGx5jYHA/videos)<br>
 
 some short term goals I should achieve before I can call this a "complete game":<br>
 - save games<br>
