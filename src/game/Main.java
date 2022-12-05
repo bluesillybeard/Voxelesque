@@ -37,7 +37,7 @@ public class Main {
             }
             resourcesPath = System.getProperty("user.dir") + "/resources";
             render.setResourcesPath(GlobalBits.resourcesPath);
-            renderDistance = 150f;
+            renderDistance = 300f;
             tempV3f0 = new Vector3f();
             tempV3f1 = new Vector3f();
             tempV3i0 = new Vector3i();
@@ -63,7 +63,8 @@ public class Main {
                 updateValues();
                 if (render.getKey(GLFW_KEY_T) == 0) world.reset();
                 if(render.getKey(GLFW_KEY_R) == 0) render.rebuildChunks();
-                double worldTime = world.updateChunks(targetFrameTime);
+                double worldTime = 0;
+                worldTime = world.updateChunks();
 
 
                 updateCameraPos();

@@ -115,8 +115,8 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
         }
     }
     private void setBlockInternal(GPUBlock block, int x, int y, int z){
-        if(blocks != null)blocks[x][y][z] = block;
-        else blocks = new GPUBlock[size][size][size];
+        if(blocks == null) blocks = new GPUBlock[size][size][size];
+        blocks[x][y][z] = block;
     }
 
     @Override
@@ -178,6 +178,10 @@ public class GL33Chunk implements GPUChunk, Comparable<GL33Chunk>{
         }
         taskRunning = true;
         if (blocks != null) {
+            if(getPos().equals(-62, 8, -39))
+            {
+                System.out.println("breakpoint");
+            }
 
         /*
         an overview of how chunk building works:

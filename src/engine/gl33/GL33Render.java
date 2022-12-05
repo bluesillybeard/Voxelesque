@@ -28,6 +28,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
@@ -85,8 +87,8 @@ public class GL33Render implements Render {
     private final IteratorSafeMap<Vector3i, GPUChunk> chunks = new IteratorSafeMap<>(new HashMap<>(), true);
     private final IteratorSafeList<GPUChunk> chunkUpdateBuffer = new IteratorSafeList<>(new LinkedList<>(), true);
     private final IteratorSafeList<GL33Chunk> chunksToClear = new IteratorSafeList<>(new LinkedList<>(), true);
-    private final PriorityThreadPoolExecutor<DistanceRunnable3i> chunkBuildExecutor = new PriorityThreadPoolExecutor<>(DistanceRunnable3i.inOrder, Runtime.getRuntime().availableProcessors());
-
+    //private final PriorityThreadPoolExecutor<DistanceRunnable3i> chunkBuildExecutor = new PriorityThreadPoolExecutor<>(DistanceRunnable3i.inOrder, Runtime.getRuntime().availableProcessors());
+    private final ExecutorService chunkBuildExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     private final VMFLoader vmfLoader = new VMFLoader();
 
@@ -99,7 +101,7 @@ public class GL33Render implements Render {
      *
      * @param width         the width of the window (800 if given an invalid width)
      * @param height        the height of the window (600 if given an invalid height)
-     * @param resourcesPath The path to the resources folder. This path is added at the front of any path to be loaded by the Render.
+     * @param resourcesPath The path to the resources' folder. This path is added at the front of any path to be loaded by the Render.
      * @param VSync         Vsync
      * @param warning       the warning PrintStream, Any warning will be sent through it.
      * @param error         the error PrintStream. Any errors will be sent through it.
@@ -148,7 +150,7 @@ public class GL33Render implements Render {
 
     @Override
     public void close() {
-        chunkBuildExecutor.stop();
+        chunkBuildExecutor.shutdownNow();
     }
 
     @Override
@@ -595,7 +597,8 @@ public class GL33Render implements Render {
             a = chunkUpdateBuffer.remove(c);
         }
         boolean b = chunks.remove(c.getPosition()) != null;
-        boolean c0 = chunkBuildExecutor.getTasks().remove(new DistanceRunnable3i(null, c.getPosition(), null));
+        //boolean c0 = chunkBuildExecutor.getTasks().remove(new DistanceRunnable3i(null, c.getPosition(), null));
+        boolean c0 = false; //TODO: cancel task?
         if(!(c.taskScheduled || c.taskRunning)) {
             c.clearFromGPU();
         } else {
@@ -660,7 +663,7 @@ public class GL33Render implements Render {
     @Override
     public void rebuildChunks() {
         println("Rebuilding chunks asynchronously...");
-        this.chunkBuildExecutor.getTasks().clear();
+        //this.chunkBuildExecutor.c().clear(); //TODO: what
         synchronized (chunkUpdateBuffer){
             this.chunkUpdateBuffer.addAll(this.chunks.values());
         }
@@ -860,9 +863,6 @@ public class GL33Render implements Render {
         renderFrame(startTime);
         window.update();
 
-        //remove deleted chunks
-
-        chunkBuildExecutor.setPaused(true); //pause the executor so that access to the executor queue is guaranteed (improves performance massively)
         //update modified chunks
         if(chunkUpdateBuffer.size() > 0) { //don't submit any new chunks if there aren't any to submit
             synchronized (chunkUpdateBuffer) {
@@ -873,17 +873,13 @@ public class GL33Render implements Render {
                     if (!c.taskScheduled && !c.taskRunning) {
                         c.taskScheduled = true;
                         //copy the result from GetChunkWorldPos since it returns a temporary variable
-                        chunkBuildExecutor.submit(new DistanceRunnable3i(() -> c.build(chunks), c.getPosition(), new Vector3i(RenderUtils.getChunkPos(cameraPosition))));
+                        chunkBuildExecutor.submit(() -> c.build(chunks));
                         iter.remove();
-                    }
-                    if ((getTime() - startTime) > targetFrameTime) {
-                        break;
                     }
                 }
                 chunkUpdateBuffer.stopIterating();
             }
         }
-        chunkBuildExecutor.setPaused(false); //unpause the executor so that it resumes rendering chunks
 
         Iterator<GL33Chunk> iterator = chunksToClear.iterator();
         while(iterator.hasNext()){
@@ -957,9 +953,7 @@ public class GL33Render implements Render {
 
         chunks.forEach((pos, chunk) -> {
             GL33Chunk glChunk = (GL33Chunk)chunk;
-            if (!((getTime() - startTime) > targetFrameTime)) {
-                glChunk.sendToGPU();
-            }
+            glChunk.sendToGPU();
             if(glChunk.canRender){
                 for(GL33Entity entity: glChunk.chunkModel){
                     entity.shaderProgram.bind();
